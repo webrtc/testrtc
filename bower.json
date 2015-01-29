@@ -1,41 +1,36 @@
 {
-  "name": "adapter.js",
-  "description": "A shim to insulate apps from WebRTC spec changes and prefix differences",
+  "name": "TestRTC",
+  "description": "TestRTC is a troubleshooting tool which runs various tests to try to determine issues with users setup.",
   "homepage": "http://googlechrome.github.io/webrtc/",
   "repository": {
     "type": "git",
     "url": "https://github.com/GoogleChrome/webrtc.git"
   },
   "authors": [
-    "The WebRTC project authors (http://www.webrtc.org/)",
-    "Jesús Leganés Combarro \"piranna\" <piranna@gmail.com>"
+    "The WebRTC project authors (http://www.webrtc.org/)"
   ],
-  "main": "samples/web/js/adapter.js",
-  "moduleType": [
-    "globals"
-  ],
+  "main": "samples/web/content/testrtc/index.html",
   "keywords": [
     "WebRTC",
-    "PeerConnection",
-    "RTCPeerConnection",
-    "getUserMedia",
-    "Chrome",
-    "Chromium",
-    "Firefox"
+    "TestRTC"
   ],
-  "license": "BSD-3-Clause",
+  "license": "BSD",
   "ignore": [
     "**/.*",
     "node_modules",
     "bower_components",
     "test",
-    "tests",
-    "Gruntfile.js",
-    "index.html",
-    "package.json",
-    "samples/web/content",
-    "samples/web/css",
-    "samples/web/js/lib",
-    "samples/web/js/videopipe.js"
-  ]
+    "tests"
+  ],
+  "dependencies": {
+    "webcomponentsjs": "Polymer/webcomponentsjs#^0.5.0",
+    "core-toolbar": "Polymer/core-toolbar#^0.5.0",
+    "core-icon-button": "Polymer/core-icon-button#^0.5.0",
+    "core-icon": "Polymer/core-icon#^0.5.0",
+    "core-collapse": "Polymer/core-collapse#^0.5.0",
+    "paper-dialog": "Polymer/paper-dialog#^0.5.0",
+    "paper-progress": "Polymer/paper-progress#^0.5.0",
+    "paper-icon-button": "Polymer/paper-icon-button#^0.5.0",
+    "paper-button": "Polymer/paper-button#^0.5.0"
+  }
 }

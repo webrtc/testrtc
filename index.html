@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <!--
  *  Copyright (c) 2014 The WebRTC project authors. All Rights Reserved.
  *
@@ -6,162 +5,109 @@
  *  that can be found in the LICENSE file in the root of the source
  *  tree.
 -->
+<!DOCTYPE html>
 <html>
 <head>
-
-  <meta charset="utf-8">
-  <meta name="description" content="Client-side WebRTC code samples">
-  <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, maximum-scale=1">
-  <meta itemprop="description" content="Client-side WebRTC code samples">
-  <meta itemprop="image" content="images/webrtc-icon-192x192.png">
-  <meta itemprop="name" content="WebRTC code samples">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta id="theme-color" name="theme-color" content="#ffffff">
-
+  <meta name="keywords" content="WebRTC, HTML5, JavaScript" />
+  <meta name="description" content="Client-side WebRTC code samples." />
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="chrome=1" />
   <base target="_blank">
+  <title>WebRTC Troubleshooter</title>
 
-  <title>WebRTC samples</title>
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Roboto:300,400,500,700">
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/main_nolint.css" />
 
-  <link rel="icon" sizes="192x192" href="images/webrtc-icon-192x192.png">
-  <link href="//fonts.googleapis.com/css?family=Roboto:300,400,500,700" rel="stylesheet" type="text/css">
-  <link rel="stylesheet" href="samples/web/css/main.css" />
+  <script src="bower_components/webcomponentsjs/webcomponents.js"></script>
+  <link rel="import" href="bower_components/core-toolbar/core-toolbar.html">
+  <link rel="import" href="bower_components/core-icon/core-icon.html">
+  <link rel="import" href="bower_components/core-icons/av-icons.html">
+  <link rel="import" href="bower_components/core-collapse/core-collapse.html">
+  <link rel="import" href="bower_components/paper-dialog/paper-dialog.html">
+  <link rel="import" href="bower_components/paper-dialog/paper-action-dialog.html">
+  <link rel="import" href="bower_components/paper-dialog/paper-dialog-transition.html">
+  <link rel="import" href="bower_components/paper-progress/paper-progress.html">
+  <link rel="import" href="bower_components/paper-button/paper-button.html">
+  <link rel="import" href="bower_components/paper-icon-button/paper-icon-button.html">
+  <link rel="import" href="bower_components/testrtc/ui/line-chart.html">
+  <script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
-  <style>
-    h2 {
-      font-size: 1.5em;
-      font-weight: 500;
-    }
-    h3 {
-      border-top: none;
-    }
-    section {
-      border-bottom: 1px solid #eee;
-      margin: 0 0 1.5em 0;
-      padding: 0 0 1.5em 0;
-    }
-    section:last-child {
-      border-bottom: none;
-      margin: 0;
-      padding: 0;
-    }
-  </style>
+    ga('create', 'UA-48530561-3', 'auto');
+    ga('send', 'pageview');
+  </script>
 </head>
-<body>
-  <div id="container">
+<body unresolved>
+  <!-- Title toolbar -->
+  <core-toolbar class="title">
+    <span flex>WebRTC Troubleshooter</span>
+    <paper-icon-button icon="menu" onclick="settingsDialog.toggle()"></paper-icon-button>
+    <paper-icon-button icon="bug-report" onclick="report.open()"></paper-icon-button>
+    <paper-button id="start-button" onclick="start()" raised disabled>Start</paper-button>
+  </core-toolbar>
 
-    <h1>WebRTC samples</h1>
+  <!-- Placeholder for dynamically generated test suites. -->
+  <div id="content"></div>
 
-    <section>
+  <!-- GetUserMedia pending dialog -->
+  <paper-dialog id="gum-pending-dialog"
+                heading="Welcome to WebRTC Troubleshooter"
+                backdrop autoCloseDisabled>
+    <p>To test your webcam, microphone, and speakers we need permission to
+        them selecting by “Allow”.</p>
+  </paper-dialog>
 
-      <p>This is a repository for client-side WebRTC code samples and the <a href="https://apprtc.appspot.com" title="AppRTC video chat client">AppRTC</a> video chat client. The source for these samples is available at <a href="//github.com/GoogleChrome/webrtc" title="View Github repositry for these files">github.com/GoogleChrome/webrtc</a>.</p>
+  <!-- GetUserMedia error dialog -->
+  <paper-dialog id="gum-error-dialog"
+                heading="Welcome to WebRTC Troubleshooter"
+                backdrop autoCloseDisabled>
+    <p>Click the <core-icon icon="av:videocam-off"></core-icon>
+      icon in the URL bar above to give TestRTC access to your computer's
+      camera and microphone.</p>
+    <p>GetUserMedia reason: <span id="gum-error-message"></span></p>
+    <paper-icon-button icon="bug-report" onclick="report.open()">File a bug</paper-icon-button>
+  </paper-dialog>
 
-      <p>Some of the samples use new browser features. They may only work in <a href="//www.google.co.uk/intl/en/chrome/browser/canary.html" title="Download Chrome Canary">Chrome Canary</a> and/or <a href="http://www.mozilla.org/firefox/beta/" title="Download Firefox Beta">Firefox Beta</a>, and may require flags to be set.</p>
+  <!-- GetUserMedia not supported dialog -->
+  <paper-dialog id="gum-not-supported-dialog"
+                heading="Welcome to WebRTC Troubleshooter"
+                backdrop autoCloseDisabled>
+    <p>GetUserMedia is not supported in your browser, please use a WebRTC
+      enabled browser listed at <a href="http://www.webrtc.org">http://www.webrtc.org</a>.</p>
+  </paper-dialog>
 
-      <p>Most of the samples use <a href="//github.com/GoogleChrome/webrtc/blob/master/samples/web/js/adapter.js">adapter.js</a>, a shim to insulate apps from spec changes and prefix differences. (In fact, the standards and protocols used for WebRTC implementations are highly stable, and there are only a few prefixed names. For full interop information, see <a href="//www.webrtc.org/web-apis/interop">webrtc.org/web-apis/interop</a>.)</p>
+  <!-- Settings dialog -->
+  <paper-dialog id="settings-dialog" heading="Settings" transition="paper-dialog-transition-center">
+    <div class="select"><label>Audio source: <select id="audioSource"></select></label></div>
+    <div class="select"><label>Video source: <select id="videoSource"></select></label></div>
+  </paper-dialog>
 
-      <p>Please note that all samples that use <code>getUserMedia()</code> must be run from a server. Calling <code>getUserMedia()</code> from a file:// URL will result in a PERMISSION_DENIED NavigatorUserMediaError.</p>
+  <!-- Report dialog -->
+  <paper-dialog id="report-dialog" heading="Bug Report" backdrop autoCloseDisabled transition="paper-dialog-transition-center">
+    <p>Please file a bug in the <a id="report-link">Chromium bug tracker</a> and attach the report from this page.</p>
+    <paper-button id="report-download" onclick="report.downloadReport()">Download Report</paper-button>
+    <paper-button onclick="this.parentElement.close()">Close</paper-button>
+  </paper-dialog>
 
-      <p><a href="http://www.webrtc.org/testing" title="Command-line flags for WebRTC testing">webrtc.org/testing</a> lists command line flags useful for development and testing with Chrome.</p>
+  <!-- Add common files after this line. -->
+  <script src="js/adapter.js"></script>
+  <script src="js/report.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/call.js"></script>
+  <script src="js/stats.js"></script>
+  <script src="js/ssim.js"></script>
+  <script src="js/gumhandler.js"></script>
+  <script src="js/util.js"></script>
 
-      <p>For more information about WebRTC, we maintain a list of <a href="//docs.google.com/document/d/1idl_NYQhllFEFqkGQOLv8KBK8M3EVzyvxnKkHl4SuM8/edit">WebRTC Resources</a>. If you've never worked with WebRTC, we recommend you start with the 2013 Google I/O <a href="//www.youtube.com/watch?v=p2HzZkd2A40">WebRTC presentation</a>.</p>
-
-      <p>Patches and issues welcome! See <a href="https://github.com/GoogleChrome/webrtc/blob/master/CONTRIBUTING">CONTRIBUTING</a> for instructions. The <a href="https://bit.ly/webrtcdevguide">Developer's Guide</a> for this repo has more information about code style, structure and validation.</p>
-
-    </section>
-
-    <section>
-
-      <h2 id="the-demos">The demos</h2>
-
-      <h3 id="getusermedia">getUserMedia</h3>
-
-      <p><a href="samples/web/content/getusermedia/gum">Basic getUserMedia demo</a></p>
-
-      <p><a href="samples/web/content/getusermedia/canvas">Use getUserMedia with canvas</a></p>
-
-      <p><a href="samples/web/content/getusermedia/filter">Use getUserMedia with canvas and CSS filters</a></p>
-
-      <p><a href="samples/web/content/getusermedia/resolution">Choose camera resolution</a></p>
-
-      <p><a href="samples/web/content/getusermedia/source">Choose camera and microphone</a></p>
-
-      <p><a href="samples/web/content/getusermedia/audio">Audio-only getUserMedia() output to local audio element</a></p>
-
-      <p><a href="samples/web/content/getusermedia/volume">Audio-only getUserMedia() displaying volume</a></p>
-
-      <p><a href="samples/web/content/getusermedia/face">Face tracking, using getUserMedia and canvas</a></p>
-
-      <h3 id="peerconnection">RTCPeerConnection</h3>
-
-      <p><a href="samples/web/content/peerconnection/pc1">Basic peer connection demo</a></p>
-
-      <p><a href="samples/web/content/peerconnection/audio">Audio-only peer connection demo</a></p>
-
-      <p><a href="samples/web/content/peerconnection/multiple">Multiple peer connections at once</a></p>
-
-      <p><a href="samples/web/content/peerconnection/multiple-relay">Forward the output of one PC into another</a></p>
-
-      <p><a href="samples/web/content/peerconnection/munge-sdp">Munge SDP parameters</a></p>
-
-      <p><a href="samples/web/content/peerconnection/pr-answer">Use pranswer when setting up a peer connection</a></p>
-
-      <p><a href="samples/web/content/peerconnection/constraints">Constraints and stats</a></p>
-
-      <p><a href="samples/web/content/peerconnection/create-offer">Display createOffer output for various scenarios</a></p>
-
-      <p><a href="samples/web/content/peerconnection/dtmf">Use RTCDTMFSender</a></p>
-
-      <p><a href="samples/web/content/peerconnection/states">Display peer connection states</a></p>
-
-      <p><a href="samples/web/content/peerconnection/trickle-ice">ICE candidate gathering from STUN/TURN servers</a></p>
-
-      <p><a href="samples/web/content/peerconnection/webaudio-input">Web Audio output as input to peer connection</a></p>
-
-      <h3 id="datachannel">RTCDataChannel</h3>
-
-      <p><a href="samples/web/content/datachannel">Basic data channel demo</a></p>
-
-      <h3 id="videoChat">Video chat</h3>
-
-      <p><a href="//apprtc.appspot.com">AppRTC video chat client</a> powered by Google App Engine</p>
-
-      <p><a href="//apprtc.appspot.com/html/params.html">AppRTC URL parameters</a></p>
-
-    </section>
-
-    <section>
-
-      <h2 id="test-pages">Test pages</h2>
-
-      <p><a href="samples/web/content/manual-test/audio-and-video">Audio and video streams</a></p>
-
-      <p><a href="samples/web/content/manual-test/iframe-apprtc">Iframe apprtc</a></p>
-
-      <p><a href="samples/web/content/manual-test/iframe-video">Iframe video</a></p>
-
-      <p><a href="samples/web/content/manual-test/multiple-audio">Multiple audio streams</a></p>
-
-      <p><a href="samples/web/content/manual-test/multiple-peerconnections">Multiple peerconnections</a></p>
-
-      <p><a href="samples/web/content/manual-test/multiple-video">Multiple video streams</a></p>
-
-      <p><a href="samples/web/content/manual-test/multiple-video-devices">Multiple video devices</a></p>
-
-      <p><a href="samples/web/content/manual-test/peer2peer">Peer2peer</a></p>
-
-      <p><a href="samples/web/content/manual-test/peer2peer-iframe">Peer2peer iframe</a></p>
-
-      <p><a href="samples/web/content/manual-test/single-audio">Single audio stream</a></p>
-
-      <p><a href="samples/web/content/manual-test/single-video">Single video stream</a></p>
-
-    </section>
-
-    <a href="//github.com/GoogleChrome/webrtc" title="View the repository" id="viewSource">github.com/GoogleChrome/webrtc</a>
-
-  </div>
-
-  <script src="samples/web/js/lib/ga.js"></script>
-
+  <!-- Add tests after this line. -->
+  <script src="js/mictest.js"></script>
+  <script src="js/camresolutionstest.js"></script>
+  <script src="js/conntest.js"></script>
+  <script src="js/bandwidth_test.js"></script>
 </body>
 </html>
