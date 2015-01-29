@@ -1,27 +1,19 @@
 {
   "name": "TestRTC",
-  "description": "TestRTC is a troubleshooting tool which runs various tests to try to determine issues with users setup.",
-  "homepage": "http://googlechrome.github.io/webrtc/",
+  "description": "Collection of tests and tools to help diagnose WebRTC systems.",
+  "private": true,
   "repository": {
     "type": "git",
-    "url": "https://github.com/GoogleChrome/webrtc.git"
+    "url": "git://github.com/webrtc/testrtc"
   },
   "authors": [
     "The WebRTC project authors (http://www.webrtc.org/)"
   ],
-  "main": "samples/web/content/testrtc/index.html",
   "keywords": [
     "WebRTC",
     "TestRTC"
   ],
-  "license": "BSD",
-  "ignore": [
-    "**/.*",
-    "node_modules",
-    "bower_components",
-    "test",
-    "tests"
-  ],
+  "license": "BSD-3-Clause",
   "dependencies": {
     "webcomponentsjs": "Polymer/webcomponentsjs#^0.5.0",
     "core-toolbar": "Polymer/core-toolbar#^0.5.0",
