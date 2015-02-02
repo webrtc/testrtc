@@ -1,5 +1,4 @@
-[![Build Status](https://travis-ci.org/GoogleChrome/webrtc.svg)](https://travis-ci.org/GoogleChrome/webrtc)
-
+[![Build Status](https://travis-ci.org/webrtc/testrtc.svg?branch=master)](https://travis-ci.org/webrtc/testrtc)
 # TestRTC #
 
 Collection of tests and tools to help diagnose WebRTC systems.
