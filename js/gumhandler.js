@@ -45,8 +45,11 @@ GumHandler.prototype = {
 
     // Stop all tracks to ensure the camera and audio devices are shutdown
     // directly.
-    for (var i = 0; i < stream.getTracks().length; i++) {
-      stream.getTracks()[i].stop();
+    for (var i = 0; i < stream.getVideoTracks().length; i++) {
+      stream.getVideoTracks()[i].stop();
+    }
+    for (var j = 0; j < stream.getAudioTracks().length; j++) {
+      stream.getAudioTracks()[j].stop();
     }
     this.gumPendingDialog_.close();
     this.gumErrorDialog_.close();
