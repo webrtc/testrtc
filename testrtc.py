@@ -23,7 +23,7 @@ random_file = bytearray([random.randint(0,127) for i in xrange(0,10000)] * 1000)
 class MainPage(webapp2.RequestHandler):
   """The main UI page, renders the 'index.html' template."""
   def get(self):
-    template = jinja_environment.get_template('index.html')
+    template = jinja_environment.get_template('src/index.html')
     content = template.render({})
     self.response.out.write(content)
 
