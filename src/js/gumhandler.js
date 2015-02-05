@@ -15,6 +15,8 @@ function GumHandler() {
   this.gumErrorDialog_ = document.getElementById('gum-error-dialog');
   this.gumNotSupportedDialog_ =
       document.getElementById('gum-not-supported-dialog');
+  this.gumNoDeviceDialog_ =
+      document.getElementById('gum-no-device-dialog');
   this.gumErrorMessage_ = document.getElementById('gum-error-message');
   this.firstUserCheck_ = null;
   this.gumStreamSuccessCallback_ = null;
@@ -59,8 +61,13 @@ GumHandler.prototype = {
   gotError_: function(error) {
     clearTimeout(this.firstUserCheck_);
     this.gumPendingDialog_.close();
-    this.gumErrorMessage_.innerHTML = error.name;
-    this.gumErrorDialog_.open();
+    if (error.name === "DevicesNotFoundError") {
+      this.gumNoDeviceDialog_.open();
+    }
+    else {
+      this.gumErrorMessage_.innerHTML = error.name;
+      this.gumErrorDialog_.open();
+    }
     setTimeout(this.getUserMedia_.bind(this), 1000);
   }
 };
