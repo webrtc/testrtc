@@ -61,10 +61,9 @@ GumHandler.prototype = {
   gotError_: function(error) {
     clearTimeout(this.firstUserCheck_);
     this.gumPendingDialog_.close();
-    if (error.name === "DevicesNotFoundError") {
+    if (error.name === 'DevicesNotFoundError') {
       this.gumNoDeviceDialog_.open();
-    }
-    else {
+    } else {
       this.gumErrorMessage_.innerHTML = error.name;
       this.gumErrorDialog_.open();
     }
