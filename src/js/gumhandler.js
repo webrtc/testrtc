@@ -55,6 +55,7 @@ GumHandler.prototype = {
     }
     this.gumPendingDialog_.close();
     this.gumErrorDialog_.close();
+    this.gumNoDeviceDialog_.close();
     this.gumStreamSuccessCallback_();
   },
 
@@ -62,8 +63,10 @@ GumHandler.prototype = {
     clearTimeout(this.firstUserCheck_);
     this.gumPendingDialog_.close();
     if (error.name === 'DevicesNotFoundError') {
+      this.gumErrorDialog_.close();
       this.gumNoDeviceDialog_.open();
     } else {
+      this.gumNoDeviceDialog_.close();
       this.gumErrorMessage_.innerHTML = error.name;
       this.gumErrorDialog_.open();
     }
