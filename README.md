@@ -8,27 +8,25 @@ Patches and issues welcome! See [CONTRIBUTING](https://github.com/GoogleChrome/w
 
 ## Manual test pages ##
 
-TODO: Update links.
+[Audio and Video streams](https://test.webrtc.org/manual/audio-and-video/)
 
-[Audio and Video streams](https://googlechrome.github.io/webrtc/samples/web/content/manual-test/audio-and-video)
+[Iframe apprtc](https://test.webrtc.org/manual/iframe-apprtc/)
 
-[Iframe apprtc](https://googlechrome.github.io/webrtc/samples/web/content/manual-test/iframe-apprtc)
+[Iframe video](https://test.webrtc.org/manual/iframe-video/)
 
-[Iframe video](https://googlechrome.github.io/webrtc/samples/web/content/manual-test/iframe-video)
+[Multiple audio streams](https://test.webrtc.org/manual/multiple-audio/)
 
-[Multiple audio streams](https://googlechrome.github.io/webrtc/samples/web/content/manual-test/multiple-audio)
+[Multiple peerconnections](https://test.webrtc.org/manual/multiple-peerconnections/)
 
-[Multiple peerconnections](https://googlechrome.github.io/webrtc/samples/web/content/manual-test/multiple-peerconnections)
+[Multiple video devices](https://test.webrtc.org/manual/multiple-video-devices/)
 
-[Multiple video devices](https://googlechrome.github.io/webrtc/samples/web/content/manual-test/multiple-video-devices)
+[Multiple video streams](https://test.webrtc.org/manual/multiple-video/)
 
-[Multiple video streams](https://googlechrome.github.io/webrtc/samples/web/content/manual-test/multiple-video)
+[Peer2peer](https://test.webrtc.org/manual/peer2peer/)
 
-[Peer2peer](https://googlechrome.github.io/webrtc/samples/web/content/manual-test/peer2peer)
+[Peer2peer iframe](https://test.webrtc.org/manual/peer2peer-iframe/)
 
-[Peer2peer iframe](https://googlechrome.github.io/webrtc/samples/web/content/manual-test/peer2peer-iframe)
+[Single audio stream](https://test.webrtc.org/manual/single-audio/)
 
-[Single audio stream](https://googlechrome.github.io/webrtc/samples/web/content/manual-test/single-audio)
-
-[Single video stream](https://googlechrome.github.io/webrtc/samples/web/content/manual-test/single-video)
+[Single video stream](https://test.webrtc.org/manual/single-video/)
 
