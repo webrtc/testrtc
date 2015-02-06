@@ -16,9 +16,9 @@ handlers:
 - url: /manual
   static_dir: src/manual
 
-- url: /images/(.*\.(bmp|gif|ico|jpeg|jpg|png))
-  static_files: src/images/\1
-  upload: src/(.*\.(bmp|gif|ico|jpeg|jpg|png))
+- url: /images
+  static_files: src/images
+  upload: src/images
 
 - url: /js
   static_dir: src/js
