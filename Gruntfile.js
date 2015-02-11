@@ -17,7 +17,7 @@ module.exports = function(grunt) {
         src: [
           '**/*.css',
           '!**/*_nolint.css',
-          '!bower_components/**',
+          '!components/**',
           '!node_modules/**'
         ]
       }
@@ -28,7 +28,7 @@ module.exports = function(grunt) {
         src: [
           // TODO: fix rule and enable html linting.
           '!**/*.html',
-          '!bower_components/**',
+          '!components/**',
           '!node_modules/**'
         ]
       }
@@ -38,14 +38,17 @@ module.exports = function(grunt) {
       src: '**/*.js',
       options: {
         preset: 'google', // as per Google style guide – could use '.jscsrc' instead
-        excludeFiles: ['bower_components/**', 'node_modules/**']
+        excludeFiles: [
+          'components/**',
+          'node_modules/**'
+        ]
       }
     },
 
     jshint: {
       options: {
         ignores: [
-          'bower_components/**',
+          'components/**',
           'node_modules/**'
         ],
         jshintrc: 'build/jshintrc'
