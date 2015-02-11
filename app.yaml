@@ -26,11 +26,11 @@ handlers:
 - url: /css
   static_dir: src/css
 
-- url: /bower_components/testrtc/ui
+- url: /components/testrtc/ui
   static_dir: src/ui
 
-- url: /bower_components
-  static_dir: bower_components
+- url: /components
+  static_dir: components
 
 - url: /.*
   script: testrtc.app

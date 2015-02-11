@@ -1,3 +1,3 @@
 *.pyc
+components
 node_modules
-bower_components
