@@ -20,6 +20,12 @@ function GumHandler() {
   this.gumErrorMessage_ = document.getElementById('gum-error-message');
   this.firstUserCheck_ = null;
   this.gumStreamSuccessCallback_ = null;
+  this.gumBypassed_ = false;
+  this.gumBypassButton_ = document.getElementById('gum-bypass');
+  this.gumBypassButton_.addEventListener('click', function() {
+    this.gumBypassed_ = true;
+  }.bind(this));
+
 }
 
 GumHandler.prototype = {
@@ -38,8 +44,27 @@ GumHandler.prototype = {
   },
 
   getUserMedia_: function() {
-    doGetUserMedia({audio: true, video: true}, this.gotStream_.bind(this),
-        this.gotError_.bind(this));
+    var constraints = {};
+    if (typeof MediaStreamTrack.getSources !== 'undefined') {
+      MediaStreamTrack.getSources(function(sources) {
+        for (var l = 0; l < sources.length; l++) {
+          if (sources[l].kind === 'audio') {
+            constraints.audio = true;
+          }
+          if (sources[l].kind === 'video') {
+            constraints.video = true;
+          }
+          if (l === sources.length - 1) {
+            doGetUserMedia(constraints, this.gotStream_.bind(this),
+                this.gotError_.bind(this));
+          }
+        }
+      }.bind(this));
+    } else {
+      //If the browser does not have getSources support fall back to default.
+      doGetUserMedia({audio: true, video: true}, this.gotStream_.bind(this),
+          this.gotError_.bind(this));
+    }
   },
 
   gotStream_: function(stream) {
@@ -65,10 +90,18 @@ GumHandler.prototype = {
     if (error.name === 'DevicesNotFoundError') {
       this.gumErrorDialog_.close();
       this.gumNoDeviceDialog_.open();
-    } else {
+    } else if (!this.gumBypassed_) {
       this.gumNoDeviceDialog_.close();
       this.gumErrorMessage_.innerHTML = error.name;
       this.gumErrorDialog_.open();
+    }
+    if (this.gumBypassed_) {
+      var traceGumBypassed = report.traceEventAsync('getusermedia');
+      traceGumBypassed('User has bypassed gum.');
+      // Rename the callback to correspond to the correct status.
+      this.gumBypassCallback_ = this.gumStreamSuccessCallback_;
+      this.gumBypassCallback_();
+      return;
     }
     setTimeout(this.getUserMedia_.bind(this), 1000);
   }

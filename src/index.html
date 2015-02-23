@@ -61,8 +61,8 @@
   <paper-dialog id="gum-pending-dialog"
                 heading="Welcome to WebRTC Troubleshooter"
                 backdrop autoCloseDisabled>
-    <p>To test your webcam, microphone, and speakers we need permission to
-        them selecting by “Allow”.</p>
+    <p>To test your webcam, microphone and speakers we need permission to use
+      them, approve by selecting “Allow”.</p>
   </paper-dialog>
 
   <!-- GetUserMedia error dialog -->
@@ -74,6 +74,7 @@
       camera and microphone.</p>
     <p>GetUserMedia reason: <span id="gum-error-message"></span></p>
     <paper-icon-button icon="bug-report" onclick="report.open()">File a bug</paper-icon-button>
+    <paper-button id="gum-bypass" onclick="this.parentElement.close()">Continue without audio or video</paper-button>
   </paper-dialog>
 
   <!-- GetUserMedia not supported dialog -->
@@ -90,6 +91,7 @@
                 backdrop autoCloseDisabled>
     <p>Your device does not have any audio or video devices connected.
       Please, plug a microphone or a camera into your device.</p>
+  <paper-button id="gum-bypass" onclick="this.parentElement.close()">Continue without audio or video</paper-button>
   </paper-dialog>
 
   <!-- Settings dialog -->
