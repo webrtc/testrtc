@@ -72,8 +72,10 @@
       icon in the URL bar above to give TestRTC access to your computer's
       camera and microphone.</p>
     <p>GetUserMedia reason: <span id="gum-error-message"></span></p>
-    <paper-icon-button icon="bug-report" onclick="report.open()">File a bug</paper-icon-button>
-    <paper-button id="gum-bypass" onclick="this.parentElement.close()">Continue without audio or video</paper-button>
+    <div horizontal justified layout>
+      <paper-button onclick="report.open()">File a bug</paper-button>
+      <paper-button id="gum-bypass" onclick="this.parentElement.parentElement.close()">Continue without audio and/or video</paper-button>
+    </div>
   </paper-dialog>
 
   <!-- GetUserMedia not supported dialog -->
