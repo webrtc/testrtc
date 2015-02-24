@@ -332,7 +332,7 @@ function doGetUserMedia(constraints, onSuccess, onFail) {
     if (onFail) {
       onFail.apply(this, arguments);
     } else {
-      reportFatal('Failed to get access to local media. Error name was ' +
+      reportFatal('Failed to get access to local media due to error: ' +
                   error.name);
     }
   };

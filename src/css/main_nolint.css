@@ -11,7 +11,6 @@ html /deep/ core-icon[icon="av:videocam-off"] {
   color: #888;
 }
 
-html /deep/ paper-dialog,
-html /deep/ paper-action-dialog {
+html /deep/ paper-dialog {
   top: 2em;
 }

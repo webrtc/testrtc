@@ -117,7 +117,7 @@ function testVideoBandwidth(config) {
   // tracked on: https://code.google.com/p/webrtc/issues/detail?id=3050
   call.disableVideoFec();
 
-  doGetUserMedia({audio: false, video: true}, gotStream, reportFatal);
+  doGetUserMedia({audio: false, video: true}, gotStream);
 
   function gotStream(stream) {
     call.pc1.addStream(stream);
