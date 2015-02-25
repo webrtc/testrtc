@@ -86,15 +86,6 @@
       enabled browser listed at <a href="http://www.webrtc.org">http://www.webrtc.org</a>.</p>
   </paper-dialog>
 
-  <!-- GetUserMedia no audio or video device dialog -->
-  <paper-dialog id="gum-no-device-dialog"
-                heading="Welcome to WebRTC Troubleshooter"
-                backdrop autoCloseDisabled>
-    <p>Your device does not have any audio or video devices connected.
-      Please, plug a microphone or a camera into your device.</p>
-  <paper-button id="gum-bypass" onclick="this.parentElement.close()">Continue without audio or video</paper-button>
-  </paper-dialog>
-
   <!-- Settings dialog -->
   <paper-dialog id="settings-dialog" heading="Settings" transition="paper-dialog-transition-center">
     <div class="select"><label>Audio source: <select id="audioSource"></select></label></div>
