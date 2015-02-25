@@ -86,7 +86,6 @@ GumHandler.prototype = {
   },
 
   gotError_: function(error) {
-    console.log(error.name);
     clearTimeout(this.firstUserCheck_);
     this.gumPendingDialog_.close();
     if (!this.gumBypassed_) {
