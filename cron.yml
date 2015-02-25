@@ -1,0 +1,4 @@
+cron:
+- description: Cleanup blobstore files.
+  url: /tasks/blobstore/clean
+  schedule: every 24 hours

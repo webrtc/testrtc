@@ -9,7 +9,7 @@
 'use strict';
 
 function Report() {
-  this.output_ = ['TestRTC-Diagnose v0.1'];
+  this.output_ = [];
   this.nextAsyncId_ = 0;
 
   // Hook console.log into the report, since that is the most common debug tool.
@@ -24,16 +24,19 @@ function Report() {
 
 Report.prototype = {
   open: function() {
-    document.getElementById('report-link').href = this.linkToChromiumBug_();
-    document.getElementById('report-dialog').open();
+    document.querySelector('report-dialog').open();
   },
 
-  downloadReport: function() {
-    var content = encodeURIComponent(this.getContent_());
-    var link = document.createElement('a');
-    link.setAttribute('href', 'data:text/plain;charset=utf-8,' + content);
-    link.setAttribute('download', 'testrtc-' + (new Date().toJSON()) + '.log');
-    link.click();
+  // Clears the log and adds sytem-info from the device.
+  clearLog_: function() {
+    this.output_ = [];
+    this.traceEventInstant('system-info', Report.getSystemInfo());
+  },
+
+  traceEventHeader: function(name, args) {
+    this.output_.unshift({'ts': Date.now(),
+                          'name': name,
+                          'args': args});
   },
 
   traceEventInstant: function(name, args) {
@@ -65,27 +68,10 @@ Report.prototype = {
     });
   },
 
-  linkToChromiumBug_: function() {
-    var info = Report.getSystemInfo();
-
-    var description = 'Browser: ' + info.browserName + ' ' +
-        info.browserVersion + ' (' + info.platform + ')\n\n' +
-        'Output from the troubleshooting page at http://test.webrtc.org:\n\n' +
-        'Please replace this text with the copy+pasted output from test page!';
-
-    // Labels for the bug to be filed.
-    var osLabel = 'OS-';
-    if (info.platform.indexOf('Win') !== -1) { osLabel += 'Windows'; }
-    if (info.platform.indexOf('Mac') !== -1) { osLabel += 'Mac'; }
-    if (info.platform.match('iPhone|iPad|iPod|iOS')) { osLabel += 'iOS'; }
-    if (info.platform.indexOf('Linux') !== -1) { osLabel += 'Linux'; }
-    if (info.platform.indexOf('Android') !== -1) { osLabel += 'Android'; }
-
-    var labels = 'webrtc-troubleshooter,Cr-Blink-WebRTC,' + osLabel;
-    var url = 'https://code.google.com/p/chromium/issues/entry?' +
-        'comment=' + encodeURIComponent(description) +
-        '&labels=' + encodeURIComponent(labels);
-    return url;
+  generateBugReport_: function(bugDescription) {
+    this.traceEventHeader('description', bugDescription);
+    this.traceEventHeader('title', 'WebRTC Troubleshooter bug report');
+    return this.getContent_();
   },
 
   // Returns the logs into a JSON formated string that is a list of events
