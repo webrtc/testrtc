@@ -68,10 +68,8 @@
   <paper-dialog id="gum-error-dialog"
                 heading="Welcome to WebRTC Troubleshooter"
                 backdrop autoCloseDisabled>
-    <p>Click the <core-icon icon="av:videocam-off"></core-icon>
-      icon in the URL bar above to give TestRTC access to your computer's
-      camera and microphone.</p>
-    <p>GetUserMedia reason: <span id="gum-error-message"></span></p>
+    <p id="gum-error-message">Failed to access your computer's camera and microphone.</p>
+    <p>GetUserMedia result: <span id="gum-error-reason"></span></p>
     <div horizontal justified layout>
       <paper-button onclick="report.open()">File a bug</paper-button>
       <paper-button id="gum-bypass" onclick="this.parentElement.parentElement.close()">Continue without audio and/or video</paper-button>
@@ -84,15 +82,6 @@
                 backdrop autoCloseDisabled>
     <p>GetUserMedia is not supported in your browser, please use a WebRTC
       enabled browser listed at <a href="http://www.webrtc.org">http://www.webrtc.org</a>.</p>
-  </paper-dialog>
-
-  <!-- GetUserMedia no audio or video device dialog -->
-  <paper-dialog id="gum-no-device-dialog"
-                heading="Welcome to WebRTC Troubleshooter"
-                backdrop autoCloseDisabled>
-    <p>Your device does not have any audio or video devices connected.
-      Please, plug a microphone or a camera into your device.</p>
-  <paper-button id="gum-bypass" onclick="this.parentElement.close()">Continue without audio or video</paper-button>
   </paper-dialog>
 
   <!-- Settings dialog -->
