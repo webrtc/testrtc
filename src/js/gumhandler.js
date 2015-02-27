@@ -15,6 +15,7 @@ function GumHandler() {
   this.gumErrorDialog_ = document.getElementById('gum-error-dialog');
   this.gumNotSupportedDialog_ =
       document.getElementById('gum-not-supported-dialog');
+  this.gumErrorReason_ = document.getElementById('gum-error-reason');
   this.gumErrorMessage_ = document.getElementById('gum-error-message');
   this.firstUserCheck_ = null;
   this.gumStreamSuccessCallback_ = null;
@@ -23,7 +24,6 @@ function GumHandler() {
   this.gumBypassButton_.addEventListener('click', function() {
     this.gumBypassed_ = true;
   }.bind(this));
-
 }
 
 GumHandler.prototype = {
@@ -89,12 +89,21 @@ GumHandler.prototype = {
     clearTimeout(this.firstUserCheck_);
     this.gumPendingDialog_.close();
     if (!this.gumBypassed_) {
-      this.gumNoDeviceDialog_.close();
-      this.gumErrorMessage_.innerHTML = error.name;
+      if (error.name === 'DevicesNotFoundError') {
+        this.gumErrorMessage_.innerHTML = 'No devices found, please connect ' +
+            'a camera or microphone to continue, alternatively continue ' +
+            'without media devices.';
+      }
+      if (error.name === 'PermissionDeniedError') {
+        this.gumErrorMessage_.innerHTML = 'Click the ' +
+            '<core-icon icon="av:videocam-off"></core-icon> icon in the URL ' +
+            'bar above to give TestRTC access to your computer\'s camera and ' +
+            'microphone.</p>';
+      }
+      this.gumErrorReason_.innerHTML = error.name;
       this.gumErrorDialog_.open();
-    } else if (this.gumBypassed_) {
-      var traceGumBypassed = report.traceEventAsync('getusermedia');
-      traceGumBypassed('User has bypassed gum.');
+    } else {
+      report.traceEventInstant('getusermedia', 'User has bypassed gum.');
       // Rename the callback to correspond to the correct status.
       this.gumBypassCallback_ = this.gumStreamSuccessCallback_;
       this.gumBypassCallback_();
