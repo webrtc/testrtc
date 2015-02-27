@@ -68,8 +68,8 @@
   <paper-dialog id="gum-error-dialog"
                 heading="Welcome to WebRTC Troubleshooter"
                 backdrop autoCloseDisabled>
-    <p id="gum-error-message">General error, lookup the getUserMedia error in the WebRTC standard.</p>
-    <p>GetUserMedia reason: <span id="gum-error-reason"></span></p>
+    <p id="gum-error-message">Failed to access your computer's camera and microphone.</p>
+    <p>GetUserMedia result: <span id="gum-error-reason"></span></p>
     <div horizontal justified layout>
       <paper-button onclick="report.open()">File a bug</paper-button>
       <paper-button id="gum-bypass" onclick="this.parentElement.parentElement.close()">Continue without audio and/or video</paper-button>
