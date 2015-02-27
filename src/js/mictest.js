@@ -128,8 +128,10 @@ MicTest.prototype = {
   testInputVolume: function(buffer, channel) {
     var data = buffer.getChannelData(channel);
     var sum = 0;
+    var s = 0;
     for (var sample = 0; sample < buffer.length; ++sample) {
-      sum += Math.abs(data[sample]);
+      s = data[sample];
+      sum += s * s;
     }
     var rms = Math.sqrt(sum / buffer.length);
     var db = 20 * Math.log(rms) / Math.log(10);
