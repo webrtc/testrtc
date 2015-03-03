@@ -128,21 +128,23 @@ MicTest.prototype = {
   testInputVolume: function(buffer, channel) {
     var data = buffer.getChannelData(channel);
     var sum = 0;
-    for (var sample = 0; sample < buffer.length; ++sample) {
-      sum += Math.abs(data[sample]);
+    var sample = 0;
+    for (var i = 0; i < buffer.length; ++i) {
+      sample = data[i];
+      sum += sample * sample;
     }
     var rms = Math.sqrt(sum / buffer.length);
-    var db = 20 * Math.log(rms) / Math.log(10);
+    var dB = 20 * Math.log(rms) / Math.log(10);
 
     // Check input audio level.
-    if (db < this.lowVolumeThreshold) {
+    if (dB < this.lowVolumeThreshold) {
       // Use Math.round to display up to two decimal places.
-      reportError('Audio input level = ' + Math.round(db * 1000) / 1000 +
-                  ' db.' + ' Microphone input level is low, increase input ' +
+      reportError('Audio input level = ' + Math.round(dB * 1000) / 1000 +
+                  ' dB.' + ' Microphone input level is low, increase input ' +
                   'volume or move closer to the microphone.');
     } else {
       reportSuccess('Audio power for channel ' + channel + '=' +
-                    Math.round(db * 1000) / 1000 + ' db');
+                    Math.round(dB * 1000) / 1000 + ' dB');
     }
   }
 };
