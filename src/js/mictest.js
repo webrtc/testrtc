@@ -13,8 +13,8 @@ addTest('Microphone', 'Audio capture', function() {
 });
 
 function MicTest() {
-  this.inputChannels = 6;
-  this.outputChannels = 2;
+  this.inputChannelCount = 6;
+  this.outputChannelCount = 2;
   // Buffer size set to 0 to let Chrome choose based on the platform.
   this.bufferSize = 0;
   // Turning off echoCancellation constraint enables stereo input.
@@ -26,18 +26,23 @@ function MicTest() {
     }
   };
 
-  this.inputSamples = [];
-  this.inputSampleCount = 0;
-  for (var i = 0; i < this.inputChannels; ++i) {
-    this.inputSamples[i] = [];
-  }
-
   this.collectSeconds = 2.0;
+  // At least one LSB 16-bit data (compare is on absolute value).
   this.silentThreshold = 1.0 / 32767;
-  this.clipThreshold = 1.0 - 1.0 / 32767;
   this.lowVolumeThreshold = -60;
-  this.monoDetectThreshold = 1.0 / 65535;
+  // Data must be identical within one LSB 16-bit to be identified as mono.
+  this.monoDetectThreshold = 1.0 / 65536;
+  // Number of consequtive clipThreshold level samples that indicate clipping.
   this.clipCountThreshold = 4;
+  this.clipThreshold = 1.0;
+
+  // Populated with audio as a 3-dimensional array:
+  //   collectedAudio[channels][buffers][samples]
+  this.collectedAudio = [];
+  this.collectedSampleCount = 0;
+  for (var i = 0; i < this.inputChannelCount; ++i) {
+    this.collectedAudio[i] = [];
+  }
 }
 
 MicTest.prototype = {
@@ -72,7 +77,7 @@ MicTest.prototype = {
   createAudioBuffer: function() {
     this.audioSource = audioContext.createMediaStreamSource(this.stream);
     this.scriptNode = audioContext.createScriptProcessor(this.bufferSize,
-        this.inputChannels, this.outputChannels);
+        this.inputChannelCount, this.outputChannelCount);
     this.audioSource.connect(this.scriptNode);
     this.scriptNode.connect(audioContext.destination);
     this.scriptNode.onaudioprocess = this.collectAudio.bind(this);
@@ -81,31 +86,31 @@ MicTest.prototype = {
   },
 
   collectAudio: function(event) {
-    // Simple silent detection: check first and last sample of each channel in
-    // the buffer. If all are below a threshold, the buffer is considered
-    // silent. Non-silent buffers are stored for analysis. Note that the silent
+    // Simple silence detection: check first and last sample of each channel in
+    // the buffer. If both are below a threshold, the buffer is considered
+    // silent. Non-silent buffers are copied for analysis. Note that the silent
     // detection will likely cause the stored stream to contain discontinuities,
     // but that is ok for our needs here (just looking at levels).
-    var channelCount = event.inputBuffer.numberOfChannels;
     var sampleCount = event.inputBuffer.length;
-    var sampleData = [];
-    var isSilent = true;
-    var c = 0;
-    for (c = 0; c < channelCount; ++c) {
-      sampleData[c] = event.inputBuffer.getChannelData(c);
-      var first = Math.abs(sampleData[c][0]);
-      var last = Math.abs(sampleData[c][sampleCount - 1]);
+    var allSilent = true;
+    for (var c = 0; c < event.inputBuffer.numberOfChannels; c++) {
+      var data = event.inputBuffer.getChannelData(c);
+      var first = Math.abs(data[0]);
+      var last = Math.abs(data[sampleCount - 1]);
+      var newBuffer;
       if (first > this.silentThreshold || last > this.silentThreshold) {
-        isSilent = false;
+        newBuffer = new Float32Array(sampleCount);
+        newBuffer.set(data);
+        allSilent = false;
+      } else {
+        newBuffer = new Float32Array();
       }
+      this.collectedAudio[c].push(newBuffer);
     }
-    if (!isSilent) {
-      for (c = 0; c < channelCount; ++c) {
-        this.inputSamples[c].push(sampleData[c]);
-      }
-      this.inputSampleCount += sampleCount;
-      var inputSeconds = this.inputSampleCount / event.inputBuffer.sampleRate;
-      if (inputSeconds >= this.collectSeconds) {
+    if (!allSilent) {
+      this.collectedSampleCount += sampleCount;
+      if ((this.collectedSampleCount / event.inputBuffer.sampleRate) >=
+          this.collectSeconds) {
         this.stopCollectingAudio();
       }
     }
@@ -115,28 +120,45 @@ MicTest.prototype = {
     this.stream.getAudioTracks()[0].stop();
     this.audioSource.disconnect(this.scriptNode);
     this.scriptNode.disconnect(audioContext.destination);
-    this.analyzeAudio(this.inputSamples);
+    this.analyzeAudio(this.collectedAudio);
     testFinished();
   },
 
-  analyzeAudio: function(inputSamples) {
+  analyzeAudio: function(channels) {
     var activeChannels = [];
+    for (var c = 0; c < channels.length; c++) {
+      if (this.channelStats(c, channels[c])) {
+        activeChannels.push(c);
+      }
+    }
+    if (activeChannels.length === 0) {
+      reportError('No active input channels detected. Microphone is most ' +
+                  'likely muted or broken, please check if muted in the ' +
+                  'sound settings or physically on the device. Then rerun ' +
+                  'the test.');
+    } else {
+      reportSuccess('Active audio input channels: ' + activeChannels.length);
+    }
+    if (activeChannels.length === 2) {
+      this.detectMono(channels[activeChannels[0]], channels[activeChannels[1]]);
+    }
+  },
 
-    // Iterate over all channels and buffers, collect stats.
-    for (var channel = 0; channel < inputSamples.length; ++channel) {
-      var maxPeak = 0.0;
-      var maxRms = 0.0;
-      var clipCount = 0;
-      var maxClipCount = 0;
-      for (var j = 0; j < inputSamples[channel].length; ++j) {
-        var rms = 0.0;
-        var samples = inputSamples[channel][j];
+  channelStats: function(channelNumber, buffers) {
+    var maxPeak = 0.0;
+    var maxRms = 0.0;
+    var clipCount = 0;
+    var maxClipCount = 0;
+    for (var j = 0; j < buffers.length; j++) {
+      var samples = buffers[j];
+      if (samples.length > 0) {
         var s = 0;
-        for (var i = 0; i < samples.length; ++i) {
+        var rms = 0.0;
+        for (var i = 0; i < samples.length; i++) {
           s = Math.abs(samples[i]);
           maxPeak = Math.max(maxPeak, s);
           rms += s * s;
-          if (maxPeak > this.clipThreshold) {
+          if (maxPeak >= this.clipThreshold) {
             clipCount++;
             maxClipCount = Math.max(maxClipCount, clipCount);
           } else {
@@ -146,56 +168,46 @@ MicTest.prototype = {
         rms = Math.sqrt(rms / samples.length);
         maxRms = Math.max(maxRms, rms);
       }
-
-      if (maxPeak > this.silentThreshold) {
-        activeChannels.push(channel);
-        var dBPeak = this.dBFS(maxPeak);
-        var dBRms = this.dBFS(maxRms);
-        reportInfo('Channel ' + channel + ' levels: ' +
-                   dBPeak.toFixed(2) + ' dB (peak), ' +
-                   dBRms.toFixed(2) + ' dB (RMS)');
-        if (dBRms < this.lowVolumeThreshold) {
-          reportError('Microphone input level is low, increase input ' +
-                      'volume or move closer to the microphone.');
-        }
-        if (maxClipCount > this.clipCountThreshold) {
-          reportError('Clipping detected! Microphone input level is high. ' +
-                      'Decrease input volume or move away from the ' +
-                      'microphone.');
-        }
-      }
     }
 
-    // Validate the result.
-    if (activeChannels.length === 0) {
-      reportError('No active input channels detected. Microphone is most ' +
-                  'likely muted or broken, please check if muted in the ' +
-                  'sound settings or physically on the device. Then rerun ' +
-                  'the test.');
+    if (maxPeak > this.silentThreshold) {
+      var dBPeak = this.dBFS(maxPeak);
+      var dBRms = this.dBFS(maxRms);
+      reportInfo('Channel ' + channelNumber + ' levels: ' +
+                 dBPeak.toFixed(2) + ' dB (peak), ' +
+                 dBRms.toFixed(2) + ' dB (RMS)');
+      if (dBRms < this.lowVolumeThreshold) {
+        reportError('Microphone input level is low, increase input ' +
+                    'volume or move closer to the microphone.');
+      }
+      if (maxClipCount > this.clipCountThreshold) {
+        reportError('Clipping detected! Microphone input level is high. ' +
+                    'Decrease input volume or move away from the ' +
+                    'microphone.');
+      }
+      return true;
     } else {
-      reportSuccess('Active audio input channels: ' + activeChannels.length);
+      return false;
     }
+  },
 
-    // If two channel input, compare samples to determine if it is a mono
-    // microphone.
-    if (activeChannels.length === 2) {
-      var diffSamples = 0;
-      for (var j = 0; j < inputSamples[activeChannels[0]].length; ++j) {
-        var l = inputSamples[activeChannels[0]][j];
-        var r = inputSamples[activeChannels[1]][j];
-        var d = 0.0;
-        for (var i = 0; i < l.length; ++i) {
-          d = Math.abs(l[i] - r[i]);
-          if (d > this.monoDetectThreshold) {
-            diffSamples++;
-          }
+  detectMono: function(buffersL, buffersR) {
+    var diffSamples = 0;
+    for (var j = 0; j < buffersL.length; j++) {
+      var l = buffersL[j];
+      var r = buffersR[j];
+      var d = 0.0;
+      for (var i = 0; i < l.length; i++) {
+        d = Math.abs(l[i] - r[i]);
+        if (d > this.monoDetectThreshold) {
+          diffSamples++;
         }
       }
-      if (diffSamples > 0) {
-        reportInfo('Stereo microphone detected.');
-      } else {
-        reportInfo('Mono microphone detected.');
-      }
+    }
+    if (diffSamples > 0) {
+      reportInfo('Stereo microphone detected.');
+    } else {
+      reportInfo('Mono microphone detected.');
     }
   },
 
