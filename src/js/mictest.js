@@ -197,11 +197,15 @@ MicTest.prototype = {
       var l = buffersL[j];
       var r = buffersR[j];
       var d = 0.0;
-      for (var i = 0; i < l.length; i++) {
-        d = Math.abs(l[i] - r[i]);
-        if (d > this.monoDetectThreshold) {
-          diffSamples++;
+      if (l.length == r.length) {
+        for (var i = 0; i < l.length; i++) {
+          d = Math.abs(l[i] - r[i]);
+          if (d > this.monoDetectThreshold) {
+            diffSamples++;
+          }
         }
+      } else {
+        diffSamples++;
       }
     }
     if (diffSamples > 0) {
