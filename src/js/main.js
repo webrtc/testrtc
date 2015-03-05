@@ -427,11 +427,17 @@ function setTimeoutWithProgressBar(timeoutCallback, timeoutMs) {
     setTestProgress((now - start) * 100 / timeoutMs);
   }, 100);
 
-  setTimeout(function() {
+  var timeoutTask = function() {
     clearInterval(updateProgressBar);
     setTestProgress(100);
     timeoutCallback();
-  }, timeoutMs);
+  };
+  var timer = setTimeout(timeoutTask, timeoutMs);
+  var finishProgressBar = function() {
+    clearTimeout(timer);
+    timeoutTask();
+  };
+  return finishProgressBar;
 }
 
 // Parse URL parameters and configure test filters.
