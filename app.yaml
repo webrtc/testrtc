@@ -8,33 +8,42 @@ handlers:
 - url: /manual/
   static_files: src/manual/index.html
   upload: src/manual/index.html
+  secure: always
 
 - url: /manual/(.+)/
   static_files: src/manual/\1/index.html
   upload: src/manual/(.+)/index.html
+  secure: always
 
 - url: /manual
   static_dir: src/manual
+  secure: always
 
 - url: /images
   static_files: src/images
   upload: src/images
+  secure: always
 
 - url: /js
   static_dir: src/js
+  secure: always
 
 - url: /css
   static_dir: src/css
+  secure: always
 
 - url: /components/testrtc/ui
   static_dir: src/ui
+  secure: always
 
 - url: /components
   static_dir: components
+  secure: always
 
 - url: /
   static_files: src/index.html
   upload: src/index.html
+  secure: always
 
 - url: /.*
   script: testrtc.app
