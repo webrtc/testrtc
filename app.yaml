@@ -32,10 +32,10 @@ handlers:
 - url: /components
   static_dir: components
 
+- url: /
+  static_files: src/index.html
+  upload: src/index.html
+
 - url: /.*
   script: testrtc.app
   secure: always
-
-libraries:
-- name: jinja2
-  version: latest
