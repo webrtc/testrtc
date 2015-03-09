@@ -24,13 +24,10 @@ body {
   margin: 0 auto 1em auto;
 }
 
-paper-button {
-  background-color: #9E9;
-  color: #000;
-}
-
 #start-button {
   line-height: 3em;
+  background-color: #9E9;
+  color: #000;
 }
 
 div#content {
