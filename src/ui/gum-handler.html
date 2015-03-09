@@ -1,0 +1,81 @@
+<!--
+ *  Copyright (c) 2015 The WebRTC project authors. All Rights Reserved.
+ *
+ *  Use of this source code is governed by a BSD-style license
+ *  that can be found in the LICENSE file in the root of the source
+ *  tree.
+-->
+
+<!--
+`<gum-handler>` continuously calls getUserMedia until it succeeds or 'pending' attribute
+is set to false. It also exposes an error attribute containing the 'MediaStreamError.name'.
+See gum-dialog.html for an example on how to use it.
+
+TODO(andresp): Need a mechanism to stop polling permissions? E.g. if it was temporarly
+visible on the page but is no more it will keep polling permissions once per second.
+-->
+
+<link rel="import" href="../../polymer/polymer.html">
+<polymer-element name="gum-handler" attributes="pending error">
+<script>
+  Polymer('gum-handler', {
+    pending: true,
+    error: false,
+
+    ready: function () {
+      if (typeof navigator.getUserMedia !== 'undefined') {
+        this.triggerGetUserMedia_();
+      } else {
+        this.error = 'NotSupported';
+      }
+    },
+
+    triggerGetUserMedia_: function () {
+      if (this.pending == false) {
+        return;
+      }
+
+      if (typeof MediaStreamTrack.getSources !== 'undefined') {
+        MediaStreamTrack.getSources(this.triggerGetUserMediaBasedOnSources_.bind(this));
+      } else {
+        this.getUserMediaBasedOnSources_([]);
+      }
+    },
+
+    triggerGetUserMediaBasedOnSources_: function(sources) {
+      var constraints = {};
+      if (sources.length === 0) {
+        constraints = {audio: true, video: true};
+      } else {
+        for (var i = 0; i < sources.length; i++) {
+          if (sources[i].kind === 'audio') {
+            constraints.audio = true;
+          }
+          if (sources[i].kind === 'video') {
+            constraints.video = true;
+          }
+        }
+      }
+      doGetUserMedia(constraints, this.gotStream_.bind(this), this.gotError_.bind(this));
+    },
+
+    gotStream_: function(stream) {
+      // Stop all tracks to ensure the camera and audio devices are shutdown
+      // directly.
+      for (var i = 0; i < stream.getVideoTracks().length; i++) {
+        stream.getVideoTracks()[i].stop();
+      }
+      for (var j = 0; j < stream.getAudioTracks().length; j++) {
+        stream.getAudioTracks()[j].stop();
+      }
+      this.pending = false;
+      this.error = false;
+    },
+
+    gotError_: function(error) {
+      this.error = error.name;
+      setTimeout(this.triggerGetUserMedia_.bind(this), 1000);
+    }
+  });
+</script>
+</polymer-element>
