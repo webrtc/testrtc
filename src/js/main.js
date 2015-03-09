@@ -7,7 +7,7 @@
  */
 
 /* More information about these options at jshint.com/docs/options */
-/* exported addExplicitTest, addTest, createLineChart, doGetUserMedia, reportInfo, expectEquals, testFinished, start, setTestProgress, audioContext, reportSuccess, reportError, settingsDialog, setTimeoutWithProgressBar */
+/* exported addExplicitTest, addTest, createLineChart, doGetUserMedia, reportInfo, expectEquals, testFinished, setTestProgress, audioContext, reportSuccess, reportError, settingsDialog, setTimeoutWithProgressBar */
 'use strict';
 
 // Global WebAudio context that can be shared by all tests.
@@ -30,15 +30,18 @@ var testSuites = [];
 var testFilters = [];
 var currentTest;
 
-window.addEventListener('polymer-ready', function() {
-  var gum = new GumHandler();
-  gum.start(function() {
-    if (typeof MediaStreamTrack.getSources === 'undefined') {
-      console.log('getSources is not supported, device selection not ' +
-                  'possible.');
-    } else {
-      MediaStreamTrack.getSources(gotSources);
-    }
+document.querySelector('gum-dialog').addEventListener('closed', function() {
+  if (typeof MediaStreamTrack.getSources === 'undefined') {
+    console.log('getSources is not supported, device selection not possible.');
+  } else {
+    MediaStreamTrack.getSources(gotSources);
+  }
+  startButton.removeAttribute('disabled');
+});
+
+startButton.addEventListener('click', function() {
+  startButton.setAttribute('disabled', null);
+  runAllSequentially(testSuites, function() {
     startButton.removeAttribute('disabled');
   });
 });
@@ -305,15 +308,6 @@ function runAllSequentially(tasks, doneCallback) {
       return;
     }
     tasks[current].run(runNextAsync);
-  }
-}
-
-function start() {
-  startButton.setAttribute('disabled', null);
-  runAllSequentially(testSuites, onComplete);
-
-  function onComplete() {
-    startButton.removeAttribute('disabled');
   }
 }
 

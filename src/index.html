@@ -32,6 +32,7 @@
   <link rel="import" href="components/paper-button/paper-button.html">
   <link rel="import" href="components/paper-icon-button/paper-icon-button.html">
   <link rel="import" href="components/testrtc/ui/line-chart.html">
+  <link rel="import" href="components/testrtc/ui/gum-dialog.html">
 
   <!-- Google Analytics -->
   <script>
@@ -45,44 +46,18 @@
   </script>
 </head>
 <body unresolved>
+  <gum-dialog heading="Welcome to WebRTC Troubleshooter"></gum-dialog>
+
   <!-- Title toolbar -->
   <core-toolbar class="title">
     <span flex>WebRTC Troubleshooter</span>
     <paper-icon-button icon="menu" onclick="settingsDialog.toggle()"></paper-icon-button>
     <paper-icon-button icon="bug-report" onclick="report.open()"></paper-icon-button>
-    <paper-button id="start-button" onclick="start()" raised disabled>Start</paper-button>
+    <paper-button id="start-button" raised disabled>Start</paper-button>
   </core-toolbar>
 
   <!-- Placeholder for dynamically generated test suites. -->
   <div id="content"></div>
-
-  <!-- GetUserMedia pending dialog -->
-  <paper-dialog id="gum-pending-dialog"
-                heading="Welcome to WebRTC Troubleshooter"
-                backdrop autoCloseDisabled>
-    <p>To test your webcam, microphone and speakers we need permission to use
-      them, approve by selecting “Allow”.</p>
-  </paper-dialog>
-
-  <!-- GetUserMedia error dialog -->
-  <paper-dialog id="gum-error-dialog"
-                heading="Welcome to WebRTC Troubleshooter"
-                backdrop autoCloseDisabled>
-    <p id="gum-error-message">Failed to access your computer's camera and microphone.</p>
-    <p>GetUserMedia result: <span id="gum-error-reason"></span></p>
-    <div horizontal justified layout>
-      <paper-button onclick="report.open()">File a bug</paper-button>
-      <paper-button id="gum-bypass" onclick="this.parentElement.parentElement.close()">Continue without audio and/or video</paper-button>
-    </div>
-  </paper-dialog>
-
-  <!-- GetUserMedia not supported dialog -->
-  <paper-dialog id="gum-not-supported-dialog"
-                heading="Welcome to WebRTC Troubleshooter"
-                backdrop autoCloseDisabled>
-    <p>GetUserMedia is not supported in your browser, please use a WebRTC
-      enabled browser listed at <a href="http://www.webrtc.org">http://www.webrtc.org</a>.</p>
-  </paper-dialog>
 
   <!-- Settings dialog -->
   <paper-dialog id="settings-dialog" heading="Settings" transition="paper-dialog-transition-center">
@@ -103,7 +78,6 @@
   <script src="js/call.js"></script>
   <script src="js/stats.js"></script>
   <script src="js/ssim.js"></script>
-  <script src="js/gumhandler.js"></script>
   <script src="js/util.js"></script>
 
   <!-- Add tests after this line. -->

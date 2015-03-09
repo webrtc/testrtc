@@ -29,7 +29,7 @@ TODO(andresp): Delay showing the dialog (probably using transitions).
 <link rel="import" href="../../paper-button/paper-button.html">
 <link rel="import" href="gum-handler.html">
 
-<polymer-element name="gum-dialog" attributes="pending heading" noscript>
+<polymer-element name="gum-dialog" attributes="pending heading">
   <template>
     <!-- Declare gum-handler to continously request getUserMedia until permission is given. -->
     <gum-handler pending="{{pending}}" error="{{error}}"></gum-handler>
@@ -65,4 +65,16 @@ TODO(andresp): Delay showing the dialog (probably using transitions).
       </template>
     </paper-dialog>
   </template>
+  <script>
+    Polymer('gum-dialog', {
+      // Note: Not clear this we want to keep this event here. At the moment it was just implemented
+      // to not have to polymerize more of index.html. Over-time most of the binding should be just
+      // data bindings and there won't be a need for explicit propagate events.
+      pendingChanged: function () {
+        if (this.pending === false) {
+          this.fire('closed');
+        }
+      }
+    });
+  </script>
 </polymer-element>
