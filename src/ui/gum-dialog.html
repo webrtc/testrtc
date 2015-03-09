@@ -1,0 +1,68 @@
+<!--
+ *  Copyright (c) 2015 The WebRTC project authors. All Rights Reserved.
+ *
+ *  Use of this source code is governed by a BSD-style license
+ *  that can be found in the LICENSE file in the root of the source
+ *  tree.
+-->
+
+<!--
+`<gum-dialog>` is used to display a dialog asking the user to give user media permissions.
+
+It exposes a 'pending' attribute that changes to true when permissions are given or the dialog was by-passed
+to allow a template to easily control other page elements. E.g.:
+
+  <template is="auto-binding">
+    <gum-dialog heading="Permissions" pending={{gumPending}}></gum-dialog>
+    <template if="{{!gumPending}}">Hurray!!!</template>
+  </template>
+
+Note that this element has some logic/strings specific to testrc that should probably be cleanned out.
+For now it serves as an example on how to build a UI flow on top of gum-handler.
+
+TODO(andresp): Delay showing the dialog (probably using transitions).
+-->
+<link rel="import" href="../../polymer/polymer.html">
+<link rel="import" href="../../core-icon/core-icon.html">
+<link rel="import" href="../../core-icons/av-icons.html">
+<link rel="import" href="../../paper-dialog/paper-dialog.html">
+<link rel="import" href="../../paper-button/paper-button.html">
+<link rel="import" href="gum-handler.html">
+
+<polymer-element name="gum-dialog" attributes="pending heading" noscript>
+  <template>
+    <!-- Declare gum-handler to continously request getUserMedia until permission is given. -->
+    <gum-handler pending="{{pending}}" error="{{error}}"></gum-handler>
+
+    <paper-dialog heading="{{heading}}"
+                  backdrop autoCloseDisabled opened="{{pending}}"
+                  closeSelector="[bypass]">
+      <template if="{{!error}}">
+        <p>To test your webcam, microphone and speakers we need permission to use
+          them, approve by selecting “Allow”.</p>
+      </template>
+
+      <template if="{{error}}">
+        <p>Failed to access your computer's camera and microphone ({{error}}).</p>
+
+        <template if="{{error=='NotSupported'}}">
+          <p>GetUserMedia is not supported in your browser, please use a WebRTC
+            enabled browser listed at <a href="http://www.webrtc.org">http://www.webrtc.org</a>.</p>
+        </template>
+
+        <template if="{{error=='PermissionDeniedError'}}">
+          <p>Click the <core-icon icon="av:videocam-off"></core-icon> icon in the URL bar above to give access to your device's camera and microphone.</p>
+        </template>
+
+        <template if="{{error=='DevicesNotFoundError'}}">
+          <p>No devices found, please connect a camera and/or a microphone to continue, alternatively continue without media devices.
+        </template>
+
+        <div horizontal justified layout>
+          <paper-button onclick="report.open()">File a bug</paper-button>
+          <paper-button bypass>Continue without audio/or video</paper-button>
+        </div>
+      </template>
+    </paper-dialog>
+  </template>
+</polymer-element>
