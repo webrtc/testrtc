@@ -1,0 +1,112 @@
+<!--
+ *  Copyright (c) 2015 The WebRTC project authors. All Rights Reserved.
+ *
+ *  Use of this source code is governed by a BSD-style license
+ *  that can be found in the LICENSE file in the root of the source
+ *  tree.
+-->
+<link rel="import" href="../../polymer/polymer.html">
+<link rel="import" href="../../paper-dialog/paper-dialog.html">
+<link rel="import" href="../../paper-button/paper-button.html">
+<link rel="import" href="../../paper-input/paper-autogrow-textarea.html">
+<link rel="import" href="../../paper-input/paper-input.html">
+
+<polymer-element name="report-dialog">
+  <template>
+    <!-- Report dialog -->
+    <paper-dialog id="mainDialog" heading="File a bug" autoCloseDisabled backdrop transition="paper-dialog-transition-center"
+    closeSelector="[dismissive]">
+      <paper-input-decorator floatingLabel label="Describe your issue here">
+        <paper-autogrow-textarea id="textAreaAutoGrow">
+          <textarea id="textArea" value="{{description}}"></textarea>
+        </paper-autogrow-textarea>
+      </paper-input-decorator>
+      <h3>Disclaimer</h3>
+      <p>The report will contain information about your device including network information that is useful to troubleshoot the issue and will be available for a period of 90 days.</p>
+      <paper-button affirmative on-tap="{{upload}}" disabled="{{submitting}}">Upload report</paper-button>
+      <paper-button dismissive disabled="{{submitting}}">Cancel</paper-button>
+    </paper-dialog>
+
+    <!-- Report upload success -->
+    <paper-dialog id="success" heading="Success" autoCloseDisabled transition="paper-dialog-transition-center" closeSelector="[affirmative]">
+      <p><a href="{{reportUrl}}">This is the link to your report</a></p>
+      <paper-button on-tap="{{closeSuccess}}">Close</paper-button>
+    </paper-action-dialog>
+
+    <!-- Report failure success -->
+    <paper-dialog id="failure" heading="Failure" autoCloseDisabled transition="paper-dialog-transition-center" closeSelector="[affirmative]">
+      <p>Upload failed with error: {{reportError}}</p>
+      <p>Check your network connection</p>
+      <paper-button affirmative on-tap="{{closeFail}}">Close</paper-button>
+    </paper-dialog>
+  </template>
+  <script>
+    Polymer('report-dialog', {
+      open: function() {
+        this.$.mainDialog.open();
+      },
+
+      upload: function() {
+        this.submitting = true;
+
+        // Get unique upload url from server.
+        var xhr = new XMLHttpRequest();
+        xhr.open('HEAD', '/report/new', true);
+        xhr.addEventListener('load', this.onGetUploadUrl_.bind(this), false);
+        xhr.send(null);
+      },
+
+      onGetUploadUrl_: function(response) {
+        if (response.currentTarget.status === 200) {
+          // Create report file.
+          var fileName = 'testrtc-' + new Date().toJSON() + '.log';
+          var fileContent = report.generateBugReport_(this.description);
+          var blob = new Blob([fileContent], {type: 'text/plain'});
+          var formData = new FormData();
+          formData.append(fileName, blob, fileName);
+
+          // Upload the report file using the URL in the response-text header.
+          var url = response.currentTarget.getResponseHeader('response-text');
+          var xhr = new XMLHttpRequest();
+          xhr.open('POST', url, true);
+          xhr.setRequestHeader('X-File-Name', fileName);
+          xhr.addEventListener('load', this.onUploadFile_.bind(this), false);
+          xhr.send(formData);
+        } else {
+          this.reportError = response.currentTarget.status;
+          report.traceEventInstant('log-error', {error: this.reportError});
+          this.$.failure.open();
+        }
+      },
+
+      onUploadFile_: function(response) {
+        if (response.currentTarget.status === 200) {
+          this.reportUrl =
+              response.currentTarget.getResponseHeader('response-text');
+          report.traceEventInstant('log-uploaded', {url: this.reportUrl});
+          this.$.success.open();
+        } else {
+          this.reportError = response.currentTarget.status;
+          report.traceEventInstant('log-error', {error: this.reportError});
+          this.$.failure.open();
+        }
+      },
+
+      closeFail: function() {
+        this.submitting = false;
+        this.$.failure.close();
+      },
+
+      closeSuccess: function() {
+        this.submitting = false;
+        this.description = null;
+        // Workaround to get the label to float correctly on the line.
+        // https://github.com/Polymer/paper-input/issues/137.
+        this.$.textArea.focus();
+        this.$.textAreaAutoGrow.update();
+        this.$.success.close();
+        this.$.mainDialog.close();
+      }
+    });
+  </script>
+</polymer-element>

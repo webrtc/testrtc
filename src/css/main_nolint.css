@@ -14,3 +14,25 @@ html /deep/ core-icon[icon="av:videocam-off"] {
 html /deep/ paper-dialog {
   top: 2em;
 }
+
+html /deep/ paper-button {
+  font-weight: 400;
+}
+
+html /deep/ paper-dialog#mainDialog {
+  max-width: 50%;
+}
+
+html /deep/ paper-dialog#failure,
+html /deep/ paper-dialog#success {
+  top: 9em;
+  max-width: 60%;
+}
+
+@media only all and (max-device-width: 700px) {
+  html /deep/ paper-dialog#success,
+  html /deep/ paper-dialog#failure,
+  html /deep/ paper-dialog#mainDialog {
+    font-size: 0.6em;
+  }
+}

@@ -33,6 +33,7 @@
   <link rel="import" href="components/paper-icon-button/paper-icon-button.html">
   <link rel="import" href="components/testrtc/ui/line-chart.html">
   <link rel="import" href="components/testrtc/ui/gum-dialog.html">
+  <link rel="import" href="components/testrtc/ui/report-dialog.html">
 
   <!-- Google Analytics -->
   <script>
@@ -65,12 +66,8 @@
     <div class="select"><label>Video source: <select id="videoSource"></select></label></div>
   </paper-dialog>
 
-  <!-- Report dialog -->
-  <paper-dialog id="report-dialog" heading="Bug Report" backdrop autoCloseDisabled transition="paper-dialog-transition-center">
-    <p>Please file a bug in the <a id="report-link">Chromium bug tracker</a> and attach the report from this page.</p>
-    <paper-button id="report-download" onclick="report.downloadReport()">Download Report</paper-button>
-    <paper-button onclick="this.parentElement.close()">Close</paper-button>
-  </paper-dialog>
+  <!-- Bug report dialog -->
+  <report-dialog></report-dialog>
 
   <!-- Add common files after this line. -->
   <script src="js/report.js"></script>

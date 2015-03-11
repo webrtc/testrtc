@@ -9,7 +9,7 @@
 'use strict';
 
 function Report() {
-  this.output_ = ['TestRTC-Diagnose v0.1'];
+  this.output_ = [];
   this.nextAsyncId_ = 0;
 
   // Hook console.log into the report, since that is the most common debug tool.
@@ -24,16 +24,7 @@ function Report() {
 
 Report.prototype = {
   open: function() {
-    document.getElementById('report-link').href = this.linkToChromiumBug_();
-    document.getElementById('report-dialog').open();
-  },
-
-  downloadReport: function() {
-    var content = encodeURIComponent(this.getContent_());
-    var link = document.createElement('a');
-    link.setAttribute('href', 'data:text/plain;charset=utf-8,' + content);
-    link.setAttribute('download', 'testrtc-' + (new Date().toJSON()) + '.log');
-    link.click();
+    document.querySelector('report-dialog').open();
   },
 
   traceEventInstant: function(name, args) {
@@ -65,39 +56,28 @@ Report.prototype = {
     });
   },
 
-  linkToChromiumBug_: function() {
-    var info = Report.getSystemInfo();
-
-    var description = 'Browser: ' + info.browserName + ' ' +
-        info.browserVersion + ' (' + info.platform + ')\n\n' +
-        'Output from the troubleshooting page at http://test.webrtc.org:\n\n' +
-        'Please replace this text with the copy+pasted output from test page!';
-
-    // Labels for the bug to be filed.
-    var osLabel = 'OS-';
-    if (info.platform.indexOf('Win') !== -1) { osLabel += 'Windows'; }
-    if (info.platform.indexOf('Mac') !== -1) { osLabel += 'Mac'; }
-    if (info.platform.match('iPhone|iPad|iPod|iOS')) { osLabel += 'iOS'; }
-    if (info.platform.indexOf('Linux') !== -1) { osLabel += 'Linux'; }
-    if (info.platform.indexOf('Android') !== -1) { osLabel += 'Android'; }
-
-    var labels = 'webrtc-troubleshooter,Cr-Blink-WebRTC,' + osLabel;
-    var url = 'https://code.google.com/p/chromium/issues/entry?' +
-        'comment=' + encodeURIComponent(description) +
-        '&labels=' + encodeURIComponent(labels);
-    return url;
+  generateBugReport_: function(bugDescription) {
+    var header = {'title': 'WebRTC Troubleshooter bug report',
+                  'description': bugDescription || null};
+    return this.getContent_(header);
   },
 
   // Returns the logs into a JSON formated string that is a list of events
   // similar to the way chrome devtools format uses. The final string is
   // manually composed to have newlines between the entries is being easier
-  // to parse by human eyes.
-  getContent_: function() {
+  // to parse by human eyes. If a contentHead object argument is provided it
+  // will be added at the top of the log file.
+  getContent_: function(contentHead) {
     var stringArray = [];
-    for (var i = 0; i !== this.output_.length; ++i) {
-      stringArray.push(JSON.stringify(this.output_[i]));
-    }
+    this.appendEventsAsString_([contentHead] || [], stringArray);
+    this.appendEventsAsString_(this.output_, stringArray);
     return '[' + stringArray.join(',\n') + ']';
+  },
+
+  appendEventsAsString_: function(events, output) {
+    for (var i = 0; i !== events.length; ++i) {
+      output.push(JSON.stringify(events[i]));
+    }
   },
 
   onWindowError_: function(error) {
