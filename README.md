@@ -19,14 +19,14 @@ create a temporary link with the report result.
     * Detects how long to start encode frames
     * Reports encode time and average framerate
   * Check supported resolutions
-    * Verifies that can open a stream on a large set of resolution, but does not verifies if video content is as expected.
+    * Lists other resolutions that appear to be supported
 * Connectivity
   * Udp/Tcp/Ipv6 connectivity
-    * Verifies it can talk with a stun server with the given protocol.
+    * Verifies it can talk with a stun server with the given protocol
   * Data throughput
-    * Establishes a loopback call and tests data channels throughput on the link.
+    * Establishes a loopback call and tests data channels throughput on the link
   * Video bandwidth
-    * Establishes a loopback call and tests video performance on the link.
+    * Establishes a loopback call and tests video performance on the link
     * Measures rtt on media channels.
     * Measures bandwidth estimation performance (rampup time, max, average)
 
