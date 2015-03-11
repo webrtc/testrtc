@@ -27,18 +27,6 @@ Report.prototype = {
     document.querySelector('report-dialog').open();
   },
 
-  // Clears the log and adds sytem-info from the device.
-  clearLog_: function() {
-    this.output_ = [];
-    this.traceEventInstant('system-info', Report.getSystemInfo());
-  },
-
-  traceEventHeader: function(name, args) {
-    this.output_.unshift({'ts': Date.now(),
-                          'name': name,
-                          'args': args});
-  },
-
   traceEventInstant: function(name, args) {
     this.output_.push({'ts': Date.now(),
                        'name': name,
@@ -69,21 +57,27 @@ Report.prototype = {
   },
 
   generateBugReport_: function(bugDescription) {
-    this.traceEventHeader('description', bugDescription);
-    this.traceEventHeader('title', 'WebRTC Troubleshooter bug report');
-    return this.getContent_();
+    var header = {'title': 'WebRTC Troubleshooter bug report',
+                  'description': bugDescription || null};
+    return this.getContent_(header);
   },
 
   // Returns the logs into a JSON formated string that is a list of events
   // similar to the way chrome devtools format uses. The final string is
   // manually composed to have newlines between the entries is being easier
-  // to parse by human eyes.
-  getContent_: function() {
+  // to parse by human eyes. If a contentHead object argument is provided it
+  // will be added at the top of the log file.
+  getContent_: function(contentHead) {
     var stringArray = [];
-    for (var i = 0; i !== this.output_.length; ++i) {
-      stringArray.push(JSON.stringify(this.output_[i]));
-    }
+    this.appendEventsAsString_([contentHead] || [], stringArray);
+    this.appendEventsAsString_(this.output_, stringArray);
     return '[' + stringArray.join(',\n') + ']';
+  },
+
+  appendEventsAsString_: function(events, output) {
+    for (var i = 0; i !== events.length; ++i) {
+      output.push(JSON.stringify(events[i]));
+    }
   },
 
   onWindowError_: function(error) {

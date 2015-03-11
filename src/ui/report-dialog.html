@@ -8,6 +8,8 @@
 <link rel="import" href="../../polymer/polymer.html">
 <link rel="import" href="../../paper-dialog/paper-dialog.html">
 <link rel="import" href="../../paper-button/paper-button.html">
+<link rel="import" href="../../paper-input/paper-autogrow-textarea.html">
+<link rel="import" href="../../paper-input/paper-input.html">
 
 <polymer-element name="report-dialog">
   <template>
@@ -56,8 +58,6 @@
 
       onGetUploadUrl_: function(response) {
         if (response.currentTarget.status === 200) {
-          report.traceEventInstant('log', 'onGetUploadUrl succeeded.');
-
           // Create report file.
           var fileName = 'testrtc-' + new Date().toJSON() + '.log';
           var fileContent = report.generateBugReport_(this.description);
@@ -74,8 +74,7 @@
           xhr.send(formData);
         } else {
           this.reportError = response.currentTarget.status;
-          report.traceEventInstant('log', 'onGetUploadUrl failed: ' +
-              this.reportError);
+          report.traceEventInstant('log-error', {error: this.reportError});
           this.$.failure.open();
         }
       },
@@ -84,14 +83,12 @@
         if (response.currentTarget.status === 200) {
           this.reportUrl =
               response.currentTarget.getResponseHeader('response-text');
-          // Clear bug report.
-          report.clearLog_();
+          report.traceEventInstant('log-uploaded', {url: this.reportUrl});
           this.$.success.open();
         } else {
           this.reportError = response.currentTarget.status;
-          report.traceEventInstant('log', 'onUploadFile_ failed: ' +
-              this.reportError);
-           this.$.failure.open();
+          report.traceEventInstant('log-error', {error: this.reportError});
+          this.$.failure.open();
         }
       },
 

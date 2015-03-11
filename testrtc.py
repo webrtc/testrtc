@@ -38,8 +38,11 @@ class NewReportHandler(blobstore_handlers.BlobstoreUploadHandler):
   def post(self):
     origin = self.request.headers['Origin']
     fileName = self.request.headers['X-File-Name']
+    if not re.match(r'^testrtc-.*.log', fileName):
+      return self.error(403)
     upload_files = self.get_uploads(field_name=fileName)
     blob_info = upload_files[0]
+    self.response.headers['Content-Type'] = 'text/plain';
     self.response.headers['Response-Text'] = origin + '/report/%s' % blob_info.key()
 
 class ReportHandler(blobstore_handlers.BlobstoreDownloadHandler):
@@ -53,16 +56,16 @@ class CleanBlobstore(blobstore_handlers.BlobstoreUploadHandler):
   def get(self):
     retentionPeriod = datetime.datetime.now() - datetime.timedelta(days=90)
     gqlQuery = blobstore.BlobInfo.gql("WHERE creation <= :date",
-        date = datetime.datetime.now() <= retentionPeriod)
+        date = retentionPeriod)
     logFiles = gqlQuery.run()
     for log in logFiles:
       # Make sure to only delete log reports from the blobstore.
-      if re.match(r'testrtc-.*.log', log.filename):
+      if re.match(r'^testrtc-.*.log', log.filename):
         blobstore.BlobInfo.get(log.key()).delete()
 
 app = webapp2.WSGIApplication([
     ('/report/new', NewReportHandler),
-    ('/report/([^/]+)', ReportHandler),
+    (r'/report/([^/]+)', ReportHandler),
     (r'/test-download-file/(\d?\d00)KB.data', TestDownloadFile),
     ('/tasks/blobstore/clean', CleanBlobstore)
   ], debug=True)
