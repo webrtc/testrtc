@@ -19,7 +19,7 @@ create a temporary link with the report result.
     * Detects how long to start encode frames
     * Reports encode time and average framerate
   * Check supported resolutions
-    * Lists other resolutions that appear to be supported
+    * Lists resolutions that appear to be supported
 * Connectivity
   * Udp/Tcp/Ipv6 connectivity
     * Verifies it can talk with a stun server with the given protocol
