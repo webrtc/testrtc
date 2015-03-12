@@ -30,7 +30,7 @@ create a temporary link with the report result.
     * Measures rtt on media channels.
     * Measures bandwidth estimation performance (rampup time, max, average)
 
-## Other tests ##
+## Manual tests ##
 Due to their time duration they are not part of the normal test suite and need to be run explicitly.
 * [Network latency](https://test.webrtc.org/?filter_test=Network latency)
   * Establishs a loopback call and sends very small packets (via data channels) during 5 minutes plotting them to the user. It can be used to identify issues on the network.
@@ -48,7 +48,6 @@ Due to their time duration they are not part of the normal test suite and need t
 * [Single audio stream](https://test.webrtc.org/manual/single-audio/)
 * [Single video stream](https://test.webrtc.org/manual/single-video/)
 
-
-## Contributting ##
+## Contributing ##
 Patches and issues welcome! See [CONTRIBUTING](https://github.com/GoogleChrome/webrtc/blob/master/CONTRIBUTING.md) for instructions. All contributors must sign a contributor license agreement before code can be accepted. Please complete the agreement for an [individual](https://developers.google.com/open-source/cla/individual) or a [corporation](https://developers.google.com/open-source/cla/corporate) as appropriate. The [Developer's Guide](https://bit.ly/webrtcdevguide) for this repo has more information about code style, structure and validation.
 
