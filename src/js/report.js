@@ -56,7 +56,7 @@ Report.prototype = {
     });
   },
 
-  generateBugReport_: function(bugDescription) {
+  generate: function(bugDescription) {
     var header = {'title': 'WebRTC Troubleshooter bug report',
                   'description': bugDescription || null};
     return this.getContent_(header);

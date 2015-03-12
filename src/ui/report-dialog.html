@@ -6,7 +6,7 @@
  *  tree.
 -->
 <link rel="import" href="../../polymer/polymer.html">
-<link rel="import" href="../../paper-dialog/paper-dialog.html">
+<link rel="import" href="../../paper-dialog/paper-action-dialog.html">
 <link rel="import" href="../../paper-button/paper-button.html">
 <link rel="import" href="../../paper-input/paper-autogrow-textarea.html">
 <link rel="import" href="../../paper-input/paper-input.html">
@@ -14,36 +14,46 @@
 <polymer-element name="report-dialog">
   <template>
     <!-- Report dialog -->
-    <paper-dialog id="mainDialog" heading="File a bug" autoCloseDisabled backdrop transition="paper-dialog-transition-center"
-    closeSelector="[dismissive]">
+    <paper-action-dialog id="mainDialog" heading="Create a report" autoCloseDisabled backdrop transition="paper-dialog-transition-center" closeSelector="[dismissive]">
       <paper-input-decorator floatingLabel label="Describe your issue here">
         <paper-autogrow-textarea id="textAreaAutoGrow">
           <textarea id="textArea" value="{{description}}"></textarea>
         </paper-autogrow-textarea>
       </paper-input-decorator>
-      <h3>Disclaimer</h3>
-      <p>The report will contain information about your device including network information that is useful to troubleshoot the issue and will be available for a period of 90 days.</p>
+      <h3>Note</h3>
+      <p>The report will contain information about your device including network information that is useful to troubleshoot the issue.
+      Uploading the report creates a URL that is available for a period of 90 days.</p>
+      <paper-button affirmative on-tap="{{download}}" disabled="{{submitting}}">Download report</paper-button>
       <paper-button affirmative on-tap="{{upload}}" disabled="{{submitting}}">Upload report</paper-button>
       <paper-button dismissive disabled="{{submitting}}">Cancel</paper-button>
-    </paper-dialog>
+    </paper-action-dialog>
 
     <!-- Report upload success -->
-    <paper-dialog id="success" heading="Success" autoCloseDisabled transition="paper-dialog-transition-center" closeSelector="[affirmative]">
-      <p><a href="{{reportUrl}}">This is the link to your report</a></p>
-      <paper-button on-tap="{{closeSuccess}}">Close</paper-button>
+    <paper-action-dialog id="success" heading="Success" autoCloseDisabled transition="paper-dialog-transition-center" closeSelector="[dismissive]">
+      <p>This is the <a href="{{reportUrl}}">link</a> to your report.</p>
+      <paper-button affirmative on-tap="{{closeSuccess}}">Close</paper-button>
     </paper-action-dialog>
 
     <!-- Report failure success -->
-    <paper-dialog id="failure" heading="Failure" autoCloseDisabled transition="paper-dialog-transition-center" closeSelector="[affirmative]">
+    <paper-action-dialog id="failure" heading="Failure" autoCloseDisabled transition="paper-dialog-transition-center">
       <p>Upload failed with error: {{reportError}}</p>
       <p>Check your network connection</p>
       <paper-button affirmative on-tap="{{closeFail}}">Close</paper-button>
-    </paper-dialog>
+    </paper-action-dialog>
   </template>
   <script>
     Polymer('report-dialog', {
       open: function() {
         this.$.mainDialog.open();
+      },
+
+      download: function() {
+        var fileContent = report.generate(this.description);
+        var content = encodeURIComponent(fileContent);
+        var link = document.createElement('a');
+        link.setAttribute('href', 'data:text/plain;charset=utf-8,' + content);
+        link.setAttribute('download', 'testrtc-' + (new Date().toJSON()) + '.log');
+        link.click();
       },
 
       upload: function() {
@@ -60,7 +70,7 @@
         if (response.currentTarget.status === 200) {
           // Create report file.
           var fileName = 'testrtc-' + new Date().toJSON() + '.log';
-          var fileContent = report.generateBugReport_(this.description);
+          var fileContent = report.generate(this.description);
           var blob = new Blob([fileContent], {type: 'text/plain'});
           var formData = new FormData();
           formData.append(fileName, blob, fileName);
