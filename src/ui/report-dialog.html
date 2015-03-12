@@ -30,6 +30,7 @@
 
     <!-- Report upload success -->
     <paper-action-dialog id="success" heading="Success" autoCloseDisabled transition="paper-dialog-transition-center" closeSelector="[dismissive]">
+      <p>Please file an issue at <a href="//github.com/webrtc/testrtc/issues/new">Github</a> and copy the link below to make sure your issue is investigated.</p>
       <p>This is the <a href="{{reportUrl}}">link</a> to your report.</p>
       <paper-button affirmative on-tap="{{closeSuccess}}">Close</paper-button>
     </paper-action-dialog>
