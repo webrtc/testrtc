@@ -21,8 +21,10 @@ create a temporary link with the report result.
   * Check supported resolutions
     * Lists resolutions that appear to be supported
 * Connectivity
-  * Udp/Tcp/Ipv6 connectivity
-    * Verifies it can talk with a stun server with the given protocol
+  * Udp/Tcp connectivity
+    * Verifies it can talk with a turn server with the given protocol
+  * IPv6 connectivity
+    * Verifies it can gather at least one IPv6 candidate
   * Data throughput
     * Establishes a loopback call and tests data channels throughput on the link
   * Video bandwidth
