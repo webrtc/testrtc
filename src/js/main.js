@@ -29,6 +29,9 @@ var PREFIX_FAILED  = '[ FAILED ]';
 var testSuites = [];
 var testFilters = [];
 var currentTest;
+// Need a reference counter due to asynchronous calls results in the Test array
+// being empty in first Test suite dictionary.
+var manualTestCounter = 0;
 
 document.querySelector('gum-dialog').addEventListener('closed', function() {
   if (typeof MediaStreamTrack.getSources === 'undefined') {
@@ -124,7 +127,7 @@ function Test(suite, name, func) {
 
   var toolbar = document.createElement('core-toolbar');
   toolbar.setAttribute('class', 'test');
-  var title = document.createElement('span');
+  var title = document.createElement('div');
   title.textContent = name;
   title.setAttribute('flex', null);
   var statusIcon = document.createElement('core-icon');
@@ -137,6 +140,47 @@ function Test(suite, name, func) {
   var collapse = document.createElement('core-collapse');
   collapse.setAttribute('class', 'test-output');
   collapse.opened = false;
+
+  // Tests in the Manual test suite are excluded from the normal test flow and
+  // have to be run explicitely.
+  if (this.suite.name === 'Manual') {
+    var testNumber = manualTestCounter++;
+    this.isManual = true;
+    suite.content_.opened = true;
+    // Add a start button per manual test case.
+    var startManualTestButton = document.createElement('paper-button');
+    startManualTestButton.setAttribute('class', 'start-manual-test-button');
+    // Keep track of the test case number.
+    startManualTestButton.innerHTML = 'Run';
+    toolbar.appendChild(startManualTestButton);
+
+    startManualTestButton.addEventListener('click',
+        startManualTest.bind(this, this.suite.tests));
+  }
+
+  function startManualTest(testCase) {
+      toggleStartButtons('disable');
+      runSingleTest(testCase[testNumber], startManualTestCallback);
+    }
+
+  function toggleStartButtons(command) {
+    var parentElement = toolbar.parentElement;
+    var allStartButtons =
+        parentElement.getElementsByClassName('start-manual-test-button');
+    for (var i = 0; i < allStartButtons.length; i++) {
+      var button = allStartButtons[i];
+      if (command === 'disable') {
+        button.setAttribute('disabled', null);
+      } else {
+        button.removeAttribute('disabled');
+      }
+    }
+  }
+
+  function startManualTestCallback() {
+    toggleStartButtons();
+  }
+
   suite.content_.appendChild(toolbar);
   suite.content_.appendChild(collapse);
 
@@ -179,11 +223,12 @@ Test.prototype = {
                        (this.isDisabled ? 'Disabled' : 'Failure'));
     this.traceTestEvent({status: statusString});
     report.logTestRunResult(this.name, statusString);
-
     if (success) {
       this.statusIcon_.setAttribute('icon', 'check');
-      // On success, always close the details.
-      this.output_.opened = false;
+      if (this.isManual === false) {
+        // On success, always close the details.
+        this.output_.opened = false;
+      }
     } else {
       this.statusIcon_.setAttribute('icon', 'close');
       // Only close the details if there is only one expectations in which
@@ -292,6 +337,10 @@ function addExplicitTest(suiteName, testName, func) {
   }
 }
 
+function runSingleTest(test, doneCallback) {
+  test.run(doneCallback);
+}
+
 // Helper to run a list of tasks sequentially:
 //   tasks - Array of { run: function(doneCallback) {} }.
 //   doneCallback - called once all tasks have run sequentially.
@@ -307,7 +356,12 @@ function runAllSequentially(tasks, doneCallback) {
       doneCallback();
       return;
     }
-    tasks[current].run(runNextAsync);
+    // Exclude manual tests.
+    if (tasks[current].name !== 'Manual') {
+      tasks[current].run(runNextAsync);
+      return;
+    }
+    runNextAsync();
   }
 }
 
