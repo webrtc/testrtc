@@ -173,8 +173,7 @@ function testVideoBandwidth(config) {
   function completed() {
     call.pc1.getLocalStreams()[0].getVideoTracks()[0].stop();
     call.close();
-    reportSuccess('Video resolution: ' + videoStats[0] + 'x' +
-                  videoStats[1]);
+    reportSuccess('Video resolution: ' + videoStats[0] + 'x' + videoStats[1]);
     reportSuccess('RTT average: ' + rttStats.getAverage() + ' ms');
     reportSuccess('RTT max: ' + rttStats.getMax() + ' ms');
     reportSuccess('Send bandwidth estimate average: ' + bweStats.getAverage() +
