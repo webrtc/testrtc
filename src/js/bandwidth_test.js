@@ -117,7 +117,17 @@ function testVideoBandwidth(config) {
   // tracked on: https://code.google.com/p/webrtc/issues/detail?id=3050
   call.disableVideoFec();
 
-  doGetUserMedia({audio: false, video: true}, gotStream);
+  // Open the camera in 720p to get a correct measurement of ramp-up time.
+  var constraints = {
+    audio: false,
+    video: {
+      mandatory: {
+        maxWidth:  1280,
+        maxHeight: 720
+      }
+    }
+  };
+  doGetUserMedia(constraints, gotStream);
 
   function gotStream(stream) {
     call.pc1.addStream(stream);
