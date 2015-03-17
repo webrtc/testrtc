@@ -106,6 +106,7 @@ function testVideoBandwidth(config) {
   var statStepMs = 100;
   var bweStats = new StatisticsAggregate(0.75 * maxVideoBitrateKbps * 1000);
   var rttStats = new StatisticsAggregate();
+  var videoStats = [];
   var startTime;
 
   var call = new Call(config);
@@ -121,10 +122,10 @@ function testVideoBandwidth(config) {
   var constraints = {
     audio: false,
     video: {
-      mandatory: {
-        maxWidth:  1280,
-        maxHeight: 720
-      }
+      optional: [
+       {minWidth:  1280},
+       {minHeight: 720}
+      ]
     }
   };
   doGetUserMedia(constraints, gotStream);
@@ -157,6 +158,11 @@ function testVideoBandwidth(config) {
         rttStats.add(Date.parse(report.timestamp),
           parseInt(report.stat('googRtt')));
       }
+      if (report.type === 'ssrc') {
+        // Grab the last stats.
+        videoStats[0] = parseInt(report.stat('googFrameWidthSent'));
+        videoStats[1] = parseInt(report.stat('googFrameHeightSent'));
+      }
     }
     setTimeout(gatherStats, statStepMs);
   }
@@ -164,6 +170,7 @@ function testVideoBandwidth(config) {
   function completed() {
     call.pc1.getLocalStreams()[0].getVideoTracks()[0].stop();
     call.close();
+    reportSuccess('Video resolution: ' + videoStats[0] + 'x' + videoStats[1]);
     reportSuccess('RTT average: ' + rttStats.getAverage() + ' ms');
     reportSuccess('RTT max: ' + rttStats.getMax() + ' ms');
     reportSuccess('Send bandwidth estimate average: ' + bweStats.getAverage() +
