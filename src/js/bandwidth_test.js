@@ -159,12 +159,9 @@ function testVideoBandwidth(config) {
           parseInt(report.stat('googRtt')));
       }
       if (report.type === 'ssrc') {
-        // This prevents it from collecting the intial send resolution which is
-        // something like 176x1407.
-        if (videoStats.length < 20) {
-          videoStats[0] = parseInt(report.stat('googFrameWidthSent'));
-          videoStats[1] = parseInt(report.stat('googFrameHeightSent'));
-        }
+        // Grab the last stats.
+        videoStats[0] = parseInt(report.stat('googFrameWidthSent'));
+        videoStats[1] = parseInt(report.stat('googFrameHeightSent'));
       }
     }
     setTimeout(gatherStats, statStepMs);
