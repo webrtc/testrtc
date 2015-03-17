@@ -608,7 +608,7 @@ function connect(serverUrl, clientName) {
   global.ourClientName = clientName;
 
   var request = new XMLHttpRequest();
-  request.open('GET', serverUrl + '/sign_in?' + clientName, true);
+  request.open('GET', serverUrl + '/sign_in?' + clientName);
   print_(serverUrl + '/sign_in?' + clientName);
   request.onreadystatechange = function() {
     connectCallback_(request);
@@ -751,7 +751,7 @@ function sendToPeer(peer, message) {
   var request = new XMLHttpRequest();
   var url = global.serverUrl + '/message?peer_id=' + global.ourPeerId + '&to=' +
       peer;
-  request.open('POST', url, false);
+  request.open('POST', url, true);
   request.setRequestHeader('Content-Type', 'text/plain');
   request.send(message);
 }
@@ -789,7 +789,7 @@ function disconnect_() {
   }
   var request = new XMLHttpRequest();
   request.open('GET', global.serverUrl + '/sign_out?peer_id=' +
-               global.ourPeerId, false);
+               global.ourPeerId, true);
   request.send();
   global.ourPeerId = 'undefined';
   print_('ok-disconnected');
@@ -1226,7 +1226,7 @@ function startHangingGet_(server, ourId) {
   };
   var callUrl = server + '/wait?peer_id=' + ourId;
   print_('Sending ' + callUrl);
-  hangingGetRequest.open('GET', callUrl, true);
+  hangingGetRequest.open('GET', callUrl);
   hangingGetRequest.send();
 }
 
