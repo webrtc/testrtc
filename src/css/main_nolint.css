@@ -20,6 +20,17 @@ html /deep/ paper-button {
   font-weight: 400;
 }
 
+html /deep/ paper-button.start-manual-test-button {
+  background-color: #9E9;
+  color: #000;
+  font-size: 0.5em;
+  font-weight: 600;
+}
+
+html /deep/ paper-button.start-manual-test-button[disabled] {
+  background-color: #e2e2e2;
+}
+
 html /deep/ paper-action-dialog#mainDialog {
   max-width: 50%;
 }

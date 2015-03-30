@@ -30,6 +30,10 @@ body {
   color: #000;
 }
 
+#start-button[disabled] {
+  background-color: #e2e2e2;
+}
+
 div#content {
   margin: 0 auto 0 auto;
   max-width: 40em;
@@ -64,25 +68,4 @@ core-toolbar.test core-icon[icon="check"] {
 core-toolbar.test-suite core-icon[icon="close"],
 core-toolbar.test core-icon[icon="close"] {
   color: #F00;
-}
-
-/* Test style */
-core-toolbar.test {
-  cursor: pointer;
-  background-color: transparent;
-  height: 2em;
-}
-
-core-toolbar.test span {
-  min-width: 80%;
-}
-
-.test-output {
-  margin: 0 2em 0 2em;
-  word-wrap: break-word;
-}
-
-.test-progress {
-  display: block;
-  min-width: 2em;
 }

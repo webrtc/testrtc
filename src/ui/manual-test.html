@@ -1,0 +1,138 @@
+<!--
+ *  Copyright (c) 2015 The WebRTC project authors. All Rights Reserved.
+ *
+ *  Use of this source code is governed by a BSD-style license
+ *  that can be found in the LICENSE file in the root of the source
+ *  tree.
+-->
+<link rel="import" href="../../polymer/polymer.html">
+<link rel="import" href="../../core-collapse/core-collapse.html">
+<link rel="import" href="../../core-icon/core-icon.html">
+<link rel="import" href="../../core-toolbar/core-toolbar.html">
+<link rel="import" href="../../paper-button/paper-button.html">
+
+<polymer-element name="manual-test">
+  <template>
+    <core-toolbar state="{{state}}" id="test">
+      <div id="title"flex on-tap="{{toggleOutput}}">{{testName}}</div>
+      <paper-progress hidden?="{{!isThisTestRunning}}" id="progressBar" flex></paper-progress>
+      <core-icon id="statusIcon" state="{{state}}" icon="{{icon}}"></core-icon>
+      <template if="{{suiteName=='Manual'}}">
+        <paper-button id="manualTest" disabled="{{isSomeTestRunning}}" on-tap="{{startManualTestCase}}">Run</paper-button>
+      </template>
+    </core-toolbar>
+    <core-collapse id="output" closed></core-collapse>
+    <style>
+      #test {
+        cursor: pointer;
+        background-color: transparent;
+        height: 2em;
+      }
+
+      #test span {
+        min-width: 80%;
+      }
+
+      #output {
+        margin: 0 2em 0 2em;
+        word-wrap: break-word;
+      }
+
+      #progressBar {
+        display: block;
+        min-width: 2em;
+      }
+
+      #manualTest {
+        background-color: #9E9;
+        color: #000;
+        font-size: 0.5em;
+        font-weight: 600;
+      }
+
+      #manualTest[disabled] {
+        background-color: #e2e2e2;
+      }
+
+      #statusIcon[state="success"] {
+        color: #080;
+      }
+
+      #statusIcon[state="failure"] {
+        color: #F00;
+      }
+    </style>
+  </template>
+  <script>
+    Polymer('manual-test', {
+      isThisTestRunning: false,
+      isSomeTestRunning: false,
+      state: 'not started',
+      icon: '',
+
+      addTestCase: function(test) {
+        this.testName = test.name;
+        this.testCase = test;
+        this.suiteName = this.testCase.suite.name;
+
+        this.statusIcon = this.$.statusIcon;
+        this.progressBar = this.$.progressBar;
+        this.output = this.$.output;
+
+        document.addEventListener('test-started', function() {
+          this.isSomeTestRunning = true;
+        }.bind(this));
+        document.addEventListener('test-completed', function() {
+          this.isThisTestRunning = false;
+          this.isSomeTestRunning = false;
+        }.bind(this))
+      },
+
+      toggleOutput: function(action) {
+        if (action === 'open') {
+          this.$.output.opened = true;
+        } else if (action === 'close') {
+          this.$.output.opened = false;
+        } else {
+          this.$.output.toggle();
+        }
+      },
+
+      startManualTestCase: function() {
+        this.testCase.run(function() {
+          this.fire('test-completed')
+        }.bind(this));
+      },
+
+      setState: function(status) {
+        if (status === 'success') {
+          this.icon = 'check';
+          if (this.suiteName !== 'Manual') {
+            this.toggleOutput('close')
+          }
+        }
+        if (status === 'failure') {
+          this.icon = 'close';
+          this.toggleOutput('open');
+        }
+        if (status === 'started') {
+          this.isThisTestRunning = true;
+          this.fire('test-started');
+          this.icon = 'more-horiz';
+        }
+        if (status === 'all-completed') {
+          this.fire('test-completed');
+        }
+        this.state = status;
+      },
+
+      clearMessages: function() {
+        while (this.output.lastChild !== null) {
+          this.output.removeChild(this.output.lastChild);
+        }
+      },
+
+    });
+  </script>
+</polymer-element>
+
