@@ -48,11 +48,11 @@ Report.prototype = {
     // Google Analytics event for the test result to allow to track how the
     // test is doing in the wild.
     ga('send', {
-       'hitType': 'event',
-       'eventCategory': 'Test',
-       'eventAction': status,
-       'eventLabel': testName,
-       'nonInteraction': 1
+      'hitType': 'event',
+      'eventCategory': 'Test',
+      'eventAction': status,
+      'eventLabel': testName,
+      'nonInteraction': 1
     });
   },
 
