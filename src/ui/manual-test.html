@@ -79,10 +79,10 @@
         this.progressBar = this.$.progressBar;
         this.output = this.$.output;
 
-        document.addEventListener('test-started', function () {
+        document.addEventListener('test-started', function() {
           this.isSomeTestRunning = true;
         }.bind(this));
-        document.addEventListener('test-completed', function () {
+        document.addEventListener('test-completed', function() {
           this.isThisTestRunning = false;
           this.isSomeTestRunning = false;
         }.bind(this))

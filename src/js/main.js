@@ -28,11 +28,7 @@ var PREFIX_OK      = '[     OK ]';
 var PREFIX_FAILED  = '[ FAILED ]';
 var testSuites = [];
 var testFilters = [];
-var manualTestCounter = 0;
 var currentTest;
-// Need a reference counter due to asynchronous calls results in the Test array
-// being empty in first Test suite dictionary.
-var manualTestCounter = 0;
 
 document.querySelector('gum-dialog').addEventListener('closed', function() {
   if (typeof MediaStreamTrack.getSources === 'undefined') {
@@ -50,11 +46,11 @@ startButton.addEventListener('click', function() {
   });
 });
 
-document.addEventListener('test-started', function () {
+document.addEventListener('test-started', function() {
   startButton.setAttribute('disabled', null);
 });
 
-document.addEventListener('test-completed', function (event) {
+document.addEventListener('test-completed', function(event) {
   startButton.removeAttribute('disabled');
   event.isSomeTestRunning = false;
 });
@@ -142,7 +138,7 @@ function Test(suite, name, func) {
   this.output_ = this.testCase.output;
   this.isTestRunning = function(status) {
     this.testCase.setState(status);
-  }
+  };
 
   this.successCount = 0;
   this.errorCount = 0;
