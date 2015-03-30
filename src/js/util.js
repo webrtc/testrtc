@@ -8,8 +8,8 @@
 'use strict';
 /* exported arrayAverage, arrayMax, arrayMin */
 
-  // array<function> returns the average (down to nearest int), max and min of
-  // an int array.
+// array<function> returns the average (down to nearest int), max and min of
+// an int array.
 function arrayAverage(array) {
   var cnt = array.length;
   var tot = 0;
