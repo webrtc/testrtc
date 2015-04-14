@@ -8,8 +8,6 @@
 body {
   font-family: 'Roboto', sans-serif;
   font-weight: 300;
-  margin: 0;
-  padding: 1em;
 }
 
 .title {
@@ -21,7 +19,7 @@ body {
   transition: height .2s;
   font-family: 'Roboto', sans-serif;
   max-width: 40em;
-  margin: 0 auto 1em auto;
+  margin: 1em auto 1em auto;
 }
 
 #start-button {
@@ -85,4 +83,23 @@ core-toolbar.test span {
 .test-progress {
   display: block;
   min-width: 2em;
+}
+
+div#content {
+  /**
+   * Content has a calculated min-height so it can push the footer considerable
+   * down to the bottom of the page.
+   */
+  min-height: calc(100vh - 13em);
+}
+
+footer {
+  text-align: center;
+  margin: 1em;
+}
+
+footer a {
+  color: #666;
+  text-decoration: none;
+  padding-left: 27px;
 }
