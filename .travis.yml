@@ -5,6 +5,7 @@ node_js:
 install:
   - npm install -g bower grunt grunt-cli vulcanize
   - npm install grunt-jscs grunt-contrib-jshint grunt-htmlhint grunt-contrib-csslint
+  - bower update
 
 script:
   - grunt
