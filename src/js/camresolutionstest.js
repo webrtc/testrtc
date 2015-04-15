@@ -70,35 +70,18 @@ function CamResolutionsTest(resolutionArray) {
 
   this.isMuted = false;
   this.stream = null;
-  this.isTestActive = false;
-  this.timeForFirstFrameMs = null;
-  this.numFrames = 0;
-  // Variables associated with near-black frame detection.
-  this.numBlackFrames = 0;
-  this.nonBlackPixelLumaThreshold = 20;
-  // Variables associated with nearly-frozen frames detection.
-  this.numFrozenFrames = 0;
-  this.previousFrame = [];
-  this.identicalFrameSsimThreshold = 0.985;
-  this.frameComparator = new Ssim();
-
-  this.video = document.createElement('video');
-  this.video.width = null;
-  this.video.height = null;
-  this.video.setAttribute('autoplay', '');
-  this.video.setAttribute('muted', '');
 }
 
-function resolutionMatchesIndependentOfRotation_(aWidth, aHeight,
-                                                 bWidth, bHeight) {
+function resolutionMatchesIndependentOfRotationOrCrop_(aWidth, aHeight,
+                                                       bWidth, bHeight) {
+  var minRes = Math.min(bWidth, bHeight);
   return (aWidth === bWidth && aHeight === bHeight) ||
-         (aWidth === bHeight && aHeight === bWidth);
+         (aWidth === bHeight && aHeight === bWidth) ||
+         (aWidth === minRes && bHeight === minRes);
 }
 
 CamResolutionsTest.prototype = {
-  run: function() {
-    this.triggerGetUserMedia_(this.resolutions[0]);
-  },
+  run: function() { this.triggerGetUserMedia_(this.resolutions[0]); },
 
   triggerGetUserMedia_: function(resolution) {
     var constraints = {
@@ -126,24 +109,20 @@ CamResolutionsTest.prototype = {
     var selectedResolution = this.resolutions[this.counter++];
     // Measure performance only when testing one resolution.
     if (selectedResolution[2] && this.numResolutions === 1) {
-      this.video.width = selectedResolution[0];
-      this.video.height = selectedResolution[1];
-      this.currentResolutionForCheckEncodeTime = selectedResolution;
-      this.collectAndAnalyzeStats_(stream);
-      return;
+      this.collectAndAnalyzeStats_(stream, selectedResolution);
     } else {
       reportInfo('Supported ' + selectedResolution[0] + 'x' +
                  selectedResolution[1]);
+      stream.getVideoTracks()[0].stop();
+      this.finishTestOrRetrigger_();
     }
-    stream.getVideoTracks()[0].stop();
-    this.finishTestOrRetrigger_();
   },
 
-  setupAndCheckVideoPrerequisites_: function(stream) {
+  collectAndAnalyzeStats_: function(stream, selectedResolution) {
     var tracks = stream.getVideoTracks();
     if (tracks.length < 1) {
       reportError('No video track in returned stream.');
-      this.isTestActive = false;
+      this.finishTestOrRetrigger_();
       return;
     }
 
@@ -163,31 +142,48 @@ CamResolutionsTest.prototype = {
       this.isMuted = false;
     };
 
-    attachMediaStream(this.video, stream);
-    this.setupCanvas_();
-  },
-
-  collectAndAnalyzeStats_: function(stream) {
-    this.isTestActive = true;
+    var video = document.createElement('video');
+    video.setAttribute('autoplay', '');
+    video.setAttribute('muted', '');
+    window.videoElement = video;
+    window.stream = stream;
+    video.width = selectedResolution[0];
+    video.height = selectedResolution[1];
+    attachMediaStream(video, stream);
+    var frameChecker = new VideoFrameChecker(video);
     var call = new Call();
     call.pc1.addStream(stream);
     call.establishConnection();
-    this.collectStatsStartTime = Date.now();
-    this.setupAndCheckVideoPrerequisites_(stream);
-    call.gatherStats(call.pc1, this.analyzeStats_.bind(this),
-                     this.encoderSetupTime_.bind(this), 100);
-    setTimeoutWithProgressBar(function() {
-      call.close();
-      this.stream.getVideoTracks()[0].onended = null;
-      this.stream.getVideoTracks()[0].stop();
-    }.bind(this), 8000);
+    call.gatherStats(call.pc1,
+                     this.onCallEnded_.bind(this, selectedResolution, video,
+                                            this.stream, frameChecker),
+                     100);
+
+    setTimeoutWithProgressBar(call.close.bind(call), 8000);
   },
 
-  analyzeStats_: function(stats) {
+  onCallEnded_: function(selectedResolution, videoElement, stream, frameChecker,
+                         stats, statsTime) {
+    this.analyzeStats_(selectedResolution, videoElement, stream, frameChecker,
+                       stats, statsTime);
+
+    this.stream.getVideoTracks()[0].onended = null;
+    this.stream.getVideoTracks()[0].onmute = null;
+    this.stream.getVideoTracks()[0].onunmute = null;
+    this.stream.getVideoTracks()[0].stop();
+
+    frameChecker.stop();
+
+    this.finishTestOrRetrigger_();
+  },
+
+  analyzeStats_: function(selectedResolution, videoElement, stream,
+                          frameChecker, stats, statsTime) {
     var googAvgEncodeTime = [];
     var googAvgFrameRateInput = [];
     var googAvgFrameRateSent = [];
     var statsReport = {};
+    var frameStats = frameChecker.frameStats;
 
     for (var index = 0; index < stats.length - 1; index++) {
       if (stats[index].type === 'ssrc') {
@@ -208,9 +204,12 @@ CamResolutionsTest.prototype = {
     } else {
       // TODO: Add a reportInfo() function with a table format to display
       // values clearer.
-      statsReport.actualVideoWidth = this.video.videoWidth;
-      statsReport.actualVideoHeight = this.video.videoHeight;
-      statsReport.encodeSetupTimeMs = this.timeForFirstFrameMs;
+      statsReport.actualVideoWidth = videoElement.videoWidth;
+      statsReport.actualVideoHeight = videoElement.videoHeight;
+      statsReport.mandatoryWidth = selectedResolution[0];
+      statsReport.mandatoryHeight = selectedResolution[1];
+      statsReport.encodeSetupTimeMs =
+          this.extractEncoderSetupTime_(stats, statsTime);
       statsReport.avgEncodeTimeMs = arrayAverage(googAvgEncodeTime);
       statsReport.minEncodeTimeMs = arrayMin(googAvgEncodeTime);
       statsReport.maxEncodeTimeMs = arrayMax(googAvgEncodeTime);
@@ -221,20 +220,25 @@ CamResolutionsTest.prototype = {
       statsReport.minSentFps = arrayMin(googAvgFrameRateSent);
       statsReport.maxSentFps = arrayMax(googAvgFrameRateSent);
       statsReport.isMuted = this.isMuted;
-      statsReport.readyState = this.stream.getVideoTracks()[0].readyState;
-      statsReport.testedFrames = this.numFrames;
-      statsReport.blackFrames = this.numBlackFrames;
-      statsReport.frozenFrames = this.numFrozenFrames;
+      statsReport.readyState = stream.getVideoTracks()[0].readyState;
+      statsReport.testedFrames = frameStats.numFrames;
+      statsReport.blackFrames = frameStats.numBlackFrames;
+      statsReport.frozenFrames = frameStats.numFrozenFrames;
 
       this.testExpectations_(statsReport);
     }
     report.traceEventInstant('video-stats', statsReport);
-    this.finishTestOrRetrigger_();
   },
 
-  encoderSetupTime_: function(timeForFirstFrame) {
-    this.timeForFirstFrameMs =
-        JSON.stringify(timeForFirstFrame - this.collectStatsStartTime);
+  extractEncoderSetupTime_: function(stats, statsTime) {
+    for (var index = 0; index !== stats.length; index++) {
+      if (stats[index].type === 'ssrc') {
+        if (stats[index].stat('googFrameRateInput') > 0) {
+          return JSON.stringify(statsTime[index] - statsTime[0]);
+        }
+      }
+    }
+    return null;
   },
 
   testExpectations_: function(info) {
@@ -249,10 +253,10 @@ CamResolutionsTest.prototype = {
     } else {
       reportSuccess('Average FPS above threshold');
     }
-    if (!resolutionMatchesIndependentOfRotation_(info.videoWidth,
-                                                 info.videoHeight,
-                                                 info.mandatoryMinWidth,
-                                                 info.mandatoryMinHeight)) {
+    if (!resolutionMatchesIndependentOfRotationOrCrop_(info.actualVideoWidth,
+                                                       info.actualVideoHeight,
+                                                       info.mandatoryWidth,
+                                                       info.mandatoryHeight)) {
       reportError('Incorrect captured resolution.');
     } else {
       reportSuccess('Captured video using expected resolution.');
@@ -267,55 +271,6 @@ CamResolutionsTest.prototype = {
         reportError('Camera delivering lots of frozen frames.');
       }
     }
-  },
-
-  setupCanvas_: function() {
-    this.canvas = document.createElement('canvas');
-    this.canvas.width = this.video.width;
-    this.canvas.height = this.video.height;
-    this.context = this.canvas.getContext('2d');
-    this.video.addEventListener('play', this.checkVideoFrame_.bind(this),
-                                false);
-  },
-
-  checkVideoFrame_: function() {
-    if (this.video.ended) {
-      return false;
-    }
-    this.context.drawImage(this.video, 0, 0, this.canvas.width,
-        this.canvas.height);
-    var imageData = this.context.getImageData(0, 0, this.canvas.width,
-        this.canvas.height);
-
-    if (this.isBlackFrame_(imageData.data, imageData.data.length)) {
-      this.numBlackFrames++;
-    }
-
-    if (this.frameComparator.calculate(this.previousFrame, imageData.data) >
-        this.identicalFrameSsimThreshold) {
-      this.numFrozenFrames++;
-    }
-    this.previousFrame = imageData.data;
-
-    this.numFrames++;
-    if (this.isTestActive) {
-      setTimeout(this.checkVideoFrame_.bind(this), 20);
-    }
-  },
-
-  isBlackFrame_: function(data, length) {
-    // TODO: Use a statistical, histogram-based detection.
-    var thresh = this.nonBlackPixelLumaThreshold;
-    var accuLuma = 0;
-    for (var i = 4; i < length; i += 4) {
-      // Use Luma as in Rec. 709: Y′709 = 0.21R + 0.72G + 0.07B;
-      accuLuma += 0.21 * data[i] +  0.72 * data[i + 1] + 0.07 * data[i + 2];
-      // Early termination if the average Luma so far is bright enough.
-      if (accuLuma > (thresh * i / 4)) {
-        return false;
-      }
-    }
-    return true;
   },
 
   failFunc_: function() {
@@ -350,5 +305,80 @@ CamResolutionsTest.prototype = {
     } else {
       this.triggerGetUserMedia_(this.resolutions[this.counter]);
     }
+  }
+};
+
+function VideoFrameChecker(videoElement) {
+  this.frameStats = {
+    numFrozenFrames: 0,
+    numBlackFrames: 0,
+    numFrames: 0
+  };
+
+  this.running_ = true;
+
+  this.nonBlackPixelLumaThreshold = 20;
+  this.previousFrame_ = [];
+  this.identicalFrameSsimThreshold = 0.985;
+  this.frameComparator = new Ssim();
+
+  this.canvas_ = document.createElement('canvas');
+  this.videoElement_ = videoElement;
+  this.listener_ = this.checkVideoFrame_.bind(this);
+  this.videoElement_.addEventListener('play', this.listener_, false);
+}
+
+VideoFrameChecker.prototype = {
+  stop: function() {
+    this.videoElement_.removeEventListener(this.listener_);
+  },
+
+  getCurrentImageData_: function() {
+    this.canvas_.width = this.videoElement_.width;
+    this.canvas_.height = this.videoElement_.height;
+
+    var context = this.canvas_.getContext('2d');
+    context.drawImage(this.videoElement_, 0, 0, this.canvas_.width,
+                      this.canvas_.height);
+    return context.getImageData(0, 0, this.canvas_.width, this.canvas_.height);
+  },
+
+  checkVideoFrame_: function() {
+    if (!this.running_) {
+      return;
+    }
+    if (this.videoElement_.ended) {
+      return;
+    }
+
+    var imageData = this.getCurrentImageData_();
+
+    if (this.isBlackFrame_(imageData.data, imageData.data.length)) {
+      this.frameStats.numBlackFrames++;
+    }
+
+    if (this.frameComparator.calculate(this.previousFrame_, imageData.data) >
+        this.identicalFrameSsimThreshold) {
+      this.frameStats.numFrozenFrames++;
+    }
+    this.previousFrame_ = imageData.data;
+
+    this.frameStats.numFrames++;
+    setTimeout(this.checkVideoFrame_.bind(this), 20);
+  },
+
+  isBlackFrame_: function(data, length) {
+    // TODO: Use a statistical, histogram-based detection.
+    var thresh = this.nonBlackPixelLumaThreshold;
+    var accuLuma = 0;
+    for (var i = 4; i < length; i += 4) {
+      // Use Luma as in Rec. 709: Y′709 = 0.21R + 0.72G + 0.07B;
+      accuLuma += 0.21 * data[i] +  0.72 * data[i + 1] + 0.07 * data[i + 2];
+      // Early termination if the average Luma so far is bright enough.
+      if (accuLuma > (thresh * i / 4)) {
+        return false;
+      }
+    }
+    return true;
   }
 };
