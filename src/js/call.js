@@ -48,18 +48,16 @@ Call.prototype = {
     this.constrainOfferToRemoveVideoFec_ = true;
   },
 
-  // When the peerConnection is closed the statsCb is called once returning
-  // with an array of gathered stats. firstFrameCb will be called at most
-  // once when googFrameRateInput is > 0 with a timestamp in milliseconds.
-  // TODO (jansson) expand to cover audio as well.
-  gatherStats: function(peerConnection, statsCb, firstFrameCb, interval) {
-    var firstFrameCbSent = false;
+  // When the peerConnection is closed the statsCb is called once with an array
+  // of gathered stats.
+  gatherStats: function(peerConnection, statsCb, interval) {
     var stats = [];
+    var statsCollectTime = [];
     getStats_();
 
     function getStats_() {
       if (peerConnection.signalingState === 'closed') {
-        statsCb(stats);
+        statsCb(stats, statsCollectTime);
         return;
       }
       setTimeout(function() {
@@ -70,17 +68,7 @@ Call.prototype = {
     function gotStats_(response) {
       for (var index in response.result()) {
         stats.push(response.result()[index]);
-        for (var statsIndex = 0; statsIndex < stats.length - 1; statsIndex++) {
-          // Check when the video encoder is setup via getStats.
-          if (stats[statsIndex].type === 'ssrc') {
-            if (stats[statsIndex].stat('googFrameRateInput') > 0) {
-              if (!firstFrameCbSent) {
-                firstFrameCb(Date.now());
-                firstFrameCbSent = true;
-              }
-            }
-          }
-        }
+        statsCollectTime.push(Date.now());
       }
       getStats_();
     }
