@@ -224,10 +224,6 @@ CamResolutionsTest.prototype = {
     // values clearer.
     report.traceEventInstant('video-stats', statsReport);
 
-    if (stats.length === 0) {
-      reportError('Failed to collect stats.');
-    }
-
     this.testExpectations_(statsReport);
   },
 
@@ -243,13 +239,23 @@ CamResolutionsTest.prototype = {
   },
 
   testExpectations_: function(info) {
+    var notAvailableStats = [];
     for (var key in info) {
       if (info.hasOwnProperty(key)) {
-        reportInfo(key + ': ' + info[key]);
+        if (isNaN(info[key])) {
+          notAvailableStats.push(key);
+        } else {
+          reportInfo(key + ': ' + info[key]);
+        }
       }
     }
+    if (notAvailableStats.length !== 0) {
+      reportInfo('Not available: ' + notAvailableStats.join(', '));
+    }
 
-    if (info.avgSentFps < 5) {
+    if (isNaN(info.avgSentFps)) {
+      reportInfo('Cannot verify sent FPS.');
+    } else if (info.avgSentFps < 5) {
       reportError('Low average sent FPS: ' + info.avgSentFps);
     } else {
       reportSuccess('Average FPS above threshold');
