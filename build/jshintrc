@@ -29,6 +29,7 @@
     "getUserMedia": true,
     "ga": true,
     "GumHandler": true,
+    "mozRTCPeerConnection": true,
     "MediaStreamTrack": true,
     "reattachMediaStream": true,
     "report": true,

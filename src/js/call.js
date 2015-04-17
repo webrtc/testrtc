@@ -60,9 +60,14 @@ Call.prototype = {
         statsCb(stats, statsCollectTime);
         return;
       }
-      setTimeout(function() {
-        peerConnection.getStats(gotStats_.bind(this));
-      }, interval);
+      // Work around for webrtc/testrtc#74
+      if (typeof(mozRTCPeerConnection) !== 'undefined' &&
+          peerConnection instanceof mozRTCPeerConnection) {
+        setTimeout(getStats_, interval);
+      } else {
+        setTimeout(peerConnection.getStats.bind(peerConnection, gotStats_),
+            interval);
+      }
     }
 
     function gotStats_(response) {

@@ -127,7 +127,6 @@ CamResolutionsTest.prototype = {
     }
 
     var videoTrack = tracks[0];
-    reportInfo('Camera label: ' + videoTrack.label);
     // Register events.
     videoTrack.onended = function() {
       reportError('Video track ended, camera stopped working');
@@ -199,35 +198,32 @@ CamResolutionsTest.prototype = {
       }
     }
 
-    if (googAvgEncodeTime.length === 0) {
-      reportError('No stats collected. Check your camera.');
-    } else {
-      // TODO: Add a reportInfo() function with a table format to display
-      // values clearer.
-      statsReport.actualVideoWidth = videoElement.videoWidth;
-      statsReport.actualVideoHeight = videoElement.videoHeight;
-      statsReport.mandatoryWidth = selectedResolution[0];
-      statsReport.mandatoryHeight = selectedResolution[1];
-      statsReport.encodeSetupTimeMs =
-          this.extractEncoderSetupTime_(stats, statsTime);
-      statsReport.avgEncodeTimeMs = arrayAverage(googAvgEncodeTime);
-      statsReport.minEncodeTimeMs = arrayMin(googAvgEncodeTime);
-      statsReport.maxEncodeTimeMs = arrayMax(googAvgEncodeTime);
-      statsReport.avgInputFps = arrayAverage(googAvgFrameRateInput);
-      statsReport.minInputFps = arrayMin(googAvgFrameRateInput);
-      statsReport.maxInputFps = arrayMax(googAvgFrameRateInput);
-      statsReport.avgSentFps = arrayAverage(googAvgFrameRateSent);
-      statsReport.minSentFps = arrayMin(googAvgFrameRateSent);
-      statsReport.maxSentFps = arrayMax(googAvgFrameRateSent);
-      statsReport.isMuted = this.isMuted;
-      statsReport.readyState = stream.getVideoTracks()[0].readyState;
-      statsReport.testedFrames = frameStats.numFrames;
-      statsReport.blackFrames = frameStats.numBlackFrames;
-      statsReport.frozenFrames = frameStats.numFrozenFrames;
+    statsReport.cameraName = stream.getVideoTracks()[0].label || NaN;
+    statsReport.actualVideoWidth = videoElement.videoWidth;
+    statsReport.actualVideoHeight = videoElement.videoHeight;
+    statsReport.mandatoryWidth = selectedResolution[0];
+    statsReport.mandatoryHeight = selectedResolution[1];
+    statsReport.encodeSetupTimeMs =
+        this.extractEncoderSetupTime_(stats, statsTime);
+    statsReport.avgEncodeTimeMs = arrayAverage(googAvgEncodeTime);
+    statsReport.minEncodeTimeMs = arrayMin(googAvgEncodeTime);
+    statsReport.maxEncodeTimeMs = arrayMax(googAvgEncodeTime);
+    statsReport.avgInputFps = arrayAverage(googAvgFrameRateInput);
+    statsReport.minInputFps = arrayMin(googAvgFrameRateInput);
+    statsReport.maxInputFps = arrayMax(googAvgFrameRateInput);
+    statsReport.avgSentFps = arrayAverage(googAvgFrameRateSent);
+    statsReport.minSentFps = arrayMin(googAvgFrameRateSent);
+    statsReport.maxSentFps = arrayMax(googAvgFrameRateSent);
+    statsReport.isMuted = this.isMuted;
+    statsReport.testedFrames = frameStats.numFrames;
+    statsReport.blackFrames = frameStats.numBlackFrames;
+    statsReport.frozenFrames = frameStats.numFrozenFrames;
 
-      this.testExpectations_(statsReport);
-    }
+    // TODO: Add a reportInfo() function with a table format to display
+    // values clearer.
     report.traceEventInstant('video-stats', statsReport);
+
+    this.testExpectations_(statsReport);
   },
 
   extractEncoderSetupTime_: function(stats, statsTime) {
@@ -238,17 +234,27 @@ CamResolutionsTest.prototype = {
         }
       }
     }
-    return null;
+    return NaN;
   },
 
   testExpectations_: function(info) {
+    var notAvailableStats = [];
     for (var key in info) {
       if (info.hasOwnProperty(key)) {
-        reportInfo(key + ': ' + info[key]);
+        if (typeof info[key] === 'number' && isNaN(info[key])) {
+          notAvailableStats.push(key);
+        } else {
+          reportInfo(key + ': ' + info[key]);
+        }
       }
     }
+    if (notAvailableStats.length !== 0) {
+      reportInfo('Not available: ' + notAvailableStats.join(', '));
+    }
 
-    if (info.avgSentFps < 5) {
+    if (isNaN(info.avgSentFps)) {
+      reportInfo('Cannot verify sent FPS.');
+    } else if (info.avgSentFps < 5) {
       reportError('Low average sent FPS: ' + info.avgSentFps);
     } else {
       reportSuccess('Average FPS above threshold');
