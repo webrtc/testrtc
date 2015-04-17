@@ -199,35 +199,36 @@ CamResolutionsTest.prototype = {
       }
     }
 
-    if (googAvgEncodeTime.length === 0) {
-      reportError('No stats collected. Check your camera.');
-    } else {
-      // TODO: Add a reportInfo() function with a table format to display
-      // values clearer.
-      statsReport.actualVideoWidth = videoElement.videoWidth;
-      statsReport.actualVideoHeight = videoElement.videoHeight;
-      statsReport.mandatoryWidth = selectedResolution[0];
-      statsReport.mandatoryHeight = selectedResolution[1];
-      statsReport.encodeSetupTimeMs =
-          this.extractEncoderSetupTime_(stats, statsTime);
-      statsReport.avgEncodeTimeMs = arrayAverage(googAvgEncodeTime);
-      statsReport.minEncodeTimeMs = arrayMin(googAvgEncodeTime);
-      statsReport.maxEncodeTimeMs = arrayMax(googAvgEncodeTime);
-      statsReport.avgInputFps = arrayAverage(googAvgFrameRateInput);
-      statsReport.minInputFps = arrayMin(googAvgFrameRateInput);
-      statsReport.maxInputFps = arrayMax(googAvgFrameRateInput);
-      statsReport.avgSentFps = arrayAverage(googAvgFrameRateSent);
-      statsReport.minSentFps = arrayMin(googAvgFrameRateSent);
-      statsReport.maxSentFps = arrayMax(googAvgFrameRateSent);
-      statsReport.isMuted = this.isMuted;
-      statsReport.readyState = stream.getVideoTracks()[0].readyState;
-      statsReport.testedFrames = frameStats.numFrames;
-      statsReport.blackFrames = frameStats.numBlackFrames;
-      statsReport.frozenFrames = frameStats.numFrozenFrames;
+    statsReport.actualVideoWidth = videoElement.videoWidth;
+    statsReport.actualVideoHeight = videoElement.videoHeight;
+    statsReport.mandatoryWidth = selectedResolution[0];
+    statsReport.mandatoryHeight = selectedResolution[1];
+    statsReport.encodeSetupTimeMs =
+        this.extractEncoderSetupTime_(stats, statsTime);
+    statsReport.avgEncodeTimeMs = arrayAverage(googAvgEncodeTime);
+    statsReport.minEncodeTimeMs = arrayMin(googAvgEncodeTime);
+    statsReport.maxEncodeTimeMs = arrayMax(googAvgEncodeTime);
+    statsReport.avgInputFps = arrayAverage(googAvgFrameRateInput);
+    statsReport.minInputFps = arrayMin(googAvgFrameRateInput);
+    statsReport.maxInputFps = arrayMax(googAvgFrameRateInput);
+    statsReport.avgSentFps = arrayAverage(googAvgFrameRateSent);
+    statsReport.minSentFps = arrayMin(googAvgFrameRateSent);
+    statsReport.maxSentFps = arrayMax(googAvgFrameRateSent);
+    statsReport.isMuted = this.isMuted;
+    statsReport.readyState = stream.getVideoTracks()[0].readyState;
+    statsReport.testedFrames = frameStats.numFrames;
+    statsReport.blackFrames = frameStats.numBlackFrames;
+    statsReport.frozenFrames = frameStats.numFrozenFrames;
 
-      this.testExpectations_(statsReport);
-    }
+    // TODO: Add a reportInfo() function with a table format to display
+    // values clearer.
     report.traceEventInstant('video-stats', statsReport);
+
+    if (stats.length == 0) {
+      reportError('Failed to collect stats.');
+    }
+
+    this.testExpectations_(statsReport);
   },
 
   extractEncoderSetupTime_: function(stats, statsTime) {
