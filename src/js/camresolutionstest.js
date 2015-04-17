@@ -127,7 +127,6 @@ CamResolutionsTest.prototype = {
     }
 
     var videoTrack = tracks[0];
-    reportInfo('Camera label: ' + videoTrack.label);
     // Register events.
     videoTrack.onended = function() {
       reportError('Video track ended, camera stopped working');
@@ -199,6 +198,7 @@ CamResolutionsTest.prototype = {
       }
     }
 
+    statsReport.cameraName = stream.getVideoTracks()[0].label || NaN;
     statsReport.actualVideoWidth = videoElement.videoWidth;
     statsReport.actualVideoHeight = videoElement.videoHeight;
     statsReport.mandatoryWidth = selectedResolution[0];
@@ -215,7 +215,6 @@ CamResolutionsTest.prototype = {
     statsReport.minSentFps = arrayMin(googAvgFrameRateSent);
     statsReport.maxSentFps = arrayMax(googAvgFrameRateSent);
     statsReport.isMuted = this.isMuted;
-    statsReport.readyState = stream.getVideoTracks()[0].readyState;
     statsReport.testedFrames = frameStats.numFrames;
     statsReport.blackFrames = frameStats.numBlackFrames;
     statsReport.frozenFrames = frameStats.numFrozenFrames;
@@ -235,14 +234,14 @@ CamResolutionsTest.prototype = {
         }
       }
     }
-    return null;
+    return NaN;
   },
 
   testExpectations_: function(info) {
     var notAvailableStats = [];
     for (var key in info) {
       if (info.hasOwnProperty(key)) {
-        if (isNaN(info[key])) {
+        if (typeof info[key] === 'number' && isNaN(info[key])) {
           notAvailableStats.push(key);
         } else {
           reportInfo(key + ': ' + info[key]);
