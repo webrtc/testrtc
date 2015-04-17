@@ -224,7 +224,7 @@ CamResolutionsTest.prototype = {
     // values clearer.
     report.traceEventInstant('video-stats', statsReport);
 
-    if (stats.length == 0) {
+    if (stats.length === 0) {
       reportError('Failed to collect stats.');
     }
 

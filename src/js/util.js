@@ -20,14 +20,14 @@ function arrayAverage(array) {
 }
 
 function arrayMax(array) {
-  if (array.length == 0) {
+  if (array.length === 0) {
     return NaN;
   }
   return Math.max.apply(Math, array);
 }
 
 function arrayMin(array) {
-  if (array.length == 0) {
+  if (array.length === 0) {
     return NaN;
   }
   return Math.min.apply(Math, array);
