@@ -50,7 +50,7 @@ document.addEventListener('test-started', function() {
   startButton.setAttribute('disabled', null);
 });
 
-document.addEventListener('all-tests-completed', function(event) {
+document.addEventListener('all-tests-completed', function() {
   startButton.removeAttribute('disabled');
 });
 
