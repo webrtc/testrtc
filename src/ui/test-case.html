@@ -1,0 +1,153 @@
+<!--
+ *  Copyright (c) 2015 The WebRTC project authors. All Rights Reserved.
+ *
+ *  Use of this source code is governed by a BSD-style license
+ *  that can be found in the LICENSE file in the root of the source
+ *  tree.
+-->
+<link rel="import" href="../../../polymer/polymer.html">
+<link rel="import" href="../../../core-collapse/core-collapse.html">
+<link rel="import" href="../../../core-icon/core-icon.html">
+<link rel="import" href="../../../core-toolbar/core-toolbar.html">
+<link rel="import" href="../../../paper-button/paper-button.html">
+
+<polymer-element name="test-case">
+  <template>
+    <core-toolbar state="{{state}}" id="test">
+      <div id="title"flex on-tap="{{toggleOutput_}}">{{testName}}</div>
+      <paper-progress hidden?="{{!isThisTestRunning}}" id="progressBar" flex></paper-progress>
+      <core-icon id="statusIcon" state="{{state}}" icon="{{icon}}"></core-icon>
+      <template if="{{suiteName=='Manual'}}">
+        <paper-button id="manualTest" disabled="{{isSomeTestRunning}}" on-tap="{{startManualTestCase}}">Run</paper-button>
+      </template>
+    </core-toolbar>
+    <core-collapse id="output" closed></core-collapse>
+    <style>
+      #test {
+        cursor: pointer;
+        background-color: transparent;
+        height: 2em;
+      }
+
+      #test span {
+        min-width: 80%;
+      }
+
+      #output {
+        margin: 0 2em 0 2em;
+        word-wrap: break-word;
+      }
+
+      #progressBar {
+        display: block;
+        min-width: 2em;
+      }
+
+      #manualTest {
+        background-color: #9E9;
+        color: #000;
+        font-size: 0.5em;
+        font-weight: 600;
+      }
+
+      #manualTest[disabled] {
+        background-color: #e2e2e2;
+      }
+
+      /* Since the {{binding}} does not bind the actual icon name ({{icon}}
+       * does not set the value to e.g. "check", it remains {{icon}} in HTML
+       * hence we cannot use css selectors for it) we need to keep track of the
+       * state via a "state" property instead.*/
+      #statusIcon[state="success"] {
+        color: #080;
+      }
+
+      #statusIcon[state="failure"] {
+        color: #F00;
+      }
+    </style>
+  </template>
+  <script>
+    Polymer('test-case', {
+      // Keep track if this test is running.
+      isThisTestRunning: false,
+      // Keep track if _any_ test is running.
+      isSomeTestRunning: false,
+      state: 'not started',
+      icon: '',
+
+      // External method that adds the UI and hooks up events for the provided
+      // test case object.
+      addTestCase: function(test) {
+        this.testCase = test;
+        this.testName = test.name;
+        this.suiteName = this.testCase.suite.name;
+
+        /* Exposes element attributes externally. */
+        // Set the status icon of the test.
+        this.statusIcon = this.$.statusIcon;
+        // Update progress bar for the test.
+        this.progressBar = this.$.progressBar;
+        // Test result output.
+        this.output = this.$.output;
+
+        // Keep track if _any_ test has started.
+        document.addEventListener('test-started', function() {
+          this.isSomeTestRunning = true;
+        }.bind(this));
+        // Keep track when all tests have completed.
+        document.addEventListener('all-tests-completed', function() {
+          this.isSomeTestRunning = false;
+        }.bind(this))
+      },
+
+      // Toggle or set explicit visibility of the test output.
+      toggleOutput_: function(action) {
+        if (action === 'open') {
+          this.$.output.opened = true;
+        } else if (action === 'close') {
+          this.$.output.opened = false;
+        } else {
+          this.$.output.toggle();
+        }
+      },
+
+      // Start this test case independently and fire "test-completed" event in
+      // the callback.
+      startManualTestCase: function() {
+        this.testCase.run(function() {
+          this.fire('all-tests-completed')
+        }.bind(this));
+      },
+
+      // Set the state of the test and configures it's properties.
+      setState: function(status) {
+        this.state = status;
+        if (status === 'success') {
+          this.icon = 'check';
+        }
+        if (status === 'failure') {
+          this.icon = 'close';
+          this.toggleOutput_('open');
+        }
+        if (status === 'started') {
+          this.isThisTestRunning = true;
+          this.icon = 'more-horiz';
+          this.fire('test-started');
+        }
+        if (status === 'completed') {
+          this.isThisTestRunning = false;
+          this.fire('test-completed');
+        }
+      },
+
+      // Clear test result output.
+      clearMessages: function() {
+        while (this.output.lastChild !== null) {
+          this.output.removeChild(this.output.lastChild);
+        }
+      },
+    });
+  </script>
+</polymer-element>
+
