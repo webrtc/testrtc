@@ -26,6 +26,7 @@ var settingsDialog = document.getElementById('settings-dialog');
 var PREFIX_INFO    = '[   INFO ]';
 var PREFIX_OK      = '[     OK ]';
 var PREFIX_FAILED  = '[ FAILED ]';
+var PREFIX_WARNING = '[   WARN ]';
 var testSuites = [];
 var testFilters = [];
 var currentTest;
@@ -230,6 +231,11 @@ Test.prototype = {
     this.traceTestEvent({error: str});
   },
 
+  reportWarning: function(str) {
+    this.reportMessage_(PREFIX_WARNING, str);
+    this.traceTestEvent({warning: str});
+  },
+
   reportInfo: function(str) {
     this.reportMessage_(PREFIX_INFO, str);
     this.traceTestEvent({info: str});
@@ -261,6 +267,7 @@ Test.prototype = {
 function reportSuccess(str) { currentTest.reportSuccess(str); }
 function reportError(str) { currentTest.reportError(str); }
 function reportFatal(str) { currentTest.reportFatal(str); }
+function reportWarning(str) { currentTest.reportWarning(str); }
 function reportInfo(str) { currentTest.reportInfo(str); }
 function setTestProgress(value) { currentTest.setProgress(value); }
 function testFinished() { currentTest.done(); }
