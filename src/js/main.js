@@ -46,6 +46,14 @@ startButton.addEventListener('click', function() {
   });
 });
 
+document.addEventListener('test-started', function() {
+  startButton.setAttribute('disabled', null);
+});
+
+document.addEventListener('all-tests-completed', function() {
+  startButton.removeAttribute('disabled');
+});
+
 // A test suite is a composition of many tests.
 function TestSuite(name, output) {
   this.name = name;
@@ -67,7 +75,9 @@ function TestSuite(name, output) {
   this.toolbar_.appendChild(this.statusIcon_);
 
   this.content_ = document.createElement('core-collapse');
-  this.content_.opened = false;
+  if (this.name === 'Manual') {
+    this.content_.opened = true;
+  }
 
   output.appendChild(this.toolbar_);
   output.appendChild(this.content_);
@@ -75,7 +85,9 @@ function TestSuite(name, output) {
 
 TestSuite.prototype = {
   addTest: function(testName, testFunction) {
-    this.tests.push(new Test(this, testName, testFunction));
+    document.addEventListener('polymer-ready', function() {
+      this.tests.push(new Test(this, testName, testFunction));
+    }.bind(this));
   },
 
   run: function(doneCallback) {
@@ -103,8 +115,10 @@ TestSuite.prototype = {
       this.statusIcon_.setAttribute('icon', 'close');
       this.content_.opened = true;
     }
-
     doneCallback();
+
+    var event = new Event('all-tests-completed');
+    document.dispatchEvent(event);
   },
 
   onClickToolbar_: function() {
@@ -117,32 +131,16 @@ function Test(suite, name, func) {
   this.name = name;
   this.func = func;
 
-  var progressBar = document.createElement('paper-progress');
-  progressBar.setAttribute('class', 'test-progress');
-  progressBar.setAttribute('flex', null);
-  progressBar.style.display = 'none';
+  this.testCase = document.createElement('test-case');
+  this.testCase.addTestCase(this);
+  suite.content_.appendChild(this.testCase);
 
-  var toolbar = document.createElement('core-toolbar');
-  toolbar.setAttribute('class', 'test');
-  var title = document.createElement('span');
-  title.textContent = name;
-  title.setAttribute('flex', null);
-  var statusIcon = document.createElement('core-icon');
-  statusIcon.setAttribute('icon', '');
-  toolbar.addEventListener('click', this.onClickToolbar_.bind(this));
-  toolbar.appendChild(title);
-  toolbar.appendChild(progressBar);
-  toolbar.appendChild(statusIcon);
-
-  var collapse = document.createElement('core-collapse');
-  collapse.setAttribute('class', 'test-output');
-  collapse.opened = false;
-  suite.content_.appendChild(toolbar);
-  suite.content_.appendChild(collapse);
-
-  this.statusIcon_ = statusIcon;
-  this.progressBar_ = progressBar;
-  this.output_ = collapse;
+  this.statusIcon_ = this.testCase.statusIcon;
+  this.progressBar_ = this.testCase.progressBar;
+  this.output_ = this.testCase.output;
+  this.isTestRunning = function(status) {
+    this.testCase.setState(status);
+  };
 
   this.successCount = 0;
   this.errorCount = 0;
@@ -157,14 +155,14 @@ Test.prototype = {
     this.successCount = 0;
     this.errorCount = 0;
     this.doneCallback_ = doneCallback;
-    this.clearMessages_();
-    this.statusIcon_.setAttribute('icon', 'more-horiz');
+    this.testCase.clearMessages();
     this.setProgress(null);
     this.traceTestEvent = report.traceEventAsync('test-run');
 
     currentTest = this;
     this.traceTestEvent({name: this.name, status: 'Running'});
     if (!this.isDisabled) {
+      this.testCase.setState('started');
       this.func();
     } else {
       this.reportInfo('Test is disabled.');
@@ -179,18 +177,10 @@ Test.prototype = {
                        (this.isDisabled ? 'Disabled' : 'Failure'));
     this.traceTestEvent({status: statusString});
     report.logTestRunResult(this.name, statusString);
-
     if (success) {
-      this.statusIcon_.setAttribute('icon', 'check');
-      // On success, always close the details.
-      this.output_.opened = false;
+      this.testCase.setState('success');
     } else {
-      this.statusIcon_.setAttribute('icon', 'close');
-      // Only close the details if there is only one expectations in which
-      // case the test name should provide enough information.
-      if (this.errorCount + this.successCount === 1) {
-        this.output_.opened = false;
-      }
+      this.testCase.setState('failure');
     }
     this.doneCallback_();
   },
@@ -224,7 +214,6 @@ Test.prototype = {
   },
 
   reportError: function(str) {
-    this.output_.opened = true;
     this.reportMessage_(PREFIX_FAILED, str);
     this.errorCount++;
     this.traceTestEvent({error: str});
@@ -244,16 +233,6 @@ Test.prototype = {
     var message = document.createElement('div');
     message.textContent = prefix + ' ' + str;
     this.output_.appendChild(message);
-  },
-
-  clearMessages_: function() {
-    while (this.output_.lastChild !== null) {
-      this.output_.removeChild(this.output_.lastChild);
-    }
-  },
-
-  onClickToolbar_: function() {
-    this.output_.toggle();
   }
 };
 
@@ -278,6 +257,7 @@ function addTest(suiteName, testName, func) {
       return;
     }
   }
+
   // Non-existent suite.
   var testSuite = new TestSuite(suiteName, contentDiv);
   testSuite.addTest(testName, func);
@@ -307,7 +287,12 @@ function runAllSequentially(tasks, doneCallback) {
       doneCallback();
       return;
     }
-    tasks[current].run(runNextAsync);
+    // Exclude manual tests.
+    if (tasks[current].name !== 'Manual') {
+      tasks[current].run(runNextAsync);
+      return;
+    }
+    runNextAsync();
   }
 }
 
