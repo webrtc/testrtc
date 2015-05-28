@@ -45,6 +45,9 @@ core-toolbar.test-suite[state='pending'] {
 core-toolbar.test-suite[state='success'] {
   background-color: #90ec90;
 }
+core-toolbar.test-suite[state='warning'] {
+  background-color: #ecec90;
+}
 core-toolbar.test-suite[state='failure'] {
   background-color: #ec9090;
 }

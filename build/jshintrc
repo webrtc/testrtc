@@ -38,6 +38,7 @@
     "reportFatal": true,
     "reportInfo": true,
     "reportSuccess": true,
+    "reportWarning": true,
     "RTCIceCandidate": true,
     "RTCPeerConnection": true,
     "RTCSessionDescription": true,

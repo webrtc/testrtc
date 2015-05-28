@@ -187,9 +187,9 @@ MicTest.prototype = {
                     'volume or move closer to the microphone.');
       }
       if (maxClipCount > this.clipCountThreshold) {
-        reportError('Clipping detected! Microphone input level is high. ' +
-                    'Decrease input volume or move away from the ' +
-                    'microphone.');
+        reportWarning('Clipping detected! Microphone input level is high. ' +
+                      'Decrease input volume or move away from the ' +
+                      'microphone.');
       }
       return true;
     } else {

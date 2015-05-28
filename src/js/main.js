@@ -7,7 +7,7 @@
  */
 
 /* More information about these options at jshint.com/docs/options */
-/* exported addExplicitTest, addTest, createLineChart, doGetUserMedia, reportInfo, expectEquals, testFinished, setTestProgress, audioContext, reportSuccess, reportError, settingsDialog, setTimeoutWithProgressBar */
+/* exported addExplicitTest, addTest, createLineChart, doGetUserMedia, reportInfo, expectEquals, testFinished, setTestProgress, audioContext, reportSuccess, reportError, settingsDialog, setTimeoutWithProgressBar, reportWarning */
 'use strict';
 
 // Global WebAudio context that can be shared by all tests.
@@ -26,6 +26,7 @@ var settingsDialog = document.getElementById('settings-dialog');
 var PREFIX_INFO    = '[   INFO ]';
 var PREFIX_OK      = '[     OK ]';
 var PREFIX_FAILED  = '[ FAILED ]';
+var PREFIX_WARNING = '[   WARN ]';
 var testSuites = [];
 var testFilters = [];
 var currentTest;
@@ -88,14 +89,20 @@ TestSuite.prototype = {
 
   allTestFinished: function(doneCallback) {
     var errors = 0;
+    var warnings = 0;
     var successes = 0;
     for (var i = 0; i !== this.tests.length; ++i) {
-      successes += this.tests[i].successCount;
       errors += this.tests[i].errorCount;
+      warnings += this.tests[i].warningCount;
+      successes += this.tests[i].successCount;
     }
 
-    if (errors === 0 && successes > 0) {
+    if (errors === 0 && warnings === 0 && successes > 0) {
       this.toolbar_.setAttribute('state', 'success');
+      this.statusIcon_.setAttribute('icon', 'check');
+      this.content_.opened = false;
+    } else if (errors === 0 && warnings > 0) {
+      this.toolbar_.setAttribute('state', 'warning');
       this.statusIcon_.setAttribute('icon', 'check');
       this.content_.opened = false;
     } else {
@@ -145,6 +152,7 @@ function Test(suite, name, func) {
   this.output_ = collapse;
 
   this.successCount = 0;
+  this.warningCount = 0;
   this.errorCount = 0;
   this.doneCallback_ = null;
 
@@ -155,6 +163,7 @@ function Test(suite, name, func) {
 Test.prototype = {
   run: function(doneCallback) {
     this.successCount = 0;
+    this.warningCount = 0;
     this.errorCount = 0;
     this.doneCallback_ = doneCallback;
     this.clearMessages_();
@@ -174,7 +183,8 @@ Test.prototype = {
 
   done: function() {
     this.setProgress(null);
-    var success = (this.errorCount === 0 && this.successCount > 0);
+    var success =
+        (this.errorCount === 0 && (this.successCount + this.warningCount) > 0);
     var statusString = (success ? 'Success' :
                        (this.isDisabled ? 'Disabled' : 'Failure'));
     this.traceTestEvent({status: statusString});
@@ -188,7 +198,7 @@ Test.prototype = {
       this.statusIcon_.setAttribute('icon', 'close');
       // Only close the details if there is only one expectations in which
       // case the test name should provide enough information.
-      if (this.errorCount + this.successCount === 1) {
+      if ((this.errorCount + this.warningCount + this.successCount) === 1) {
         this.output_.opened = false;
       }
     }
@@ -230,6 +240,12 @@ Test.prototype = {
     this.traceTestEvent({error: str});
   },
 
+  reportWarning: function(str) {
+    this.reportMessage_(PREFIX_WARNING, str);
+    this.warningCount++;
+    this.traceTestEvent({warning: str});
+  },
+
   reportInfo: function(str) {
     this.reportMessage_(PREFIX_INFO, str);
     this.traceTestEvent({info: str});
@@ -261,6 +277,7 @@ Test.prototype = {
 function reportSuccess(str) { currentTest.reportSuccess(str); }
 function reportError(str) { currentTest.reportError(str); }
 function reportFatal(str) { currentTest.reportFatal(str); }
+function reportWarning(str) { currentTest.reportWarning(str); }
 function reportInfo(str) { currentTest.reportInfo(str); }
 function setTestProgress(value) { currentTest.setProgress(value); }
 function testFinished() { currentTest.done(); }
