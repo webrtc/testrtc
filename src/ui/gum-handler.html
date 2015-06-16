@@ -38,7 +38,7 @@ visible on the page but is no more it will keep polling permissions once per sec
       if (typeof MediaStreamTrack.getSources !== 'undefined') {
         MediaStreamTrack.getSources(this.triggerGetUserMediaBasedOnSources_.bind(this));
       } else {
-        this.getUserMediaBasedOnSources_([]);
+        this.triggerGetUserMediaBasedOnSources_([]);
       }
     },
 
