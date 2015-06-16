@@ -42,8 +42,9 @@ visible on the page but is no more it will keep polling permissions once per sec
       navigator.mediaDevices.enumerateDevices()
       .then(this.triggerGetUserMediaBasedOnSources_.bind(this))
       .catch(function(err) {
-          console.log('JS Device selection not supported', err)
-          this.triggerGetUserMediaBasedOnSources_.bind(this);});
+        console.log('JS Device selection not supported', err)
+        this.triggerGetUserMediaBasedOnSources_.bind(this);
+      });
     },
 
     triggerGetUserMediaBasedOnSources_: function(sources) {

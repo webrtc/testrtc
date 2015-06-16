@@ -36,7 +36,8 @@ document.querySelector('gum-dialog').addEventListener('closed', function() {
   navigator.mediaDevices.enumerateDevices()
   .then(gotSources)
   .catch(function(err) {
-      console.log('JS Device selection not supported', err);});
+    console.log('JS Device selection not supported', err);
+  });
 
   startButton.removeAttribute('disabled');
 });
