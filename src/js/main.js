@@ -31,12 +31,13 @@ var testSuites = [];
 var testFilters = [];
 var currentTest;
 
+// Populate the device selection drop down menu after the gUM dialog closes.
 document.querySelector('gum-dialog').addEventListener('closed', function() {
-  if (typeof MediaStreamTrack.getSources === 'undefined') {
-    console.log('getSources is not supported, device selection not possible.');
-  } else {
-    MediaStreamTrack.getSources(gotSources);
-  }
+  navigator.mediaDevices.enumerateDevices()
+  .then(gotSources)
+  .catch(function(err) {
+      console.log('JS Device selection not supported', err);});
+
   startButton.removeAttribute('disabled');
 });
 
@@ -375,16 +376,16 @@ function gotSources(sourceInfos) {
   for (var i = 0; i !== sourceInfos.length; ++i) {
     var sourceInfo = sourceInfos[i];
     var option = document.createElement('option');
-    option.value = sourceInfo.id;
+    option.value = sourceInfo.deviceId;
     appendOption(sourceInfo, option);
   }
 }
 
 function appendOption(sourceInfo, option) {
-  if (sourceInfo.kind === 'audio') {
+  if (sourceInfo.kind === 'audioinput') {
     option.text = sourceInfo.label || 'microphone ' + (audioSelect.length + 1);
     audioSelect.appendChild(option);
-  } else if (sourceInfo.kind === 'video') {
+  } else if (sourceInfo.kind === 'videoinput') {
     option.text = sourceInfo.label || 'camera ' + (videoSelect.length + 1);
     videoSelect.appendChild(option);
   } else {

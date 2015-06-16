@@ -35,11 +35,15 @@ visible on the page but is no more it will keep polling permissions once per sec
         return;
       }
 
-      if (typeof MediaStreamTrack.getSources !== 'undefined') {
-        MediaStreamTrack.getSources(this.triggerGetUserMediaBasedOnSources_.bind(this));
-      } else {
-        this.triggerGetUserMediaBasedOnSources_([]);
-      }
+      // Since triggerGetUserMediaBasedOnSources handles sources.length = 0
+      // we call upon it regardless of a enumerate device failure. Using the
+      // .catch callback for to get the logs. This is due to sources.length = 0
+      // does not necessarily mean JS device selection is unsupported.
+      navigator.mediaDevices.enumerateDevices()
+      .then(this.triggerGetUserMediaBasedOnSources_.bind(this))
+      .catch(function(err) {
+          console.log('JS Device selection not supported', err)
+          this.triggerGetUserMediaBasedOnSources_.bind(this);});
     },
 
     triggerGetUserMediaBasedOnSources_: function(sources) {
@@ -48,10 +52,10 @@ visible on the page but is no more it will keep polling permissions once per sec
         constraints = {audio: true, video: true};
       } else {
         for (var i = 0; i < sources.length; i++) {
-          if (sources[i].kind === 'audio') {
+          if (sources[i].kind === 'audioinput') {
             constraints.audio = true;
           }
-          if (sources[i].kind === 'video') {
+          if (sources[i].kind === 'videoinput') {
             constraints.video = true;
           }
         }
