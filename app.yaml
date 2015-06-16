@@ -19,8 +19,7 @@ handlers:
   secure: always
 
 - url: /images
-  static_files: src/images
-  upload: src/images
+  static_dir: src/images
   secure: always
 
 - url: /css
