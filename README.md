@@ -56,33 +56,33 @@ Patches and issues welcome! See [CONTRIBUTING](https://github.com/GoogleChrome/w
 ## Development ##
 Make sure to install NodeJS and NPM before continuing. Note that we have been mainly been using Posix when developing TestRTC hence developer tools might not work correctly on Windows.
 
-Install developer tools and frameworks
+#### Install developer tools and frameworks ####
 ```bash
 npm install
 ```
 
-Install dependencies
+#### Install dependencies ####
 ```bash
 bower update
 ```
 
-Run linters (currently very limited set is run)
+#### Run linters (currently very limited set is run) ####
 ```bash
 grunt
 ```
 
-Build testrtc
-* Cleans out/ folder if it exists else it's created, then it copies and vulcanizes the resources needed to deploy this on Google App Engine.
+#### Build testrtc ####
+Cleans out/ folder if it exists else it's created, then it copies and vulcanizes the resources needed to deploy this on Google App Engine.
 ```
 grunt build
 ```
 
-Run non vulcanized version of TestRTC using (Google App Engine SDK for Python)(https://cloud.google.com/appengine/downloads). This is useful while developing.
+#### Run non vulcanized version of TestRTC using (Google App Engine SDK for Python)(https://cloud.google.com/appengine/downloads). This is useful while developing. ####
 ```bash
 python dev_appserver.py app.yml
 ```
 
-Run vulcanized version of TestRTC using (Google App Engine SDK for Python)(https://cloud.google.com/appengine/downloads) (Requires the Build testrtc step to be performed first).
+#### Run vulcanized version of TestRTC using (Google App Engine SDK for Python)(https://cloud.google.com/appengine/downloads) (Requires the Build testrtc step to be performed first). ####
 ```bash
 python dev_appserver.py out/app.yml
 ```
