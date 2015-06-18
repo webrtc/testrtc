@@ -3,10 +3,9 @@ node_js:
   - 0.10
 
 install:
-  - npm install -g bower grunt grunt-cli vulcanize@0.7.10
-  - npm install grunt-jscs grunt-contrib-jshint grunt-htmlhint grunt-contrib-csslint
+  - npm install
   - bower update
 
 script:
   - grunt
-  - vulcanize --inline -strip src/index.html
+  - grunt build

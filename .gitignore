@@ -1,3 +1,4 @@
 *.pyc
 components
 node_modules
+out
