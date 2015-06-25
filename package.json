@@ -1,0 +1,25 @@
+{
+  "name": "TestRTC",
+  "description": "Collection of tests and tools to help diagnose WebRTC systems.",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/webrtc/testrtc"
+  },
+  "authors": [
+    "The WebRTC project authors (http://www.webrtc.org/)"
+  ],
+  "devDependencies": {
+    "grunt-contrib-clean": "~0.6.0",
+    "grunt-contrib-copy": "~0.8.0",
+    "grunt-contrib-csslint": "~0.4.0",
+    "grunt-jscs": "~1.8.0",
+    "grunt-contrib-jshint": "~0.11.2",
+    "grunt-htmlhint": "~0.4.1",
+    "grunt-cli": "~0.1.13",
+    "grunt-vulcanize": "~0.6.4",
+    "vulcanize": "~0.7.10",
+    "grunt": "~0.4.5",
+    "bower": "~1.4.1"
+  }
+}

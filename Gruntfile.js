@@ -6,6 +6,42 @@ module.exports = function(grunt) {
 
   // configure project
   grunt.initConfig({
+    copy: {
+      build: {
+        cwd: '.',
+        files: [
+          {src: [
+            'cron.yml',
+            'app.yaml',
+            'src/manual/**',
+            'components/webrtc-adapter/adapter.js'
+            ],
+            dest: 'out',
+            nonull: true,
+            expand: true
+          }
+        ]
+      }
+    },
+
+    clean: {
+      build: {
+        src: ['out/*']
+      }
+    },
+
+    vulcanize: {
+      default: {
+        options: {
+          inline: true,
+          strip: true
+        },
+        files: {
+          'out/src/index.html': 'src/index.html'
+        }
+      }
+    },
+
     csslint: {
       options: {
         csslintrc: 'build/csslintrc'
@@ -18,7 +54,8 @@ module.exports = function(grunt) {
           '**/*.css',
           '!**/*_nolint.css',
           '!components/**',
-          '!node_modules/**'
+          '!node_modules/**',
+          '!out/**'
         ]
       }
     },
@@ -29,7 +66,8 @@ module.exports = function(grunt) {
           // TODO: fix rule and enable html linting.
           '!**/*.html',
           '!components/**',
-          '!node_modules/**'
+          '!node_modules/**',
+          '!out/**'
         ]
       }
     },
@@ -40,7 +78,8 @@ module.exports = function(grunt) {
         preset: 'google', // as per Google style guide – could use '.jscsrc' instead
         excludeFiles: [
           'components/**',
-          'node_modules/**'
+          'node_modules/**',
+          'out/**'
         ]
       }
     },
@@ -49,11 +88,12 @@ module.exports = function(grunt) {
       options: {
         ignores: [
           'components/**',
-          'node_modules/**'
+          'node_modules/**',
+          'out/**'
         ],
         jshintrc: 'build/jshintrc'
       },
-      // files to validate
+      // Files to validate
       // can choose more than one name + array of paths
       // usage with this name: grunt jshint:files
       files: ['**/*.js']
@@ -65,7 +105,14 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-htmlhint');
   grunt.loadNpmTasks('grunt-jscs');
   grunt.loadNpmTasks('grunt-contrib-jshint');
+  grunt.loadNpmTasks('grunt-contrib-jshint');
+  grunt.loadNpmTasks('grunt-vulcanize');
+  grunt.loadNpmTasks('grunt-contrib-copy');
+  grunt.loadNpmTasks('grunt-contrib-clean');
 
-  // set default tasks to run when grunt is called without parameters
+  // Set default tasks to run when grunt is called without parameters
   grunt.registerTask('default', ['csslint', 'htmlhint', 'jscs', 'jshint']);
+
+  // Cleans out/ folder, copies files in place and vulcanizes index.html to out/.
+  grunt.registerTask('build', ['clean', 'copy', 'vulcanize']);
 };

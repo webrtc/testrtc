@@ -53,3 +53,36 @@ Due to their time duration they are not part of the normal test suite and need t
 ## Contributing ##
 Patches and issues welcome! See [CONTRIBUTING](https://github.com/GoogleChrome/webrtc/blob/master/CONTRIBUTING.md) for instructions. All contributors must sign a contributor license agreement before code can be accepted. Please complete the agreement for an [individual](https://developers.google.com/open-source/cla/individual) or a [corporation](https://developers.google.com/open-source/cla/corporate) as appropriate. The [Developer's Guide](https://bit.ly/webrtcdevguide) for this repo has more information about code style, structure and validation.
 
+## Development ##
+Make sure to install NodeJS and NPM before continuing. Note that we have been mainly been using Posix when developing TestRTC hence developer tools might not work correctly on Windows.
+
+#### Install developer tools and frameworks ####
+```bash
+npm install
+```
+
+#### Install dependencies ####
+```bash
+bower update
+```
+
+#### Run linters (currently very limited set is run) ####
+```bash
+grunt
+```
+
+#### Build testrtc ####
+Cleans out/ folder if it exists else it's created, then it copies and vulcanizes the resources needed to deploy this on Google App Engine.
+```
+grunt build
+```
+
+#### Run non vulcanized version of TestRTC using (Google App Engine SDK for Python)(https://cloud.google.com/appengine/downloads). This is useful while developing. ####
+```bash
+python dev_appserver.py app.yml
+```
+
+#### Run vulcanized version of TestRTC using (Google App Engine SDK for Python)(https://cloud.google.com/appengine/downloads) (Requires the Build testrtc step to be performed first). ####
+```bash
+python dev_appserver.py out/app.yml
+```

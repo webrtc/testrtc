@@ -18,6 +18,18 @@ handlers:
   static_dir: src/manual
   secure: always
 
+- url: /components
+  static_dir: components
+  secure: always
+
+- url: /js
+  static_dir: src/js
+  secure: always
+
+- url: /ui
+  static_dir: src/ui
+  secure: always
+
 - url: /images
   static_dir: src/images
   secure: always
@@ -27,8 +39,8 @@ handlers:
   secure: always
 
 - url: /
-  static_files: src/vulcanized.html
-  upload: src/vulcanized.html
+  static_files: src/index.html
+  upload: src/index.html
   secure: always
 
 - url: /.*
