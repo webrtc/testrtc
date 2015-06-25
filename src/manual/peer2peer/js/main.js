@@ -906,13 +906,20 @@ function iceCallback_(event) {
 }
 
 function setLocalAndSendMessage_(sessionDescription) {
+  var unmodifiedSdp = sessionDescription.sdp;
   sessionDescription.sdp =
     global.transformOutgoingSdp(sessionDescription.sdp);
   global.peerConnection.setLocalDescription(sessionDescription,
       function() { success_('setLocalDescription'); },
-      function(error) { error_('setLocalDescription', error); });
+      failedSetLocalDescription);
   print_('Sending SDP message:\n' + sessionDescription.sdp);
   sendToPeer(global.remotePeerId, JSON.stringify(sessionDescription));
+
+  function failedSetLocalDescription(error) {
+    error_('SetLocalDescription failure: ' + error + '\n' +
+        'SDP before transform:\n ' + unmodifiedSdp + '\n' +
+        'SDP after transform:\n ' + sessionDescription.sdp + '\n');
+  }
 }
 
 function addStreamCallback_(event) {
@@ -1105,10 +1112,10 @@ function printHandler_(message, color) {
   }
   $('messages').innerHTML += '<span style="color:' + color + ';">' + message +
                             '</span><br>';
-  console.log(message);
   if (color === 'red') {
     throw new Error(message);
   }
+  console.log(message);
 }
 
 // @param {string} stringRepresentation JavaScript as a string.
@@ -1129,7 +1136,8 @@ function forceIsac_() {
     sdp = sdp.replace(/m=audio (\d+) RTP\/SAVPF.*\r\n/g,
                       'm=audio $1 RTP/SAVPF 104\r\n');
     sdp = sdp.replace('a=fmtp:111 minptime=10', 'a=fmtp:104 minptime=10');
-    sdp = sdp.replace(/a=rtpmap:(?!104)\d{1,3} (?!VP8|red|ulpfec).*\r\n/g, '');
+    sdp = sdp.replace(/a=rtpmap:(?!104)\d{1,3} (?!VP8|red|ulpfec|rtx).*\r\n/g,
+        '');
     return sdp;
   });
 }
