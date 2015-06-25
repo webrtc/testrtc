@@ -17,7 +17,7 @@ module.exports = function(grunt) {
             'components/webrtc-adapter/adapter.js'
             ],
             dest: 'out',
-            nonull:true,
+            nonull: true,
             expand: true
           }
         ]
