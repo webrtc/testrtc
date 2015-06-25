@@ -1,6 +1,11 @@
+//  Copyright (c) 2015 The WebRTC project authors. All Rights Reserved.
+//  Use of this source code is governed by a BSD-style license
+//  that can be found in the LICENSE file in the root of the source
+//  tree.
+
 'use strict';
 
-// https://chromeextensionsdocs.appspot.com/apps/content_scripts#host-page-communication
+// https://goo.gl/7p5VrQ
 //   - 'content_script' and execution env are isolated from each other
 //   - In order to communicate we use the DOM (window.postMessage)
 //
