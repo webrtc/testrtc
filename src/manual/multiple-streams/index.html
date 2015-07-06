@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<!--
+  Copyright (c) 2014 The WebRTC project authors. All Rights Reserved.
+
+  Use of this source code is governed by a BSD-style license
+  that can be found in the LICENSE file in the root of the source
+  tree. An additional intellectual property rights grant can be found
+  in the file PATENTS.  All contributing project authors may
+  be found in the AUTHORS file in the root of the source tree.
+-->
+<html>
+<head>
+  <title>Multiple device test (Video Only)</title>
+  <style>
+    #messages {
+      color: #DC143C;
+      clear: both;
+    }
+
+    #remote {
+      float: left;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div id="local">
+    <h1>Local audio streams</h1>
+    <span id="audioArea"></span>
+  </div>
+
+  <div id="remote">
+    <h1>Remote audio streams</h1>
+    <span id="remoteAudioArea">
+    </span>
+     <button id="start-call">Start call</button>
+  </div>
+
+
+  <div id="messages"></div>
+   <!-- Load the polyfill to switch-hit between Chrome and Firefox -->
+  <script src="../../../components/webrtc-adapter/adapter.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
