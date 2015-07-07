@@ -8,43 +8,59 @@
 
 'use strict';
 
+// Global array of audio devices enumerated via mediaDevices
 var deviceList = [];
+// Keep track of how many audio tags we should create for local streams.
 var counter = 0;
+// Keep track of how many audio tags we should create for remote streams.
 var remoteCounter = 0;
-var startCall = document.getElementById('start-call');
-startCall.addEventListener('click', call);
+// Hookup startCallButton event.
+var startCallButton = document.querySelector('#start-call');
+startCallButton.addEventListener('click', call);
+// Hookup endCallButton event.
+var endCallButton = document.querySelector('#end-call');
+endCallButton.addEventListener('click', hangup);
+// Global peerConnection variables.
 var pc1 = null;
 var pc2 = null;
+// Global local stream array.
+var localStreams = [];
 
 function call() {
-  console.log('start call')
-  pc1.createOffer(gotDescription1, onCreateSessionDescriptionError);
+  trace('Start call')
+  // Setup new peerconnections if the user has hungup earlier.
+  if (pc1 === null || pc2 === null) {
+    setupPeerConnection_();
+  }
+  // Reuse existing local streams from previous call.
+  if (localStreams.length > 0) {
+    for (var streams in localStreams) {
+      pc1.addStream(localStreams[streams]);
+    }
+  }
+  pc1.createOffer(gotDescription1_, onCreateSessionDescriptionError_);
+
+  // Setup the button states.
+  startCallButton.disabled = true;
+  endCallButton.disabled = false;
 }
 
 function gotSources_(devices) {
   for (var i = 0; i < devices.length; i++) {
     if (devices[i].kind === 'audioinput') {
-      deviceList[i] = devices[i];
-      console.log(deviceList[i]);
-      requestAudio_(deviceList[i].deviceId);
+      // Skipping default device due to not wanting duplicate devices.
+      // This will not work on CrOS because it only exposes one device named
+      // "Default" and because of just that it does not make sense to use this
+      // page on CrOS at all.
+      if (devices[i].label !== 'Default') {
+        deviceList[i] = devices[i];
+        requestAudio_(deviceList[i].deviceId);
+      }
     }
   }
 }
 
-function gotStream(stream) {
-  trace('Received local stream');
-  // Call the polyfill wrapper to attach the media stream to this element.
-  localstream = stream;
-  var audioTracks = localstream.getAudioTracks();
-  if (audioTracks.length > 0) {
-    trace('Using Audio device: ' + audioTracks[0].label);
-  }
-  pc1.addStream(localstream);
-  trace('Adding Local Stream to peer connection');
-
-  pc1.createOffer(gotDescription1, onCreateSessionDescriptionError);
-}
-
+// Request getUserMedia with the provided devceId string.
 function requestAudio_(id) {
   getUserMedia({
     audio: {optional: [{sourceId: id}]},
@@ -60,114 +76,160 @@ function getUserMediaFailedCallback_(error) {
 }
 
 function getUserMediaOkCallback_(stream) {
-  var audioArea = document.getElementById('audioArea');
+  // Create audio tag and add to DOM.
+  var localAudioArea = document.querySelector('#localAudioArea');
   var audio = document.createElement('audio');
   var div = document.createElement('div');
-  div.style.float = 'left';
-  audio.setAttribute('id', 'local-audio' + counter);
+  audio.setAttribute('id', 'local-audio-' + counter);
   audio.setAttribute('controls', true);
   audio.setAttribute('muted', true);
   audio.setAttribute('autoplay', true);
   div.appendChild(audio);
-  audioArea.appendChild(div);
+  localAudioArea.appendChild(div);
+  // Only add labels if they exist.
   if (typeof stream.getAudioTracks()[0].label !== 'undefined') {
-    var deviceLabel = document.createElement('p');
+    var deviceLabel = document.createElement('span');
+    deviceLabel.style.position = 'relative';
+    deviceLabel.style.top = '-0.7em';
     deviceLabel.innerHTML = stream.getAudioTracks()[0].label;
     div.appendChild(deviceLabel);
   }
-  stream.getAudioTracks()[0].addEventListener('ended', errorMessage_);
-  attachMediaStream(document.getElementById('local-audio' + counter), stream);
+  // Hookup ended event for error reporting.
+  stream.getAudioTracks()[0].addEventListener('ended', trace);
+  // Attach media streams to audio tags and pc1.
+  attachMediaStream(document.getElementById('local-audio-' + counter), stream);
   counter++;
   pc1.addStream(stream);
-  trace('Adding Local Stream to peer connection');
+  trace('Adding Local Stream to peerConnection: ' + deviceLabel.innerHTML);
+
+  // Keep track of the localStreams for event cleanup when hanging up.
+  localStreams.push(stream);
 }
 
-function onCreateSessionDescriptionError(error) {
-  trace('Failed to create session description: ' + error.toString());
+function onCreateSessionDescriptionError_(error) {
+  alert('Failed to create session description: ' + error.toString());
 }
 
-function setupPeerConnection() {
-  trace('Starting call');
+function setupPeerConnection_() {
+  trace('Setting up peerConnections');
   var servers = null;
   var pcConstraints = {
     'optional': []
   };
   pc1 = new RTCPeerConnection(servers, pcConstraints);
-  trace('Created local peer connection object pc1');
-
+  trace('Created local peerConnection object pc1');
   pc2 = new RTCPeerConnection(servers, pcConstraints);
-  trace('Created remote peer connection object pc2');
+  trace('Created remote peerConnection object pc2');
 
-  pc1.onicecandidate = iceCallback1;
-  pc2.onicecandidate = iceCallback2;
-  pc2.onaddstream = gotRemoteStream;
+  // Register peerConnect events.
+  pc1.addEventListener('icecandidate', iceCallback1);
+  pc2.addEventListener('icecandidate', iceCallback2);
+  pc2.addEventListener('addstream', gotRemoteStream);
 }
 
-function gotDescription1(desc) {
+function gotDescription1_(desc) {
   var sdpConstraints = {
     'mandatory': {
       'OfferToReceiveAudio': true,
       'OfferToReceiveVideo': false
     }
   };
-  trace('Offer from pc1 \n' + desc.sdp);
+  trace('Got offer from pc1');
   pc1.setLocalDescription(desc, function() {
     pc2.setRemoteDescription(desc, function() {
       // Since the 'remote' side has no media stream we need
       // to pass in the right constraints in order for it to
       // accept the incoming offer of audio.
-      pc2.createAnswer(gotDescription2, onCreateSessionDescriptionError,
+      pc2.createAnswer(gotDescription2_, onCreateSessionDescriptionError_,
           sdpConstraints);
-    }, onSetSessionDescriptionError);
-  }, onSetSessionDescriptionError);
+    }, onSetSessionDescriptionError_);
+  }, onSetSessionDescriptionError_);
 }
 
-function gotDescription2(desc) {
+function gotDescription2_(desc) {
   pc2.setLocalDescription(desc, function() {
-    trace('Answer from pc2 \n' + desc.sdp);
+    trace('Got answer from pc2');
     pc1.setRemoteDescription(desc, function() {
-    }, onSetSessionDescriptionError);
-  }, onSetSessionDescriptionError);
+    }, onSetSessionDescriptionError_);
+  }, onSetSessionDescriptionError_);
 }
 
-function hangup() {
+function hangup(e) {
   trace('Ending call');
+  // Stop all local streams
+  for (var streams in localStreams) {
+    localStreams[streams].getTracks().forEach(function(track) {
+      // Remove ended event prior hanging up.
+      track.removeEventListener('ended', trace);
+    });
+  }
+
+  // Cleanup peerConnections.
   pc1.close();
   pc2.close();
   pc1 = null;
   pc2 = null;
+
+  // Cleanup up audio elements.
+  var remoteAudioArea = document.querySelector('#remoteAudioArea');
+  var audioElementsToDelete = remoteAudioArea.childNodes.length;
+  for (var i = 0; i < audioElementsToDelete; i++) {
+    remoteAudioArea.removeChild(remoteAudioArea.childNodes[0]);
+  }
+
+  // Keep track of button states.
+  startCallButton.disabled = false;
+  endCallButton.disabled = true;
 }
 
 function gotRemoteStream(e) {
-  var audioArea = document.getElementById('remoteAudioArea');
+  // Create audio tag and add to DOM.
+  var remoteAudioArea = document.querySelector('#remoteAudioArea');
   var audio = document.createElement('audio');
   var div = document.createElement('div');
-  div.style.float = 'left';
-  audio.setAttribute('id', 'remote-audio' + remoteCounter);
+  audio.setAttribute('id', 'remote-audio-' + remoteCounter);
   audio.setAttribute('controls', true);
   audio.setAttribute('muted', true);
   audio.setAttribute('autoplay', true);
   div.appendChild(audio);
-  audioArea.appendChild(div);
-  if (typeof e.stream.getAudioTracks()[0].label !== 'undefined') {
-    var deviceLabel = document.createElement('p');
-    deviceLabel.innerHTML = e.stream.getAudioTracks()[0].label;
-    div.appendChild(deviceLabel);
-  }
-  console.log('Remote streams label: ' + e.stream.label);
-  console.log('Remote streams : ' + e.stream.getAudioTracks());
-  console.log('Remote audio tag: ' + audio);
-  // Call the polyfill wrapper to attach the media stream to this element.
-  attachMediaStream(audio, e.stream);
+  remoteAudioArea.appendChild(div);
 
-  trace('Received remote stream');
+  // Attach stream to audio tag button.
+  var attachStream = document.createElement('button');
+  attachStream.style.position = 'relative';
+  attachStream.style.top = '-0.7em';
+  attachStream.innerHTML = 'Attach stream'
+  div.appendChild(attachStream);
+
+  attachStream.addEventListener('click', function() {
+    attachMediaStream(audio, e.stream);
+    trace('Attaching stream: ' + e.stream.getAudioTracks()[0].label +
+        ' to audio tag: ' + audio.id);
+  }.bind(this));
+  trace('Received remote stream: ' + e.stream.getAudioTracks()[0].label);
+  remoteCounter++;
+
+  // Remove stream from audio tag.
+  var removeStream = document.createElement('button');
+  removeStream.style.position = 'relative';
+  removeStream.style.top = '-0.7em';
+  removeStream.innerHTML = 'Remove Stream: ' +
+      e.stream.getAudioTracks()[0].label;
+  div.appendChild(removeStream);
+
+  removeStream.addEventListener('click', function() {
+    // This will generate a 404 error but that's expected.
+    audio.src = null;
+    trace('Removing stream: ' + e.stream.getAudioTracks()[0].label +
+        ' from audio tag: ' + audio.id);
+    trace('404 error is expected.');
+  }.bind(this));
 }
 
 function iceCallback1(event) {
   if (event.candidate) {
     pc2.addIceCandidate(new RTCIceCandidate(event.candidate),
         onAddIceCandidateSuccess, onAddIceCandidateError);
-    trace('Local ICE candidate: \n' + event.candidate.candidate);
   }
 }
 
@@ -175,7 +237,6 @@ function iceCallback2(event) {
   if (event.candidate) {
     pc1.addIceCandidate(new RTCIceCandidate(event.candidate),
         onAddIceCandidateSuccess, onAddIceCandidateError);
-    trace('Remote ICE candidate: \n ' + event.candidate.candidate);
   }
 }
 
@@ -187,22 +248,12 @@ function onAddIceCandidateError(error) {
   trace('Failed to add ICE Candidate: ' + error.toString());
 }
 
-function onSetSessionDescriptionError(error) {
+function onSetSessionDescriptionError_(error) {
   trace('Failed to set session description: ' + error.toString());
 }
 
-
-var errorMessage_ = function(event) {
-  var message = 'getUserMedia successful but ' + event.type + ' event fired ' +
-                'from camera. Most likely too many cameras on the same USB ' +
-                'bus/hub. Verify this by disconnecting one of the cameras ' +
-                'and try again.';
-  document.getElementById('messages').innerHTML += event.target.label + ': ' +
-                                                   message + '<br><br>';
-};
-
 window.onload = function() {
-  setupPeerConnection();
+  setupPeerConnection_();
   navigator.mediaDevices.enumerateDevices()
   .then(gotSources_);
 };
