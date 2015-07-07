@@ -27,7 +27,7 @@ var pc2 = null;
 var localStreams = [];
 
 function call() {
-  trace('Start call')
+  trace('Start call');
   // Setup new peerconnections if the user has hungup earlier.
   if (pc1 === null || pc2 === null) {
     setupPeerConnection_();
@@ -93,6 +93,7 @@ function getUserMediaOkCallback_(stream) {
     deviceLabel.style.top = '-0.7em';
     deviceLabel.innerHTML = stream.getAudioTracks()[0].label;
     div.appendChild(deviceLabel);
+    trace('Adding Local Stream to peerConnection: ' + deviceLabel.innerHTML);
   }
   // Hookup ended event for error reporting.
   stream.getAudioTracks()[0].addEventListener('ended', trace);
@@ -100,7 +101,6 @@ function getUserMediaOkCallback_(stream) {
   attachMediaStream(document.getElementById('local-audio-' + counter), stream);
   counter++;
   pc1.addStream(stream);
-  trace('Adding Local Stream to peerConnection: ' + deviceLabel.innerHTML);
 
   // Keep track of the localStreams for event cleanup when hanging up.
   localStreams.push(stream);
@@ -154,16 +154,8 @@ function gotDescription2_(desc) {
   }, onSetSessionDescriptionError_);
 }
 
-function hangup(e) {
+function hangup() {
   trace('Ending call');
-  // Stop all local streams
-  for (var streams in localStreams) {
-    localStreams[streams].getTracks().forEach(function(track) {
-      // Remove ended event prior hanging up.
-      track.removeEventListener('ended', trace);
-    });
-  }
-
   // Cleanup peerConnections.
   pc1.close();
   pc2.close();
@@ -198,14 +190,14 @@ function gotRemoteStream(e) {
   var attachStream = document.createElement('button');
   attachStream.style.position = 'relative';
   attachStream.style.top = '-0.7em';
-  attachStream.innerHTML = 'Attach stream'
+  attachStream.innerHTML = 'Attach stream';
   div.appendChild(attachStream);
 
   attachStream.addEventListener('click', function() {
     attachMediaStream(audio, e.stream);
     trace('Attaching stream: ' + e.stream.getAudioTracks()[0].label +
         ' to audio tag: ' + audio.id);
-  }.bind(this));
+  });
   trace('Received remote stream: ' + e.stream.getAudioTracks()[0].label);
   remoteCounter++;
 
@@ -223,7 +215,7 @@ function gotRemoteStream(e) {
     trace('Removing stream: ' + e.stream.getAudioTracks()[0].label +
         ' from audio tag: ' + audio.id);
     trace('404 error is expected.');
-  }.bind(this));
+  });
 }
 
 function iceCallback1(event) {
