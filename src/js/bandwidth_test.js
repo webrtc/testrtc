@@ -106,6 +106,7 @@ function testVideoBandwidth(config) {
   var statStepMs = 100;
   var bweStats = new StatisticsAggregate(0.75 * maxVideoBitrateKbps * 1000);
   var rttStats = new StatisticsAggregate();
+  var packetsLost;
   var videoStats = [];
   var startTime;
 
@@ -157,11 +158,10 @@ function testVideoBandwidth(config) {
       } else if (report.type === 'ssrc') {
         rttStats.add(Date.parse(report.timestamp),
           parseInt(report.stat('googRtt')));
-      }
-      if (report.type === 'ssrc') {
         // Grab the last stats.
         videoStats[0] = parseInt(report.stat('googFrameWidthSent'));
         videoStats[1] = parseInt(report.stat('googFrameHeightSent'));
+        packetsLost = parseInt(report.stat('packetsLost'));
       }
     }
     setTimeout(gatherStats, statStepMs);
@@ -170,15 +170,22 @@ function testVideoBandwidth(config) {
   function completed() {
     call.pc1.getLocalStreams()[0].getVideoTracks()[0].stop();
     call.close();
-    reportSuccess('Video resolution: ' + videoStats[0] + 'x' + videoStats[1]);
-    reportSuccess('RTT average: ' + rttStats.getAverage() + ' ms');
-    reportSuccess('RTT max: ' + rttStats.getMax() + ' ms');
-    reportSuccess('Send bandwidth estimate average: ' + bweStats.getAverage() +
-                  ' bps');
-    reportSuccess('Send bandwidth estimate max: ' + bweStats.getMax() + ' bps');
-    reportSuccess('Send bandwidth ramp-up time: ' + bweStats.getRampUpTime() +
-                  ' ms');
-    reportSuccess('Test finished');
+    // Checking if greater than 2 because Chrome sometimes reports 2x2 when
+    // a camera starts but fails to deliver frames.
+    if (videoStats[0] < 2 && videoStats[1] < 2) {
+      reportError('Camera failure: ' + videoStats[0] + 'x' + videoStats[1] +
+          '. Cannot test bandwidth without a working camera.');
+    } else {
+      reportSuccess('Video resolution: ' + videoStats[0] + 'x' + videoStats[1]);
+      reportInfo('RTT average: ' + rttStats.getAverage() + ' ms');
+      reportInfo('RTT max: ' + rttStats.getMax() + ' ms');
+      reportInfo('Lost packets: ' + packetsLost);
+      reportInfo('Send bandwidth estimate average: ' + bweStats.getAverage() +
+          ' bps');
+      reportInfo('Send bandwidth estimate max: ' + bweStats.getMax() + ' bps');
+      reportInfo('Send bandwidth ramp-up time: ' + bweStats.getRampUpTime() +
+          ' ms');
+    }
     testFinished();
   }
 }
