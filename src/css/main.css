@@ -57,13 +57,13 @@ paper-toolbar.test-suite + core-collapse {
   padding: 0 0 1em 0;
 }
 
-paper-toolbar.test-suite core-icon[icon="check"],
-paper-toolbar.test core-icon[icon="check"] {
+paper-toolbar.test-suite iron-icon[icon="check"],
+paper-toolbar.test iron-icon[icon="check"] {
   color: #080;
 }
 
-paper-toolbar.test-suite core-icon[icon="close"],
-paper-toolbar.test core-icon[icon="close"] {
+paper-toolbar.test-suite iron-icon[icon="close"],
+paper-toolbar.test iron-icon[icon="close"] {
   color: #F00;
 }
 

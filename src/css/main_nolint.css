@@ -7,7 +7,7 @@
  */
 /* File to keep rules that fail to parse in csslint, so one can keep the main
  * style file under check. */
-html /deep/ core-icon[icon="av:videocam-off"] {
+html /deep/ iron-icon[icon="av:videocam-off"] {
   color: #888;
 }
 

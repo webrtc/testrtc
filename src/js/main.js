@@ -65,7 +65,7 @@ function TestSuite(name, output) {
   title.textContent = name;
   this.toolbar_.appendChild(title);
 
-  this.statusIcon_ = document.createElement('core-icon');
+  this.statusIcon_ = document.createElement('iron-icon');
   this.statusIcon_.setAttribute('icon', '');
   this.toolbar_.appendChild(this.statusIcon_);
 
@@ -136,7 +136,7 @@ function Test(suite, name, func) {
   var title = document.createElement('span');
   title.textContent = name;
   title.setAttribute('flex', null);
-  var statusIcon = document.createElement('core-icon');
+  var statusIcon = document.createElement('iron-icon');
   statusIcon.setAttribute('icon', '');
   toolbar.addEventListener('click', this.onClickToolbar_.bind(this));
   toolbar.appendChild(title);
