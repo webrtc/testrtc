@@ -14,7 +14,7 @@
 <polymer-element name="report-dialog">
   <template>
     <!-- Report dialog -->
-    <paper-action-dialog id="mainDialog" heading="Create a report" autoCloseDisabled backdrop transition="paper-dialog-transition-center" closeSelector="[dismissive]">
+    <paper-action-dialog id="mainDialog" heading="Create a report" autoCloseDisabled backdrop closeSelector="[dismissive]">
       <paper-input-decorator floatingLabel label="Describe your issue here">
         <paper-autogrow-textarea id="textAreaAutoGrow">
           <textarea id="textArea" value="{{description}}"></textarea>
@@ -29,7 +29,7 @@
     </paper-action-dialog>
 
     <!-- Report upload success -->
-    <paper-action-dialog id="success" heading="Success" autoCloseDisabled transition="paper-dialog-transition-center" closeSelector="[dismissive]">
+    <paper-action-dialog id="success" heading="Success" autoCloseDisabled closeSelector="[dismissive]">
       <p>The <a href="{{reportUrl}}">link</a> to the report is now available.</p>
       <p>You may want to share it with someone investigating your issue, or create a new
       issue in the <a href="//github.com/webrtc/testrtc/issues/new">testrtc</a> project.</p>
@@ -37,7 +37,7 @@
     </paper-action-dialog>
 
     <!-- Report failure success -->
-    <paper-action-dialog id="failure" heading="Failure" autoCloseDisabled transition="paper-dialog-transition-center">
+    <paper-action-dialog id="failure" heading="Failure" autoCloseDisabled>
       <p>Upload failed with error: {{reportError}}</p>
       <p>Check your network connection</p>
       <paper-button affirmative on-tap="{{closeFail}}">Close</paper-button>
