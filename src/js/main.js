@@ -69,7 +69,7 @@ function TestSuite(name, output) {
   this.statusIcon_.setAttribute('icon', '');
   this.toolbar_.appendChild(this.statusIcon_);
 
-  this.content_ = document.createElement('core-collapse');
+  this.content_ = document.createElement('iron-collapse');
   this.content_.opened = false;
 
   output.appendChild(this.toolbar_);

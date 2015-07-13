@@ -52,7 +52,7 @@ paper-toolbar.test-suite[state='failure'] {
   background-color: #ec9090;
 }
 
-paper-toolbar.test-suite + core-collapse {
+paper-toolbar.test-suite + iron-collapse {
   background-color: #f4f4f4;
   padding: 0 0 1em 0;
 }
