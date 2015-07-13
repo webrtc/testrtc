@@ -34,7 +34,7 @@
 
   <script src="../components/webrtc-adapter/adapter.js"></script>
   <script src="../components/webcomponentsjs/webcomponents.js"></script>
-  <link rel="import" href="../components/core-toolbar/core-toolbar.html">
+  <link rel="import" href="../components/paper-toolbar/paper-toolbar.html">
   <link rel="import" href="../components/core-icon/core-icon.html">
   <link rel="import" href="../components/core-icons/av-icons.html">
   <link rel="import" href="../components/core-collapse/core-collapse.html">
@@ -51,12 +51,12 @@
   <gum-dialog heading="Welcome to WebRTC Troubleshooter"></gum-dialog>
 
   <!-- Title toolbar -->
-  <core-toolbar class="title">
+  <paper-toolbar class="title">
     <span flex>WebRTC Troubleshooter</span>
     <paper-icon-button icon="menu" onclick="settingsDialog.toggle()"></paper-icon-button>
     <paper-icon-button icon="bug-report" onclick="report.open()"></paper-icon-button>
     <paper-button id="start-button" raised disabled>Start</paper-button>
-  </core-toolbar>
+  </paper-toolbar>
 
   <!-- Placeholder for dynamically generated test suites. -->
   <div id="content"></div>

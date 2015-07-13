@@ -35,46 +35,46 @@ div#content {
 }
 
 /* Test suite style */
-core-toolbar.test-suite {
+paper-toolbar.test-suite {
   margin-top: 1.5em;
   cursor: pointer;
 }
-core-toolbar.test-suite[state='pending'] {
+paper-toolbar.test-suite[state='pending'] {
   background-color: #e2e2e2;
 }
-core-toolbar.test-suite[state='success'] {
+paper-toolbar.test-suite[state='success'] {
   background-color: #90ec90;
 }
-core-toolbar.test-suite[state='warning'] {
+paper-toolbar.test-suite[state='warning'] {
   background-color: #ecec90;
 }
-core-toolbar.test-suite[state='failure'] {
+paper-toolbar.test-suite[state='failure'] {
   background-color: #ec9090;
 }
 
-core-toolbar.test-suite + core-collapse {
+paper-toolbar.test-suite + core-collapse {
   background-color: #f4f4f4;
   padding: 0 0 1em 0;
 }
 
-core-toolbar.test-suite core-icon[icon="check"],
-core-toolbar.test core-icon[icon="check"] {
+paper-toolbar.test-suite core-icon[icon="check"],
+paper-toolbar.test core-icon[icon="check"] {
   color: #080;
 }
 
-core-toolbar.test-suite core-icon[icon="close"],
-core-toolbar.test core-icon[icon="close"] {
+paper-toolbar.test-suite core-icon[icon="close"],
+paper-toolbar.test core-icon[icon="close"] {
   color: #F00;
 }
 
 /* Test style */
-core-toolbar.test {
+paper-toolbar.test {
   cursor: pointer;
   background-color: transparent;
   height: 2em;
 }
 
-core-toolbar.test span {
+paper-toolbar.test span {
   min-width: 80%;
 }
 

@@ -55,7 +55,7 @@ function TestSuite(name, output) {
   this.tests = [];
 
   // UI elements.
-  this.toolbar_ = document.createElement('core-toolbar');
+  this.toolbar_ = document.createElement('paper-toolbar');
   this.toolbar_.setAttribute('class', 'test-suite');
   this.toolbar_.setAttribute('state', 'pending');
   this.toolbar_.addEventListener('click', this.onClickToolbar_.bind(this));
@@ -131,7 +131,7 @@ function Test(suite, name, func) {
   progressBar.setAttribute('flex', null);
   progressBar.style.display = 'none';
 
-  var toolbar = document.createElement('core-toolbar');
+  var toolbar = document.createElement('paper-toolbar');
   toolbar.setAttribute('class', 'test');
   var title = document.createElement('span');
   title.textContent = name;
