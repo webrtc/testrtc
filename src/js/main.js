@@ -19,10 +19,6 @@ try {
   console.log('Failed to instantiate an audio context, error: ' + e);
 }
 var contentDiv = document.getElementById('content');
-var startButton = document.getElementById('start-button');
-var audioSelect = document.querySelector('select#audioSource');
-var videoSelect = document.querySelector('select#videoSource');
-var settingsDialog = document.getElementById('settings-dialog');
 var PREFIX_INFO    = '[   INFO ]';
 var PREFIX_OK      = '[     OK ]';
 var PREFIX_FAILED  = '[ FAILED ]';
@@ -30,24 +26,6 @@ var PREFIX_WARNING = '[   WARN ]';
 var testSuites = [];
 var testFilters = [];
 var currentTest;
-
-// Populate the device selection drop down menu after the gUM dialog closes.
-document.querySelector('gum-dialog').addEventListener('closed', function() {
-  navigator.mediaDevices.enumerateDevices()
-  .then(gotSources)
-  .catch(function(err) {
-    console.log('JS Device selection not supported', err);
-  });
-
-  startButton.removeAttribute('disabled');
-});
-
-startButton.addEventListener('click', function() {
-  startButton.setAttribute('disabled', null);
-  runAllSequentially(testSuites, function() {
-    startButton.removeAttribute('disabled');
-  });
-});
 
 // A test suite is a composition of many tests.
 function TestSuite(name, output) {
@@ -63,11 +41,11 @@ function TestSuite(name, output) {
   var title = document.createElement('span');
   title.setAttribute('flex', null);
   title.textContent = name;
-  this.toolbar_.appendChild(title);
+  Polymer.dom(this.toolbar_).appendChild(title);
 
   this.statusIcon_ = document.createElement('iron-icon');
   this.statusIcon_.setAttribute('icon', '');
-  this.toolbar_.appendChild(this.statusIcon_);
+  Polymer.dom(this.toolbar_).appendChild(this.statusIcon_);
 
   this.content_ = document.createElement('iron-collapse');
   this.content_.opened = false;
@@ -330,70 +308,6 @@ function runAllSequentially(tasks, doneCallback) {
   }
 }
 
-function doGetUserMedia(constraints, onSuccess, onFail) {
-  var traceGumEvent = report.traceEventAsync('getusermedia');
-
-  // Call into getUserMedia via the polyfill (adapter.js).
-  var successFunc = function(stream) {
-    var cam = getVideoDeviceName_(stream);
-    var mic = getAudioDeviceName_(stream);
-    traceGumEvent({'status': 'success', 'camera': cam, 'microphone': mic});
-    onSuccess.apply(this, arguments);
-  };
-  var failFunc = function(error) {
-    traceGumEvent({'status': 'fail', 'error': error});
-    if (onFail) {
-      onFail.apply(this, arguments);
-    } else {
-      reportFatal('Failed to get access to local media due to error: ' +
-                  error.name);
-    }
-  };
-  try {
-    // Append the constraints with the getSource constraints.
-    appendSourceId(audioSelect.value, 'audio', constraints);
-    appendSourceId(videoSelect.value, 'video', constraints);
-
-    traceGumEvent({'status': 'pending', 'constraints': constraints});
-    getUserMedia(constraints, successFunc, failFunc);
-  } catch (e) {
-    traceGumEvent({'status': 'exception', 'error': e.message});
-    return reportFatal('getUserMedia failed with exception: ' + e.message);
-  }
-}
-
-function appendSourceId(id, type, constraints) {
-  if (constraints[type] === true) {
-    constraints[type] = {optional: [{sourceId: id}]};
-  } else if (typeof constraints[type] === 'object') {
-    if (typeof constraints[type].optional === 'undefined') {
-      constraints[type].optional = [];
-    }
-    constraints[type].optional.push({sourceId: id});
-  }
-}
-
-function gotSources(sourceInfos) {
-  for (var i = 0; i !== sourceInfos.length; ++i) {
-    var sourceInfo = sourceInfos[i];
-    var option = document.createElement('option');
-    option.value = sourceInfo.deviceId;
-    appendOption(sourceInfo, option);
-  }
-}
-
-function appendOption(sourceInfo, option) {
-  if (sourceInfo.kind === 'audioinput') {
-    option.text = sourceInfo.label || 'microphone ' + (audioSelect.length + 1);
-    audioSelect.appendChild(option);
-  } else if (sourceInfo.kind === 'videoinput') {
-    option.text = sourceInfo.label || 'camera ' + (videoSelect.length + 1);
-    videoSelect.appendChild(option);
-  } else {
-    console.log('Some other kind of source');
-  }
-}
-
 function testIsDisabled(testName) {
   if (testFilters.length === 0) {
     return false;
@@ -408,22 +322,6 @@ function testIsExplicitlyEnabled(testName) {
     }
   }
   return false;
-}
-
-// Return the first audio device label on the track.
-function getAudioDeviceName_(stream) {
-  if (stream.getAudioTracks().length === 0) {
-    return null;
-  }
-  return stream.getAudioTracks()[0].label;
-}
-
-// Return the first video device label on the track.
-function getVideoDeviceName_(stream) {
-  if (stream.getVideoTracks().length === 0) {
-    return null;
-  }
-  return stream.getVideoTracks()[0].label;
 }
 
 function createLineChart() {

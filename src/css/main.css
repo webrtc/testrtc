@@ -10,19 +10,17 @@ body {
   font-weight: 300;
 }
 
-.title {
+.titlebar {
   height: 60px;
   font-size: 18px;
   font-weight: 500;
-  background-color: #4F7DC9;
-  color: #FFF;
   transition: height .2s;
   font-family: 'Roboto', sans-serif;
   max-width: 40em;
   margin: 1em auto 1em auto;
 }
 
-#start-button {
+#startButton {
   line-height: 3em;
   background-color: #9E9;
   color: #000;

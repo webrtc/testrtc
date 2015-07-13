@@ -6,45 +6,56 @@
  *  tree.
 -->
 <link rel="import" href="../../components/polymer/polymer.html">
-<link rel="import" href="../../components/paper-dialog/paper-action-dialog.html">
 <link rel="import" href="../../components/paper-button/paper-button.html">
 <link rel="import" href="../../components/iron-autogrow-textarea/iron-autogrow-textarea.html">
 <link rel="import" href="../../components/paper-input/paper-input.html">
+<link rel="import" href="../../components/paper-input/paper-textarea.html">
 
-<polymer-element name="report-dialog">
+<script src="../js/report.js"></script>
+
+<!-- TODO(andresp): sub-dialogs not really working... -->
+<dom-module name="report-dialog">
   <template>
     <!-- Report dialog -->
-    <paper-action-dialog id="mainDialog" heading="Create a report" autoCloseDisabled backdrop closeSelector="[dismissive]">
-      <paper-input-decorator floatingLabel label="Describe your issue here">
-        <iron-autogrow-textarea id="textAreaAutoGrow">
-          <textarea id="textArea" value="{{description}}"></textarea>
-        </iron-autogrow-textarea>
-      </paper-input-decorator>
+    <paper-dialog id="mainDialog" modal>
+      <h2>Create a report</h2>
+      <div>
+        <paper-textarea id="textArea" label="Describe your issue here" value="{{description}}"></paper-textarea>
+      </div>
       <h3>Note</h3>
       <p>The report will contain information about your device including network information that is useful to troubleshoot the issue.
       Uploading the report creates a URL that is available for a period of 90 days.</p>
-      <paper-button affirmative on-tap="{{download}}" disabled="{{submitting}}">Download report</paper-button>
-      <paper-button affirmative on-tap="{{upload}}" disabled="{{submitting}}">Upload report</paper-button>
-      <paper-button dismissive disabled="{{submitting}}">Cancel</paper-button>
+      <div class="buttons">
+        <paper-button on-tap="download" disabled="{{submitting}}">Download report</paper-button>
+        <paper-button on-tap="upload" disabled="{{submitting}}">Upload report</paper-button>
+        <paper-button dialog-dismiss disabled="{{submitting}}">Cancel</paper-button>
+      </div>
     </paper-action-dialog>
 
     <!-- Report upload success -->
-    <paper-action-dialog id="success" heading="Success" autoCloseDisabled closeSelector="[dismissive]">
+    <paper-dialog id="success">
+      <h2>Success</h2>
       <p>The <a href="{{reportUrl}}">link</a> to the report is now available.</p>
       <p>You may want to share it with someone investigating your issue, or create a new
       issue in the <a href="//github.com/webrtc/testrtc/issues/new">testrtc</a> project.</p>
-      <paper-button affirmative on-tap="{{closeSuccess}}">Close</paper-button>
+      <div class="buttons">
+        <paper-button affirmative on-tap="closeSuccess">Close</paper-button>
+      </div>
     </paper-action-dialog>
 
     <!-- Report failure success -->
-    <paper-action-dialog id="failure" heading="Failure" autoCloseDisabled>
-      <p>Upload failed with error: {{reportError}}</p>
+    <paper-dialog id="failure">
+      <h2>Failure</h2>
+      <p>Upload failed with error: <span>{{reportError}}</span></p>
       <p>Check your network connection</p>
-      <paper-button affirmative on-tap="{{closeFail}}">Close</paper-button>
+      <div class="buttons">
+        <paper-button affirmative on-tap="closeFail">Close</paper-button>
+      </div>
     </paper-action-dialog>
   </template>
   <script>
-    Polymer('report-dialog', {
+    Polymer({
+      is: 'report-dialog',
       open: function() {
         this.$.mainDialog.open();
       },
@@ -105,20 +116,24 @@
       },
 
       closeFail: function() {
+        /*
         this.submitting = false;
         this.$.failure.close();
+        */
       },
 
       closeSuccess: function() {
+        /*
         this.submitting = false;
         this.description = null;
         // Workaround to get the label to float correctly on the line.
         // https://github.com/Polymer/paper-input/issues/137.
         this.$.textArea.focus();
-        this.$.textAreaAutoGrow.update();
+        // this.$.textAreaAutoGrow.update();
         this.$.success.close();
         this.$.mainDialog.close();
+        */
       }
     });
   </script>
-</polymer-element>
+</dom-module>
