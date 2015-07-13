@@ -8,7 +8,7 @@
 <link rel="import" href="../../components/polymer/polymer.html">
 <link rel="import" href="../../components/paper-dialog/paper-action-dialog.html">
 <link rel="import" href="../../components/paper-button/paper-button.html">
-<link rel="import" href="../../components/paper-input/paper-autogrow-textarea.html">
+<link rel="import" href="../../components/iron-autogrow-textarea/iron-autogrow-textarea.html">
 <link rel="import" href="../../components/paper-input/paper-input.html">
 
 <polymer-element name="report-dialog">
@@ -16,9 +16,9 @@
     <!-- Report dialog -->
     <paper-action-dialog id="mainDialog" heading="Create a report" autoCloseDisabled backdrop closeSelector="[dismissive]">
       <paper-input-decorator floatingLabel label="Describe your issue here">
-        <paper-autogrow-textarea id="textAreaAutoGrow">
+        <iron-autogrow-textarea id="textAreaAutoGrow">
           <textarea id="textArea" value="{{description}}"></textarea>
-        </paper-autogrow-textarea>
+        </iron-autogrow-textarea>
       </paper-input-decorator>
       <h3>Note</h3>
       <p>The report will contain information about your device including network information that is useful to troubleshoot the issue.
