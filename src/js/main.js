@@ -29,8 +29,16 @@ var currentTest;
 
 // A test suite is a composition of many tests.
 function TestSuite(name, output) {
+
+  var element = document.createElement('testrtc-suite');
+  element.name = name;
+  element.tests = [];
+  output.appendChild(element);
+
   this.name = name;
   this.tests = [];
+  return;
+
 
   // UI elements.
   this.toolbar_ = document.createElement('paper-toolbar');
@@ -39,7 +47,7 @@ function TestSuite(name, output) {
   this.toolbar_.addEventListener('click', this.onClickToolbar_.bind(this));
 
   var title = document.createElement('span');
-  title.setAttribute('flex', null);
+  title.setAttribute('class', 'title');
   title.textContent = name;
   Polymer.dom(this.toolbar_).appendChild(title);
 
@@ -55,9 +63,6 @@ function TestSuite(name, output) {
 }
 
 TestSuite.prototype = {
-  addTest: function(testName, testFunction) {
-    this.tests.push(new Test(this, testName, testFunction));
-  },
 
   run: function(doneCallback) {
     this.content_.opened = true;
@@ -100,6 +105,7 @@ TestSuite.prototype = {
 };
 
 function Test(suite, name, func) {
+  return;
   this.suite = suite;
   this.name = name;
   this.func = func;
@@ -113,13 +119,13 @@ function Test(suite, name, func) {
   toolbar.setAttribute('class', 'test');
   var title = document.createElement('span');
   title.textContent = name;
-  title.setAttribute('flex', null);
+  title.setAttribute('class', 'title');
   var statusIcon = document.createElement('iron-icon');
   statusIcon.setAttribute('icon', '');
   toolbar.addEventListener('click', this.onClickToolbar_.bind(this));
-  toolbar.appendChild(title);
-  toolbar.appendChild(progressBar);
-  toolbar.appendChild(statusIcon);
+  Polymer.dom(toolbar).appendChild(title);
+  Polymer.dom(toolbar).appendChild(progressBar);
+  Polymer.dom(toolbar).appendChild(statusIcon);
 
   var collapse = document.createElement('core-collapse');
   collapse.setAttribute('class', 'test-output');
@@ -239,7 +245,7 @@ Test.prototype = {
   reportMessage_: function(prefix, str) {
     var message = document.createElement('div');
     message.textContent = prefix + ' ' + str;
-    this.output_.appendChild(message);
+    Polymer.dom(this.output_).appendChild(message);
   },
 
   clearMessages_: function() {
@@ -249,7 +255,7 @@ Test.prototype = {
   },
 
   onClickToolbar_: function() {
-    this.output_.toggle();
+    Polymer.dom(this.output_).toggle();
   }
 };
 
@@ -264,6 +270,13 @@ function testFinished() { currentTest.done(); }
 function expectEquals() { currentTest.expectEquals.apply(currentTest,
                                                          arguments); }
 
+function _createSuite(name, output) {
+  var element = document.createElement('testrtc-suite');
+  element.name = name;
+  output.appendChild(element);
+  return element;
+}
+
 function addTest(suiteName, testName, func) {
   if (testIsDisabled(testName)) {
     return;
@@ -276,7 +289,7 @@ function addTest(suiteName, testName, func) {
     }
   }
   // Non-existent suite.
-  var testSuite = new TestSuite(suiteName, contentDiv);
+  var testSuite = _createSuite(suiteName, contentDiv);
   testSuite.addTest(testName, func);
   testSuites.push(testSuite);
 }
