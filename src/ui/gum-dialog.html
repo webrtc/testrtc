@@ -5,6 +5,13 @@
  *  that can be found in the LICENSE file in the root of the source
  *  tree.
 -->
+<link rel="import" href="../../components/polymer/polymer.html">
+<link rel="import" href="../../components/iron-icon/iron-icon.html">
+<link rel="import" href="../../components/iron-icons/av-icons.html">
+<link rel="import" href="../../components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../../components/paper-button/paper-button.html">
+<link rel="import" href="gum-handler.html">
+<link rel="import" href="report-dialog.html">
 
 <!--
 `<gum-dialog>` is used to display a dialog asking the user to give user media permissions.
@@ -22,13 +29,6 @@ For now it serves as an example on how to build a UI flow on top of gum-handler.
 
 TODO(andresp): Delay showing the dialog (probably using transitions).
 -->
-<link rel="import" href="../../components/polymer/polymer.html">
-<link rel="import" href="../../components/iron-icon/iron-icon.html">
-<link rel="import" href="../../components/iron-icons/av-icons.html">
-<link rel="import" href="../../components/paper-dialog/paper-dialog.html">
-<link rel="import" href="../../components/paper-button/paper-button.html">
-<link rel="import" href="gum-handler.html">
-
 <dom-module id="gum-dialog">
   <template>
     <!-- Declare gum-handler to continously request getUserMedia until permission is given. -->
@@ -49,11 +49,11 @@ TODO(andresp): Delay showing the dialog (probably using transitions).
         <p hidden$="[[!_isNotSupported(error)]]">GetUserMedia is not supported in your browser, please use a WebRTC enabled browser listed at <a href="http://www.webrtc.org">http://www.webrtc.org</a>.</p>
         <p hidden$="[[!_isPermissionDenied(error)]]">Click the <iron-icon icon="av:videocam-off"></iron-icon> icon in the URL bar above to give access to your device's camera and microphone.</p>
         <p hidden$="[[!_isDevicesNotFound(error)]]">No devices found, please connect a camera and/or a microphone to continue, alternatively continue without media devices.</p>
+      </div>
 
-        <div class="buttons" horizontal justified layout>
-          <paper-button onclick="report.open()">File a bug</paper-button>
-          <paper-button dialog-dismiss>Continue without audio/or video</paper-button>
-        </div>
+      <div hidden$="[[!error]]" class="buttons" horizontal justified layout>
+        <paper-button onclick="report.open()">File a bug</paper-button>
+        <paper-button dialog-dismiss>Continue without audio/or video</paper-button>
       </div>
     </paper-dialog>
   </template>
@@ -79,16 +79,5 @@ TODO(andresp): Delay showing the dialog (probably using transitions).
         }
       }
     });
-  </script>
-</dom-module>
-
-<dom-module id="gum-dialog-test">
-  <template>
-    Heree...
-    <gum-dialog heading="Test dialog"></gum-dialog>
-  </template>
-  <script>
-    Polymer({
-      is: 'gum-dialog-test'});
   </script>
 </dom-module>

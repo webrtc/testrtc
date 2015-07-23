@@ -1,0 +1,119 @@
+<!--
+ *  Copyright (c) 2014 The WebRTC project authors. All Rights Reserved.
+ *
+ *  Use of this source code is governed by a BSD-style license
+ *  that can be found in the LICENSE file in the root of the source
+ *  tree.
+-->
+<!-- A test suite is a composition of many tests. -->
+<dom-module id="testrtc-suite">
+  <style>
+    paper-toolbar.test-suite {
+      margin-top: 1.5em;
+      cursor: pointer;
+      color: #000;
+    }
+    .title {
+      margin-left: 0px;
+    }
+    :host[state='pending'] .test-suite, :host[state='pending'] .header {
+      background-color: #e2e2e2;
+    }
+    :host[state='success'] .test-suite {
+      background-color: #90ec90;
+    }
+    :host[state='warning'] .test-suite {
+      background-color: #ecec90;
+    }
+    :host[state='failure'] .test-suite {
+      background-color: #ec9090;
+    }
+
+    .header {
+      margin-top: 30px;
+      height: 64px;
+      display: flex;
+      padding-left: 16px;
+      padding-right: 16px;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .header .title {
+      flex: 1;
+      font-weight: 300;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+  </style>
+  <template>
+    <div class="header" on-tap="toggle">
+      <span class="title">{{name}}</span>
+      <iron-icon icon="[[_iconForState(state)]]"></iron-icon>
+    </div>
+    <iron-collapse id="collapse" opened="{{opened}}"></iron-collapse>
+  </template>
+  <script>
+    Polymer({
+      is: 'testrtc-suite',
+      properties: {
+        state: {
+          value: 'pending',
+          reflectToAttribute: true
+        },
+        tests: {
+          type: Array,
+          value: function() { return []; }
+        }
+      },
+      _iconForState: function (state) {
+        return 'more-horiz';
+      },
+      toggle: function() {
+        this.$.collapse.toggle();
+      },
+      addTest: function(testName, testFunction) {
+        var test = document.createElement('testrtc-test');
+        test.name = testName;
+        test.testFunction = testFunction;
+        Polymer.dom(this.$.collapse).appendChild(test);
+        this.tests.push(test);
+      },
+      run: function(doneCallback) {
+        this.opened = true;
+        this.state = 'pending';
+        runAllSequentially(this.tests, this.allTestFinished.bind(this,
+                                                                 doneCallback));
+      },
+      allTestFinished: function(doneCallback) {
+        /*
+        var errors = 0;
+        var warnings = 0;
+        var successes = 0;
+        for (var i = 0; i !== this.tests.length; ++i) {
+          errors += this.tests[i].errorCount;
+          warnings += this.tests[i].warningCount;
+          successes += this.tests[i].successCount;
+        }
+
+        if (errors === 0 && warnings === 0 && successes > 0) {
+          this.toolbar_.setAttribute('state', 'success');
+          this.statusIcon_.setAttribute('icon', 'check');
+          this.content_.opened = false;
+        } else if (errors === 0 && warnings > 0) {
+          this.toolbar_.setAttribute('state', 'warning');
+          this.statusIcon_.setAttribute('icon', 'check');
+          this.content_.opened = false;
+        } else {
+          this.toolbar_.setAttribute('state', 'failure');
+          this.statusIcon_.setAttribute('icon', 'close');
+          this.content_.opened = true;
+        }
+        */
+        doneCallback();
+      }
+    });
+  </script>
+</dom-module>
+

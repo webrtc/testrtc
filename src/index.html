@@ -31,7 +31,7 @@
   </script>
 
   <script src="../components/webrtc-adapter/adapter.js"></script>
-  <script src="components/webcomponentsjs/webcomponents-lite.js"></script>
+  <script src="../components/webcomponentsjs/webcomponents-lite.js"></script>
   <link rel="import" href="../components/polymer/polymer.html"></script>
   <link rel="import" href="../components/paper-toolbar/paper-toolbar.html">
   <link rel="import" href="../components/iron-icon/iron-icon.html">
@@ -42,111 +42,23 @@
   <link rel="import" href="../components/paper-progress/paper-progress.html">
   <link rel="import" href="../components/paper-button/paper-button.html">
   <link rel="import" href="../components/paper-icon-button/paper-icon-button.html">
+  <link rel="import" href="ui/testrtc-testsuite.html">
+  <link rel="import" href="ui/testrtc-test.html">
   <link rel="import" href="ui/gum-dialog.html">
   <link rel="import" href="ui/report-dialog.html">
 
   <link rel="stylesheet" href="css/main.css" />
   <link rel="stylesheet" href="css/main_nolint.css" />
 
-    <style is="custom-style">
-      paper-toolbar.test-suite {
-        --paper-toolbar-background: #4F7DC9;
-        --paper-toolbar-color: #000;
-      }
-    </style>
+  <style is="custom-style">
+    paper-toolbar.test-suite {
+      --paper-toolbar-background: #4F7DC9;
+      --paper-toolbar-color: #000;
+    }
+  </style>
 
 </head>
 <body unresolved>
-  <!--
-  <dom-module id="testrtc-test">
-    <template>
-    </template>
-    <script>
-      Polymer({
-        is: 'testrtc-test'
-      });
-    </script>
-  </dom-module>
-  -->
-  <dom-module id="testrtc-suite">
-    <style>
-      paper-toolbar.test-suite {
-        margin-top: 1.5em;
-        cursor: pointer;
-        color: #000;
-      }
-      .title {
-        margin-left: 0px;
-      }
-      :host[state='pending'] .test-suite, :host[state='pending'] .header {
-        background-color: #e2e2e2;
-      }
-      :host[state='success'] .test-suite {
-        background-color: #90ec90;
-      }
-      :host[state='warning'] .test-suite {
-        background-color: #ecec90;
-      }
-      :host[state='failure'] .test-suite {
-        background-color: #ec9090;
-      }
-
-      .header {
-        margin-top: 30px;
-        height: 64px;
-        display: flex;
-        padding-left: 16px;
-        padding-right: 16px;
-        align-items: center;
-        cursor: pointer;
-      }
-
-      .header .title {
-        flex: 1;
-        font-weight: 300;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-
-    </style>
-    <template>
-      <div class="header" on-tap="toggle">
-        <span class="title">{{name}}</span>
-        <iron-icon icon="more-horiz"></iron-icon>
-      </div>
-      <iron-collapse id="collapse">
-        <template is="dom-repeat" items="{{tests}}" index-as="no">
-          <p>{{item.name}}</p>
-        </template>
-      </iron-collapse>
-    </template>
-    <script>
-      Polymer({
-        is: 'testrtc-suite',
-        properties: {
-          state: {
-            value: 'pending',
-            reflectToAttribute: true
-          },
-          tests: {
-            type: Array,
-            value: []
-          }
-        },
-        toggle: function() {
-          this.$.collapse.toggle();
-        },
-        addTest: function(testName, testFunction) {
-          console.log(arguments);
-          this.push('tests', { name: testName, run: testFunction });
-        },
-        run: function() {
-        }
-
-      });
-    </script>
-  </dom-module>
-
   <dom-module id="testrtc-main">
     <style>
       .titlebar {

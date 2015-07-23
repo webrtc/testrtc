@@ -5,8 +5,10 @@
  *  that can be found in the LICENSE file in the root of the source
  *  tree.
 -->
+<link rel="import" href="../../components/polymer/polymer.html">
 
 <!--
+
 `<gum-handler>` continuously calls getUserMedia until it succeeds or 'pending' attribute
 is set to false. It also exposes an error attribute containing the 'MediaStreamError.name'.
 See gum-dialog.html for an example on how to use it.
@@ -14,96 +16,87 @@ See gum-dialog.html for an example on how to use it.
 TODO(andresp): Need a mechanism to stop polling permissions? E.g. if it was temporarly
 visible on the page but is no more it will keep polling permissions once per second.
 -->
-<dom-element id="gum-handler">
-  <script>
-    Polymer({
-      is: 'gum-handler',
-      properties: {
-        pending: {
-          type: Boolean,
-          value: true,
-          notify: true
-        },
-        error: {
-          type: Object,
-          value: false,
-          notify: true
-        },
-        gumFunction: {
-          type: Function,
-          value: function() { return navigator.getUserMedia }
-        }
+<script>
+  Polymer({
+    is: 'gum-handler',
+    properties: {
+      pending: {
+        type: Boolean,
+        value: true,
+        notify: true
       },
-      ready: function () {
-        if (this.getUserMedia !== 'undefined') {
-          this.triggerGetUserMedia_();
-        } else {
-          this.error = 'NotSupported';
-        }
+      error: {
+        type: Object,
+        value: false,
+        notify: true
       },
-
-      triggerGetUserMedia_: function () {
-        if (this.pending == false) {
-          return;
-        }
-
-        // Since triggerGetUserMediaBasedOnSources handles sources.length = 0
-        // we call upon it regardless of a enumerate device failure. Using the
-        // .catch callback for to get the logs. This is due to sources.length = 0
-        // does not necessarily mean JS device selection is unsupported.
-        navigator.mediaDevices.enumerateDevices()
-        .then(this.triggerGetUserMediaBasedOnSources_.bind(this))
-        .catch((function(err) {
-          console.log('JS Device selection not supported', err);
-          this.triggerGetUserMediaBasedOnSources_([]);
-        }).bind(this));
+      getUserMedia: {
+        type: Function,
+        value: function() { return navigator.getUserMedia; }
       },
+      enumerateDevices: {
+        type: Function,
+        value: function() { return navigator.mediaDevices.enumerateDevices; }
+      },
+    },
+    ready: function () {
+      if (this.getUserMedia !== 'undefined') {
+        this.triggerGetUserMedia_();
+      } else {
+        this.error = 'NotSupported';
+      }
+    },
 
-      triggerGetUserMediaBasedOnSources_: function(sources) {
-        var constraints = {};
-        if (sources.length === 0) {
-          constraints = {audio: true, video: true};
-        } else {
-          for (var i = 0; i < sources.length; i++) {
-            if (sources[i].kind === 'audioinput') {
-              constraints.audio = true;
-            }
-            if (sources[i].kind === 'videoinput') {
-              constraints.video = true;
-            }
+    triggerGetUserMedia_: function () {
+      if (this.pending == false) {
+        return;
+      }
+
+      // Since triggerGetUserMediaBasedOnSources handles sources.length = 0
+      // we call upon it regardless of a enumerate device failure. Using the
+      // .catch callback for to get the logs. This is due to sources.length = 0
+      // does not necessarily mean JS device selection is unsupported.
+      this.enumerateDevices()
+      .then(this.triggerGetUserMediaBasedOnSources_.bind(this))
+      .catch((function(err) {
+        console.log('JS Device selection not supported', err);
+        this.triggerGetUserMediaBasedOnSources_([]);
+      }).bind(this));
+    },
+
+    triggerGetUserMediaBasedOnSources_: function(sources) {
+      var constraints = {};
+      if (sources.length === 0) {
+        constraints = {audio: true, video: true};
+      } else {
+        for (var i = 0; i < sources.length; i++) {
+          if (sources[i].kind === 'audioinput') {
+            constraints.audio = true;
+          }
+          if (sources[i].kind === 'videoinput') {
+            constraints.video = true;
           }
         }
-        this.gumFunction(constraints, this.gotStream_.bind(this), this.gotError_.bind(this));
-      },
-
-      gotStream_: function(stream) {
-        // Stop all tracks to ensure the camera and audio devices are shutdown
-        // directly.
-        for (var i = 0; i < stream.getVideoTracks().length; i++) {
-          stream.getVideoTracks()[i].stop();
-        }
-        for (var j = 0; j < stream.getAudioTracks().length; j++) {
-          stream.getAudioTracks()[j].stop();
-        }
-        this.pending = false;
-        this.error = false;
-      },
-
-      gotError_: function(error) {
-        this.error = error.name;
-        setTimeout(this.triggerGetUserMedia_.bind(this), 1000);
       }
-    });
-  </script>
-</dom-element>
+      this.getUserMedia(constraints, this.gotStream_.bind(this), this.gotError_.bind(this));
+    },
 
-<dom-module id="gum-handler-test">
-  <template>
-    <gum-handler pending={{pending}} error={{error}}><p>{{pending}}</p><p>{{error}}</p></gum-handler>
-  </template>
-  <script>
-    Polymer({
-      is: 'gum-handler-test'
-    });
-  </script>
-</dom-module>
+    gotStream_: function(stream) {
+      // Stop all tracks to ensure the camera and audio devices are shutdown
+      // directly.
+      for (var i = 0; i < stream.getVideoTracks().length; i++) {
+        stream.getVideoTracks()[i].stop();
+      }
+      for (var j = 0; j < stream.getAudioTracks().length; j++) {
+        stream.getAudioTracks()[j].stop();
+      }
+      this.pending = false;
+      this.error = false;
+    },
+
+    gotError_: function(error) {
+      this.error = error.name;
+      setTimeout(this.triggerGetUserMedia_.bind(this), 1000);
+    }
+  });
+</script>

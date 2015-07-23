@@ -1,0 +1,155 @@
+<!--
+ *  Copyright (c) 2014 The WebRTC project authors. All Rights Reserved.
+ *
+ *  Use of this source code is governed by a BSD-style license
+ *  that can be found in the LICENSE file in the root of the source
+ *  tree.
+-->
+<dom-module id="testrtc-test">
+  <style>
+    .test-output {
+      margin: 0 2em 0 2em;
+      word-wrap: break-word;
+    }
+
+    paper-progress {
+      display: block;
+      min-width: 2em;
+    }
+
+    .header {
+      background-color: transparent;
+      height: 2em;
+      min-width: 80%;
+      display: flex;
+      padding-left: 16px;
+      padding-right: 16px;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .header .title {
+      flex: 1;
+      font-weight: 300;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+  </style>
+  <template>
+    <div class="header" on-tap="toggle">
+      <span class="title">{{name}}</span>
+      <paper-progress hidden$="[[!_inProgress(progressValue)]]" value="[[progressValue]]"></paper-progress>
+      <iron-icon icon="[[_iconForState(state)]]"></iron-icon>
+    </div>
+    <iron-collapse id="collapse">
+      <template is="dom-repeat" items="[[output]]" as="item">
+        <div class="test-output"><span>[[item]]</span></div>
+      </template>
+    </iron-collapse>
+  </template>
+  <script>
+    Polymer({
+      is: 'testrtc-test',
+      properties: {
+        name: { type: String },
+        testFunction: { type: Function },
+        state: { value: "pending" },
+        progressValue: { value: null },
+        output: { type: Array, value: function() { return []; } }
+      },
+
+      _inProgress: function(value) {
+        return value !== null;
+      },
+
+      _iconForState: function(state) {
+        if (state === 'pending') return 'more-horiz';
+        if (state === 'success') return '';
+        if (state === 'failure') return '';
+      },
+
+      toggle: function() {
+        this.$.collapse.toggle();
+      },
+
+      run: function(doneCallback) {
+        this.successCount = 0;
+        this.warningCount = 0;
+        this.errorCount = 0;
+        this.doneCallback_ = doneCallback;
+        this.output = [];
+
+        this.setProgress(null);
+        this.traceTestEvent = report.traceEventAsync('test-run');
+
+        currentTest = this;
+        this.traceTestEvent({name: this.name, status: 'Running'});
+        if (!this.isDisabled) {
+          this.testFunction();
+        } else {
+          this.reportInfo('Test is disabled.');
+          this.done();
+        }
+      },
+
+      done: function() {
+        this.setProgress(null);
+        var success =
+            (this.errorCount === 0 && (this.successCount + this.warningCount) > 0);
+        var statusString = (success ? 'Success' :
+                           (this.isDisabled ? 'Disabled' : 'Failure'));
+        this.traceTestEvent({status: statusString});
+        report.logTestRunResult(this.name, statusString);
+        this.doneCallback_();
+      },
+
+      setProgress: function(value) {
+        this.progressValue = value;
+      },
+
+      expectEquals: function(expected, actual, failMsg, okMsg) {
+        if (expected !== actual) {
+          this.reportError('Failed expectation: ' + expected + ' !== ' + actual +
+                           ': ' + failMsg);
+        } else if (okMsg) {
+          this.reportSuccess(okMsg);
+        }
+      },
+
+      reportSuccess: function(str) {
+        this.reportMessage_(PREFIX_OK, str);
+        this.successCount++;
+        this.traceTestEvent({success: str});
+      },
+
+      reportError: function(str) {
+        this.reportMessage_(PREFIX_FAILED, str);
+        this.errorCount++;
+        this.traceTestEvent({error: str});
+      },
+
+      reportWarning: function(str) {
+        this.reportMessage_(PREFIX_WARNING, str);
+        this.warningCount++;
+        this.traceTestEvent({warning: str});
+      },
+
+      reportInfo: function(str) {
+        this.reportMessage_(PREFIX_INFO, str);
+        this.traceTestEvent({info: str});
+      },
+
+      reportFatal: function(str) {
+        this.reportError(str);
+        this.done();
+      },
+
+      reportMessage_: function(prefix, str) {
+        // TODO: silly unnecessary reassign.
+        this.output = [].concat(this.output, [str]);
+      }
+    });
+  </script>
+</dom-module>
+

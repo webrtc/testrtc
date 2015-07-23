@@ -65,27 +65,6 @@ paper-toolbar.test iron-icon[icon="close"] {
   color: #F00;
 }
 
-/* Test style */
-paper-toolbar.test {
-  cursor: pointer;
-  background-color: transparent;
-  height: 2em;
-}
-
-paper-toolbar.test span {
-  min-width: 80%;
-}
-
-.test-output {
-  margin: 0 2em 0 2em;
-  word-wrap: break-word;
-}
-
-.test-progress {
-  display: block;
-  min-width: 2em;
-}
-
 div#content {
   /**
    * Content has a calculated min-height so it can push the footer considerable
