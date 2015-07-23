@@ -32,39 +32,6 @@ div#content {
   padding: 1em 1.5em 1.3em 1.5em;
 }
 
-/* Test suite style */
-paper-toolbar.test-suite {
-  margin-top: 1.5em;
-  cursor: pointer;
-}
-paper-toolbar.test-suite[state='pending'] {
-  background-color: #e2e2e2;
-}
-paper-toolbar.test-suite[state='success'] {
-  background-color: #90ec90;
-}
-paper-toolbar.test-suite[state='warning'] {
-  background-color: #ecec90;
-}
-paper-toolbar.test-suite[state='failure'] {
-  background-color: #ec9090;
-}
-
-paper-toolbar.test-suite + iron-collapse {
-  background-color: #f4f4f4;
-  padding: 0 0 1em 0;
-}
-
-paper-toolbar.test-suite iron-icon[icon="check"],
-paper-toolbar.test iron-icon[icon="check"] {
-  color: #080;
-}
-
-paper-toolbar.test-suite iron-icon[icon="close"],
-paper-toolbar.test iron-icon[icon="close"] {
-  color: #F00;
-}
-
 div#content {
   /**
    * Content has a calculated min-height so it can push the footer considerable

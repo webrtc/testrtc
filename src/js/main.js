@@ -18,58 +18,12 @@ try {
 } catch (e) {
   console.log('Failed to instantiate an audio context, error: ' + e);
 }
-var contentDiv = document.getElementById('content');
-var PREFIX_INFO    = '[   INFO ]';
-var PREFIX_OK      = '[     OK ]';
-var PREFIX_FAILED  = '[ FAILED ]';
-var PREFIX_WARNING = '[   WARN ]';
+
 var testSuites = [];
 var testFilters = [];
-var currentTest;
-
-function Test(suite, name, func) {
-  return;
-  this.suite = suite;
-  this.name = name;
-  this.func = func;
-
-  var progressBar = document.createElement('paper-progress');
-  progressBar.setAttribute('class', 'test-progress');
-  progressBar.setAttribute('flex', null);
-  progressBar.style.display = 'none';
-
-  var toolbar = document.createElement('paper-toolbar');
-  toolbar.setAttribute('class', 'test');
-  var title = document.createElement('span');
-  title.textContent = name;
-  title.setAttribute('class', 'title');
-  var statusIcon = document.createElement('iron-icon');
-  statusIcon.setAttribute('icon', '');
-  toolbar.addEventListener('click', this.onClickToolbar_.bind(this));
-  Polymer.dom(toolbar).appendChild(title);
-  Polymer.dom(toolbar).appendChild(progressBar);
-  Polymer.dom(toolbar).appendChild(statusIcon);
-
-  var collapse = document.createElement('core-collapse');
-  collapse.setAttribute('class', 'test-output');
-  collapse.opened = false;
-  suite.content_.appendChild(toolbar);
-  suite.content_.appendChild(collapse);
-
-  this.statusIcon_ = statusIcon;
-  this.progressBar_ = progressBar;
-  this.output_ = collapse;
-
-  this.successCount = 0;
-  this.warningCount = 0;
-  this.errorCount = 0;
-  this.doneCallback_ = null;
-
-  this.isDisabled = testIsDisabled(name);
-  this.reportMessage_(PREFIX_INFO, 'Test not run yet.');
-}
 
 // TODO(andresp): Pass Test object to test instead of using global methods.
+var currentTest;
 function reportSuccess(str) { currentTest.reportSuccess(str); }
 function reportError(str) { currentTest.reportError(str); }
 function reportFatal(str) { currentTest.reportFatal(str); }
@@ -99,7 +53,7 @@ function addTest(suiteName, testName, func) {
     }
   }
   // Non-existent suite.
-  var testSuite = _createSuite(suiteName, contentDiv);
+  var testSuite = _createSuite(suiteName, document.getElementById('content'));
   testSuite.addTest(testName, func);
   testSuites.push(testSuite);
 }

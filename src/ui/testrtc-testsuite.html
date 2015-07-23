@@ -16,17 +16,27 @@
     .title {
       margin-left: 0px;
     }
-    :host[state='pending'] .test-suite, :host[state='pending'] .header {
+
+    .header {
       background-color: #e2e2e2;
     }
-    :host[state='success'] .test-suite {
+
+    :host[state='success'] .header {
       background-color: #90ec90;
     }
-    :host[state='warning'] .test-suite {
+    :host[state='success'] iron-icon {
+      color: #080;
+    }
+
+    :host[state='warning'] .header {
       background-color: #ecec90;
     }
-    :host[state='failure'] .test-suite {
+
+    :host[state='failure'] .header {
       background-color: #ec9090;
+    }
+    :host[state='failure'] iron-icon {
+      color: #F00;
     }
 
     .header {
@@ -46,6 +56,9 @@
       text-overflow: ellipsis;
     }
 
+    #collapse {
+      background-color: #f4f4f4;
+    }
   </style>
   <template>
     <div class="header" on-tap="toggle">
@@ -68,7 +81,11 @@
         }
       },
       _iconForState: function (state) {
-        return 'more-horiz';
+        if (state === 'failure') { return 'close'; }
+        if (state === 'warning') { return 'check'; }
+        if (state === 'success') { return 'check'; }
+        if (state === 'running') { return 'more-horiz'; }
+        return '';
       },
       toggle: function() {
         this.$.collapse.toggle();
@@ -82,12 +99,11 @@
       },
       run: function(doneCallback) {
         this.opened = true;
-        this.state = 'pending';
+        this.state = 'running';
         runAllSequentially(this.tests, this.allTestFinished.bind(this,
                                                                  doneCallback));
       },
       allTestFinished: function(doneCallback) {
-        /*
         var errors = 0;
         var warnings = 0;
         var successes = 0;
@@ -98,19 +114,15 @@
         }
 
         if (errors === 0 && warnings === 0 && successes > 0) {
-          this.toolbar_.setAttribute('state', 'success');
-          this.statusIcon_.setAttribute('icon', 'check');
-          this.content_.opened = false;
+          this.state = 'success';
+          this.opened = false;
         } else if (errors === 0 && warnings > 0) {
-          this.toolbar_.setAttribute('state', 'warning');
-          this.statusIcon_.setAttribute('icon', 'check');
-          this.content_.opened = false;
+          this.state = 'warning';
+          this.opened = false;
         } else {
-          this.toolbar_.setAttribute('state', 'failure');
-          this.statusIcon_.setAttribute('icon', 'close');
-          this.content_.opened = true;
+          this.state = 'failure';
+          this.opened = true;
         }
-        */
         doneCallback();
       }
     });
