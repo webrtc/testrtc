@@ -68,7 +68,7 @@ TODO(andresp): Delay showing the dialog (probably using transitions).
         // Hack: for some reason the dialog position and size are wrong when they are calculated directly.
         setTimeout(this.$.dialog.refit.bind(this.$.dialog), 0);
       },
-      _createBugReport() {
+      _createBugReport: function() {
         this.fire('bug-report');
       },
       _isNotSupported: function(error) {
