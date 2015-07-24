@@ -56,7 +56,7 @@
     <div class="header" on-tap="toggle">
       <span class="title">{{name}}</span>
       <paper-progress hidden$="[[!_inProgress(progressValue)]]" value="[[progressValue]]"></paper-progress>
-      <iron-icon hidden$=[[_inProgress(progressValue)]]" icon="[[_iconForState(state)]]"></iron-icon>
+      <iron-icon hidden$="[[_inProgress(progressValue)]]" icon="[[_iconForState(state)]]"></iron-icon>
     </div>
     <iron-collapse id="collapse">
       <div id="plot" class="test-output"></div>
