@@ -11,7 +11,6 @@
 <link rel="import" href="../../components/paper-dialog/paper-dialog.html">
 <link rel="import" href="../../components/paper-button/paper-button.html">
 <link rel="import" href="gum-handler.html">
-<link rel="import" href="report-dialog.html">
 
 <!--
 `<gum-dialog>` is used to display a dialog asking the user to give user media permissions.
@@ -57,7 +56,7 @@ TODO(andresp): Delay showing the dialog (probably using transitions).
       </div>
 
       <div hidden$="[[!error]]" class="buttons" horizontal justified layout>
-        <paper-button onclick="report.open()">File a bug</paper-button>
+        <paper-button on-tap="_createBugReport">File a bug</paper-button>
         <paper-button dialog-dismiss>Continue without audio/or video</paper-button>
       </div>
     </paper-dialog>
@@ -68,6 +67,9 @@ TODO(andresp): Delay showing the dialog (probably using transitions).
       ready: function() {
         // Hack: for some reason the dialog position and size are wrong when they are calculated directly.
         setTimeout(this.$.dialog.refit.bind(this.$.dialog), 0);
+      },
+      _createBugReport() {
+        this.fire('bug-report');
       },
       _isNotSupported: function(error) {
         return error === 'NotSupported';

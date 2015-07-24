@@ -23,10 +23,6 @@ function Report() {
 }
 
 Report.prototype = {
-  open: function() {
-    document.querySelector('report-dialog').open();
-  },
-
   traceEventInstant: function(name, args) {
     this.output_.push({'ts': Date.now(),
                        'name': name,

@@ -61,6 +61,9 @@
       observers: [
         '_pendingChanged(pending)'
       ],
+      listeners: {
+        'bug-report': 'openBugReport',
+      },
       _pendingChanged: function (pending) {
         if (pending === false) {
           // Populate the device selection drop down menu after the gUM dialog closes.
@@ -154,7 +157,13 @@
           self.$.startButton.removeAttribute('disabled');
         });
       },
-      openBugReport: function() { this.$.bugreport.open(); },
+
+      openBugReport: function() {
+        // Hack: it appears that having two modal dialogs open at same time leads to issues,
+        // so we close the gum dialog before opening the report one.
+        this.pending = false;
+        this.$.bugreport.open();
+      },
       openSettingsDialog: function() { this.$.settings.open(); }
     });
   </script>
