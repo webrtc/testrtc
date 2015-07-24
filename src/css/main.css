@@ -10,22 +10,6 @@ body {
   font-weight: 300;
 }
 
-.titlebar {
-  height: 60px;
-  font-size: 18px;
-  font-weight: 500;
-  transition: height .2s;
-  font-family: 'Roboto', sans-serif;
-  max-width: 40em;
-  margin: 1em auto 1em auto;
-}
-
-#startButton {
-  line-height: 3em;
-  background-color: #9E9;
-  color: #000;
-}
-
 div#content {
   margin: 0 auto 0 auto;
   max-width: 40em;
@@ -48,5 +32,5 @@ footer {
 footer a {
   color: #666;
   text-decoration: none;
-  padding-left: 27px;
+  padding-left: 2em;
 }

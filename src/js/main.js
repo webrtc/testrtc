@@ -7,7 +7,7 @@
  */
 
 /* More information about these options at jshint.com/docs/options */
-/* exported addExplicitTest, addTest, createLineChart, doGetUserMedia, audioContext, settingsDialog */
+/* exported addExplicitTest, addTest, audioContext */
 'use strict';
 
 // Global WebAudio context that can be shared by all tests.
@@ -22,13 +22,6 @@ try {
 var testSuites = [];
 var testFilters = [];
 
-function _createSuite(name, output) {
-  var element = document.createElement('testrtc-suite');
-  element.name = name;
-  output.appendChild(element);
-  return element;
-}
-
 function addTest(suiteName, testName, func) {
   if (testIsDisabled(testName)) {
     return;
@@ -40,10 +33,12 @@ function addTest(suiteName, testName, func) {
       return;
     }
   }
-  // Non-existent suite.
-  var testSuite = _createSuite(suiteName, document.getElementById('content'));
-  testSuite.addTest(testName, func);
-  testSuites.push(testSuite);
+  // Non-existent suite create and attach to #content.
+  var suite = document.createElement('testrtc-suite');
+  suite.name = suiteName;
+  suite.addTest(testName, func);
+  testSuites.push(suite);
+  document.getElementById('content').appendChild(suite);
 }
 
 // Add a test that only runs if it is explicitly enabled with
@@ -51,25 +46,6 @@ function addTest(suiteName, testName, func) {
 function addExplicitTest(suiteName, testName, func) {
   if (testIsExplicitlyEnabled(testName)) {
     addTest(suiteName, testName, func);
-  }
-}
-
-// Helper to run a list of tasks sequentially:
-//   tasks - Array of { run: function(doneCallback) {} }.
-//   doneCallback - called once all tasks have run sequentially.
-function runAllSequentially(tasks, doneCallback) {
-  var current = -1;
-  var runNextAsync = setTimeout.bind(null, runNext);
-
-  runNextAsync();
-
-  function runNext() {
-    current++;
-    if (current === tasks.length) {
-      doneCallback();
-      return;
-    }
-    tasks[current].run(runNextAsync);
   }
 }
 

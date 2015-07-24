@@ -5,6 +5,16 @@
  *  that can be found in the LICENSE file in the root of the source
  *  tree.
 -->
+<link rel="import" href="../../components/polymer/polymer.html"></script>
+<link rel="import" href="../../components/paper-toolbar/paper-toolbar.html">
+<link rel="import" href="../../components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../../components/paper-progress/paper-progress.html">
+<link rel="import" href="../../components/paper-button/paper-button.html">
+<link rel="import" href="../../components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../../components/iron-icon/iron-icon.html">
+<link rel="import" href="../../components/iron-icons/iron-icons.html">
+<link rel="import" href="../../components/iron-collapse/iron-collapse.html">
+
 <!-- A test suite is a composition of many tests. -->
 <dom-module id="testrtc-suite">
   <style>
@@ -14,7 +24,7 @@
       color: #000;
     }
     .title {
-      margin-left: 0px;
+      margin-left: 0;
     }
 
     .header {
@@ -40,13 +50,14 @@
     }
 
     .header {
-      margin-top: 30px;
-      height: 64px;
+      margin-top: 1.5em;
+      height: 3.3em;
       display: flex;
-      padding-left: 16px;
-      padding-right: 16px;
+      padding-left: 1em;
+      padding-right: 1em;
       align-items: center;
       cursor: pointer;
+      font-size: 1.3em;
     }
 
     .header .title {
@@ -128,4 +139,23 @@
     });
   </script>
 </dom-module>
+<script>
+// Helper to run a list of tasks sequentially:
+//   tasks - Array of { run: function(doneCallback) {} }.
+//   doneCallback - called once all tasks have run sequentially.
+function runAllSequentially(tasks, doneCallback) {
+  var current = -1;
+  var runNextAsync = setTimeout.bind(null, runNext);
 
+  runNextAsync();
+
+  function runNext() {
+    current++;
+    if (current === tasks.length) {
+      doneCallback();
+      return;
+    }
+    tasks[current].run(runNextAsync);
+  }
+}
+</script>

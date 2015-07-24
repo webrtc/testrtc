@@ -18,6 +18,7 @@
     paper-progress {
       display: block;
       min-width: 2em;
+      flex: 0.000001;
     }
 
     .header {
@@ -25,13 +26,14 @@
       height: 2em;
       min-width: 80%;
       display: flex;
-      padding-left: 16px;
-      padding-right: 16px;
+      padding-left: 1em;
+      padding-right: 1em;
       align-items: center;
       cursor: pointer;
+      font-size: 1.3em;
     }
 
-    .header, iron-collapse {
+    iron-collapse {
       padding-bottom: 0.5em;
     }
 
@@ -54,12 +56,12 @@
     <div class="header" on-tap="toggle">
       <span class="title">{{name}}</span>
       <paper-progress hidden$="[[!_inProgress(progressValue)]]" value="[[progressValue]]"></paper-progress>
-      <iron-icon icon="[[_iconForState(state)]]"></iron-icon>
+      <iron-icon hidden$=[[_inProgress(progressValue)]]" icon="[[_iconForState(state)]]"></iron-icon>
     </div>
     <iron-collapse id="collapse">
       <div id="plot" class="test-output"></div>
       <template is="dom-repeat" items="[[output]]" as="item">
-        <div class="test-output"><span>[[item]]</span></div>
+        <div class="test-output"><span>[[item.prefix]]</span> <span>[[item.message]]</span></div>
       </template>
     </iron-collapse>
   </template>
@@ -177,7 +179,7 @@
 
       reportMessage_: function(prefix, str) {
         // TODO: silly unnecessary reassign.
-        this.output = [].concat(this.output, [str]);
+        this.output = [].concat(this.output, [{prefix: prefix, message: str}]);
       },
 
       clearPlots: function() {

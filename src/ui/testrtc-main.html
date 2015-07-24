@@ -1,0 +1,164 @@
+<!--
+ *  Copyright (c) 2015 The WebRTC project authors. All Rights Reserved.
+ *
+ *  Use of this source code is governed by a BSD-style license
+ *  that can be found in the LICENSE file in the root of the source
+ *  tree.
+-->
+<link rel="import" href="../../components/polymer/polymer.html"></script>
+<link rel="import" href="../../components/paper-toolbar/paper-toolbar.html">
+<link rel="import" href="../../components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../../components/paper-progress/paper-progress.html">
+<link rel="import" href="../../components/paper-button/paper-button.html">
+<link rel="import" href="../../components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="testrtc-suite.html">
+<link rel="import" href="testrtc-test.html">
+<link rel="import" href="gum-dialog.html">
+<link rel="import" href="report-dialog.html">
+<dom-module id="testrtc-main">
+  <style>
+    .titlebar {
+      --paper-toolbar-background: #4F7DC9;
+      --paper-toolbar-color: #FFF;
+      font-size: 18px;
+      font-weight: 500;
+      transition: height .2s;
+      font-family: 'Roboto', sans-serif;
+      max-width: 40em;
+      margin: 1em auto 1em auto;
+    }
+
+    #startButton {
+      line-height: 3em;
+      background-color: #9E9;
+      color: #000;
+    }
+  </style>
+  <template>
+    <gum-dialog heading="Welcome to WebRTC Troubleshooter" pending="{{pending}}"></gum-dialog>
+
+    <!-- Title toolbar -->
+    <paper-toolbar class="titlebar">
+      <span class="title">WebRTC Troubleshooter</span>
+      <paper-icon-button icon="menu" on-tap="openSettingsDialog"></paper-icon-button>
+      <paper-icon-button icon="bug-report" on-tap="openBugReport"></paper-icon-button>
+      <paper-button id="startButton" on-tap="run" raised disabled>Start</paper-button>
+    </paper-toolbar>
+
+    <!-- Settings dialog -->
+    <paper-dialog id="settings">
+      <h2>Settings</h2>
+      <div class="select"><label>Audio source: <select id="audioSource"></select></label></div>
+      <div class="select"><label>Video source: <select id="videoSource"></select></label></div>
+    </paper-dialog>
+
+    <!-- Bug report dialog -->
+    <report-dialog id="bugreport"></report-dialog>
+  </template>
+  <script>
+    Polymer({
+      is: 'testrtc-main',
+      properties: {
+        pending: { value: false }
+      },
+      observers: [
+        '_pendingChanged(pending)'
+      ],
+      _pendingChanged: function (pending) {
+        if (pending === false) {
+          // Populate the device selection drop down menu after the gUM dialog closes.
+          navigator.mediaDevices.enumerateDevices()
+          .then(this.gotSources.bind(this))
+          .catch(function(err) {
+            console.log('JS Device selection not supported', err);
+          });
+
+          window.doGetUserMedia = this.doGetUserMedia.bind(this);
+          this.$.startButton.removeAttribute('disabled');
+        }
+      },
+      gotSources: function(sourceInfos) {
+        for (var i = 0; i !== sourceInfos.length; ++i) {
+          var sourceInfo = sourceInfos[i];
+          var option = document.createElement('option');
+          option.value = sourceInfo.deviceId;
+          this.appendOption(sourceInfo, option);
+        }
+      },
+      appendOption: function (sourceInfo, option) {
+        if (sourceInfo.kind === 'audioinput') {
+          option.text = sourceInfo.label || 'microphone ' + (this.$.audioSource.length + 1);
+          this.$.audioSource.appendChild(option);
+        } else if (sourceInfo.kind === 'videoinput') {
+          option.text = sourceInfo.label || 'camera ' + (this.$.videoSource.length + 1);
+          this.$.videoSource.appendChild(option);
+        } else {
+          console.log('Some other kind of source');
+        }
+      },
+
+      doGetUserMedia: function(constraints, onSuccess, onFail) {
+        var self = this;
+        var traceGumEvent = report.traceEventAsync('getusermedia');
+
+        // Call into getUserMedia via the polyfill (adapter.js).
+        var successFunc = function(stream) {
+          var cam = self.getDeviceName_(stream.getVideoTracks());
+          var mic = self.getDeviceName_(stream.getAudioTracks());
+          traceGumEvent({'status': 'success', 'camera': cam, 'microphone': mic});
+          onSuccess.apply(this, arguments);
+        };
+        var failFunc = function(error) {
+          traceGumEvent({'status': 'fail', 'error': error});
+          if (onFail) {
+            onFail.apply(this, arguments);
+          } else {
+            reportFatal('Failed to get access to local media due to error: ' +
+                        error.name);
+          }
+        };
+        try {
+          // Append the constraints with the getSource constraints.
+          this.appendSourceId(this.$.audioSource.value, 'audio', constraints);
+          this.appendSourceId(this.$.videoSource.value, 'video', constraints);
+
+          traceGumEvent({'status': 'pending', 'constraints': constraints});
+          getUserMedia(constraints, successFunc, failFunc);
+        } catch (e) {
+          console.log(e);
+          traceGumEvent({'status': 'exception', 'error': e.message});
+          return reportFatal('getUserMedia failed with exception: ' + e.message);
+        }
+      },
+
+      appendSourceId: function(id, type, constraints) {
+        if (constraints[type] === true) {
+          constraints[type] = {optional: [{sourceId: id}]};
+        } else if (typeof constraints[type] === 'object') {
+          if (typeof constraints[type].optional === 'undefined') {
+            constraints[type].optional = [];
+          }
+          constraints[type].optional.push({sourceId: id});
+        }
+      },
+
+      // Return the first device label on the track.
+      getDeviceName_: function(tracks) {
+        if (tracks.length === 0) {
+          return null;
+        }
+        return tracks[0].label;
+      },
+
+      run: function() {
+        var self = this;
+        this.$.startButton.setAttribute('disabled', null);
+        runAllSequentially(testSuites, function() {
+          self.$.startButton.removeAttribute('disabled');
+        });
+      },
+      openBugReport: function() { this.$.bugreport.open(); },
+      openSettingsDialog: function() { this.$.settings.open(); }
+    });
+  </script>
+</dom-module>
