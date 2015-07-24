@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2014 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2015 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -7,7 +7,7 @@
  */
 
 /* More information about these options at jshint.com/docs/options */
-/* exported addExplicitTest, addTest, createLineChart, doGetUserMedia, reportInfo, expectEquals, testFinished, setTestProgress, audioContext, reportSuccess, reportError, settingsDialog, setTimeoutWithProgressBar, reportWarning */
+/* exported addExplicitTest, addTest, createLineChart, doGetUserMedia, audioContext, settingsDialog */
 'use strict';
 
 // Global WebAudio context that can be shared by all tests.
@@ -21,18 +21,6 @@ try {
 
 var testSuites = [];
 var testFilters = [];
-
-// TODO(andresp): Pass Test object to test instead of using global methods.
-var currentTest;
-function reportSuccess(str) { currentTest.reportSuccess(str); }
-function reportError(str) { currentTest.reportError(str); }
-function reportFatal(str) { currentTest.reportFatal(str); }
-function reportWarning(str) { currentTest.reportWarning(str); }
-function reportInfo(str) { currentTest.reportInfo(str); }
-function setTestProgress(value) { currentTest.setProgress(value); }
-function testFinished() { currentTest.done(); }
-function expectEquals() { currentTest.expectEquals.apply(currentTest,
-                                                         arguments); }
 
 function _createSuite(name, output) {
   var element = document.createElement('testrtc-suite');
@@ -99,33 +87,6 @@ function testIsExplicitlyEnabled(testName) {
     }
   }
   return false;
-}
-
-function createLineChart() {
-  var chart = document.createElement('line-chart');
-  currentTest.output_.appendChild(chart);
-  currentTest.output_.opened = true;
-  return chart;
-}
-
-function setTimeoutWithProgressBar(timeoutCallback, timeoutMs) {
-  var start = window.performance.now();
-  var updateProgressBar = setInterval(function() {
-    var now = window.performance.now();
-    setTestProgress((now - start) * 100 / timeoutMs);
-  }, 100);
-
-  var timeoutTask = function() {
-    clearInterval(updateProgressBar);
-    setTestProgress(100);
-    timeoutCallback();
-  };
-  var timer = setTimeout(timeoutTask, timeoutMs);
-  var finishProgressBar = function() {
-    clearTimeout(timer);
-    timeoutTask();
-  };
-  return finishProgressBar;
 }
 
 // Parse URL parameters and configure test filters.

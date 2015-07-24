@@ -1,10 +1,13 @@
 <!--
- *  Copyright (c) 2014 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2015 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
  *  tree.
 -->
+<link rel="import" href="../../components/polymer/polymer.html">
+<link rel="import" href="../../components/iron-icon/iron-icon.html">
+<link rel="import" href="line-chart.html">
 <dom-module id="testrtc-test">
   <style>
     .test-output {
@@ -54,6 +57,7 @@
       <iron-icon icon="[[_iconForState(state)]]"></iron-icon>
     </div>
     <iron-collapse id="collapse">
+      <div id="plot" class="test-output"></div>
       <template is="dom-repeat" items="[[output]]" as="item">
         <div class="test-output"><span>[[item]]</span></div>
       </template>
@@ -104,6 +108,7 @@
         this.errorCount = 0;
         this.doneCallback_ = doneCallback;
         this.output = [];
+        this.clearPlots();
 
         this.setProgress(null);
         this.traceTestEvent = report.traceEventAsync('test-run');
@@ -173,8 +178,55 @@
       reportMessage_: function(prefix, str) {
         // TODO: silly unnecessary reassign.
         this.output = [].concat(this.output, [str]);
+      },
+
+      clearPlots: function() {
+        while (this.$.plot.lastElementChild !== null) {
+          Polymer.dom(this.$.plot).removeChild(this.$.plot.lastElementChild);
+        }
+      },
+      createLineChart: function() {
+        var chart = document.createElement('line-chart');
+        Polymer.dom(this.$.plot).appendChild(chart);
+        this.$.collapse.opened = true;
+        return chart;
       }
     });
   </script>
 </dom-module>
 
+<script>
+// TODO(andresp): Pass Test object to test instead of using global methods.
+var currentTest;
+function createLineChart() { return currentTest.createLineChart(); }
+function reportSuccess(str) { currentTest.reportSuccess(str); }
+function reportError(str) { currentTest.reportError(str); }
+function reportFatal(str) { currentTest.reportFatal(str); }
+function reportWarning(str) { currentTest.reportWarning(str); }
+function reportInfo(str) { currentTest.reportInfo(str); }
+function setTestProgress(value) { currentTest.setProgress(value); }
+function testFinished() { currentTest.done(); }
+function expectEquals() { currentTest.expectEquals.apply(currentTest,
+                                                         arguments); }
+
+
+function setTimeoutWithProgressBar(timeoutCallback, timeoutMs) {
+  var start = window.performance.now();
+  var updateProgressBar = setInterval(function() {
+    var now = window.performance.now();
+    setTestProgress((now - start) * 100 / timeoutMs);
+  }, 100);
+
+  var timeoutTask = function() {
+    clearInterval(updateProgressBar);
+    setTestProgress(100);
+    timeoutCallback();
+  };
+  var timer = setTimeout(timeoutTask, timeoutMs);
+  var finishProgressBar = function() {
+    clearTimeout(timer);
+    timeoutTask();
+  };
+  return finishProgressBar;
+}
+</script>

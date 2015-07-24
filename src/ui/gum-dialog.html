@@ -30,6 +30,11 @@ For now it serves as an example on how to build a UI flow on top of gum-handler.
 TODO(andresp): Delay showing the dialog (probably using transitions).
 -->
 <dom-module id="gum-dialog">
+  <style>
+    iron-icon[icon="av:videocam-off"] {
+      color: #888;
+    }
+  </style>
   <template>
     <!-- Declare gum-handler to continously request getUserMedia until permission is given. -->
     <gum-handler pending="{{pending}}" error="{{error}}"></gum-handler>
