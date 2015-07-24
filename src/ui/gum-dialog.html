@@ -40,7 +40,7 @@ TODO(andresp): Delay showing the dialog (probably using transitions).
     <gum-handler pending="{{pending}}" error="{{error}}"></gum-handler>
 
     <!-- TODO(andresp): pressing esc allows to close the dialog. :( -->
-    <paper-dialog opened="{{pending}}" modal>
+    <paper-dialog id="dialog" opened="{{pending}}" modal>
       <h2>{{heading}}</h2>
 
       <div hidden$="[[error]]">
@@ -65,6 +65,10 @@ TODO(andresp): Delay showing the dialog (probably using transitions).
   <script>
     Polymer({
       is: 'gum-dialog',
+      ready: function() {
+        // Hack: for some reason the dialog position and size are wrong when they are calculated directly.
+        setTimeout(this.$.dialog.refit.bind(this.$.dialog), 0);
+      },
       _isNotSupported: function(error) {
         return error === 'NotSupported';
       },
