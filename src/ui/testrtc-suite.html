@@ -1,0 +1,161 @@
+<!--
+ *  Copyright (c) 2015 The WebRTC project authors. All Rights Reserved.
+ *
+ *  Use of this source code is governed by a BSD-style license
+ *  that can be found in the LICENSE file in the root of the source
+ *  tree.
+-->
+<link rel="import" href="../../components/polymer/polymer.html"></script>
+<link rel="import" href="../../components/paper-toolbar/paper-toolbar.html">
+<link rel="import" href="../../components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../../components/paper-progress/paper-progress.html">
+<link rel="import" href="../../components/paper-button/paper-button.html">
+<link rel="import" href="../../components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../../components/iron-icon/iron-icon.html">
+<link rel="import" href="../../components/iron-icons/iron-icons.html">
+<link rel="import" href="../../components/iron-collapse/iron-collapse.html">
+
+<!-- A test suite is a composition of many tests. -->
+<dom-module id="testrtc-suite">
+  <style>
+    paper-toolbar.test-suite {
+      margin-top: 1.5em;
+      cursor: pointer;
+      color: #000;
+    }
+    .title {
+      margin-left: 0;
+    }
+
+    .header {
+      background-color: #e2e2e2;
+    }
+
+    :host[state='success'] .header {
+      background-color: #90ec90;
+    }
+    :host[state='success'] iron-icon {
+      color: #080;
+    }
+
+    :host[state='warning'] .header {
+      background-color: #ecec90;
+    }
+
+    :host[state='failure'] .header {
+      background-color: #ec9090;
+    }
+    :host[state='failure'] iron-icon {
+      color: #F00;
+    }
+
+    .header {
+      margin-top: 1.5em;
+      height: 3.3em;
+      display: flex;
+      padding-left: 1em;
+      padding-right: 1em;
+      align-items: center;
+      cursor: pointer;
+      font-size: 1.3em;
+    }
+
+    .header .title {
+      flex: 1;
+      font-weight: 300;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    #collapse {
+      background-color: #f4f4f4;
+    }
+  </style>
+  <template>
+    <div class="header" on-tap="toggle">
+      <span class="title">{{name}}</span>
+      <iron-icon icon="[[_iconForState(state)]]"></iron-icon>
+    </div>
+    <iron-collapse id="collapse" opened="{{opened}}"></iron-collapse>
+  </template>
+  <script>
+    Polymer({
+      is: 'testrtc-suite',
+      properties: {
+        state: {
+          value: 'pending',
+          reflectToAttribute: true
+        },
+        tests: {
+          type: Array,
+          value: function() { return []; }
+        }
+      },
+      _iconForState: function (state) {
+        if (state === 'failure') { return 'close'; }
+        if (state === 'warning') { return 'check'; }
+        if (state === 'success') { return 'check'; }
+        if (state === 'running') { return 'more-horiz'; }
+        return '';
+      },
+      toggle: function() {
+        this.$.collapse.toggle();
+      },
+      addTest: function(testName, testFunction) {
+        var test = document.createElement('testrtc-test');
+        test.name = testName;
+        test.testFunction = testFunction;
+        Polymer.dom(this.$.collapse).appendChild(test);
+        this.tests.push(test);
+      },
+      run: function(doneCallback) {
+        this.opened = true;
+        this.state = 'running';
+        runAllSequentially(this.tests, this.allTestFinished.bind(this,
+                                                                 doneCallback));
+      },
+      allTestFinished: function(doneCallback) {
+        var errors = 0;
+        var warnings = 0;
+        var successes = 0;
+        for (var i = 0; i !== this.tests.length; ++i) {
+          errors += this.tests[i].errorCount;
+          warnings += this.tests[i].warningCount;
+          successes += this.tests[i].successCount;
+        }
+
+        if (errors === 0 && warnings === 0 && successes > 0) {
+          this.state = 'success';
+          this.opened = false;
+        } else if (errors === 0 && warnings > 0) {
+          this.state = 'warning';
+          this.opened = false;
+        } else {
+          this.state = 'failure';
+          this.opened = true;
+        }
+        doneCallback();
+      }
+    });
+  </script>
+</dom-module>
+<script>
+// Helper to run a list of tasks sequentially:
+//   tasks - Array of { run: function(doneCallback) {} }.
+//   doneCallback - called once all tasks have run sequentially.
+function runAllSequentially(tasks, doneCallback) {
+  var current = -1;
+  var runNextAsync = setTimeout.bind(null, runNext);
+
+  runNextAsync();
+
+  function runNext() {
+    current++;
+    if (current === tasks.length) {
+      doneCallback();
+      return;
+    }
+    tasks[current].run(runNextAsync);
+  }
+}
+</script>

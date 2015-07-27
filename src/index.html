@@ -1,5 +1,5 @@
 <!--
- *  Copyright (c) 2014 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2015 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -18,8 +18,6 @@
 
   <link rel="icon" type="image/png" href="/images/webrtc-icon-192x192.png" />
   <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Roboto:300,400,500,700">
-  <link rel="stylesheet" href="css/main.css" />
-  <link rel="stylesheet" href="css/main_nolint.css" />
 
   <!-- Google Analytics -->
   <script>
@@ -33,30 +31,15 @@
   </script>
 
   <script src="../components/webrtc-adapter/adapter.js"></script>
-  <script src="../components/webcomponentsjs/webcomponents.js"></script>
-  <link rel="import" href="../components/core-toolbar/core-toolbar.html">
-  <link rel="import" href="../components/core-icon/core-icon.html">
-  <link rel="import" href="../components/core-icons/av-icons.html">
-  <link rel="import" href="../components/core-collapse/core-collapse.html">
-  <link rel="import" href="../components/paper-dialog/paper-dialog.html">
-  <link rel="import" href="../components/paper-dialog/paper-dialog-transition.html">
-  <link rel="import" href="../components/paper-progress/paper-progress.html">
-  <link rel="import" href="../components/paper-button/paper-button.html">
-  <link rel="import" href="../components/paper-icon-button/paper-icon-button.html">
-  <link rel="import" href="ui/line-chart.html">
-  <link rel="import" href="ui/gum-dialog.html">
-  <link rel="import" href="ui/report-dialog.html">
+  <script src="../components/webcomponentsjs/webcomponents-lite.js"></script>
+
+  <link rel="import" href="ui/testrtc-main.html">
+
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/main_nolint.css" />
 </head>
 <body unresolved>
-  <gum-dialog heading="Welcome to WebRTC Troubleshooter"></gum-dialog>
-
-  <!-- Title toolbar -->
-  <core-toolbar class="title">
-    <span flex>WebRTC Troubleshooter</span>
-    <paper-icon-button icon="menu" onclick="settingsDialog.toggle()"></paper-icon-button>
-    <paper-icon-button icon="bug-report" onclick="report.open()"></paper-icon-button>
-    <paper-button id="start-button" raised disabled>Start</paper-button>
-  </core-toolbar>
+  <testrtc-main></testrtc-main>
 
   <!-- Placeholder for dynamically generated test suites. -->
   <div id="content"></div>
@@ -66,17 +49,6 @@
     <span><a href="//www.google.com/policies/privacy/">Privacy</a></span>
   </footer>
 
-  <!-- Settings dialog -->
-  <paper-dialog id="settings-dialog" heading="Settings" transition="paper-dialog-transition-center">
-    <div class="select"><label>Audio source: <select id="audioSource"></select></label></div>
-    <div class="select"><label>Video source: <select id="videoSource"></select></label></div>
-  </paper-dialog>
-
-  <!-- Bug report dialog -->
-  <report-dialog></report-dialog>
-
-  <!-- Add common files after this line. -->
-  <script src="js/report.js"></script>
   <script src="js/main.js"></script>
   <script src="js/call.js"></script>
   <script src="js/stats.js"></script>

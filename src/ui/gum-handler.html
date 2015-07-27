@@ -5,8 +5,10 @@
  *  that can be found in the LICENSE file in the root of the source
  *  tree.
 -->
+<link rel="import" href="../../components/polymer/polymer.html">
 
 <!--
+
 `<gum-handler>` continuously calls getUserMedia until it succeeds or 'pending' attribute
 is set to false. It also exposes an error attribute containing the 'MediaStreamError.name'.
 See gum-dialog.html for an example on how to use it.
@@ -14,16 +16,31 @@ See gum-dialog.html for an example on how to use it.
 TODO(andresp): Need a mechanism to stop polling permissions? E.g. if it was temporarly
 visible on the page but is no more it will keep polling permissions once per second.
 -->
-
-<link rel="import" href="../../components/polymer/polymer.html">
-<polymer-element name="gum-handler" attributes="pending error">
 <script>
-  Polymer('gum-handler', {
-    pending: true,
-    error: false,
-
+  Polymer({
+    is: 'gum-handler',
+    properties: {
+      pending: {
+        type: Boolean,
+        value: true,
+        notify: true
+      },
+      error: {
+        type: Object,
+        value: false,
+        notify: true
+      },
+      getUserMedia: {
+        type: Function,
+        value: function() { return navigator.getUserMedia; }
+      },
+      enumerateDevices: {
+        type: Function,
+        value: function() { return navigator.mediaDevices.enumerateDevices; }
+      },
+    },
     ready: function () {
-      if (typeof navigator.getUserMedia !== 'undefined') {
+      if (this.getUserMedia !== 'undefined') {
         this.triggerGetUserMedia_();
       } else {
         this.error = 'NotSupported';
@@ -39,12 +56,12 @@ visible on the page but is no more it will keep polling permissions once per sec
       // we call upon it regardless of a enumerate device failure. Using the
       // .catch callback for to get the logs. This is due to sources.length = 0
       // does not necessarily mean JS device selection is unsupported.
-      navigator.mediaDevices.enumerateDevices()
+      this.enumerateDevices()
       .then(this.triggerGetUserMediaBasedOnSources_.bind(this))
-      .catch(function(err) {
-        console.log('JS Device selection not supported', err)
-        this.triggerGetUserMediaBasedOnSources_.bind(this);
-      });
+      .catch((function(err) {
+        console.log('JS Device selection not supported', err);
+        this.triggerGetUserMediaBasedOnSources_([]);
+      }).bind(this));
     },
 
     triggerGetUserMediaBasedOnSources_: function(sources) {
@@ -61,7 +78,7 @@ visible on the page but is no more it will keep polling permissions once per sec
           }
         }
       }
-      doGetUserMedia(constraints, this.gotStream_.bind(this), this.gotError_.bind(this));
+      this.getUserMedia(constraints, this.gotStream_.bind(this), this.gotError_.bind(this));
     },
 
     gotStream_: function(stream) {
@@ -83,4 +100,3 @@ visible on the page but is no more it will keep polling permissions once per sec
     }
   });
 </script>
-</polymer-element>
