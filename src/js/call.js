@@ -148,18 +148,18 @@ Call.asyncCreateTurnConfig = function(onSuccess, onError) {
       'credential': settings.turnCredential || '',
       'urls': settings.turnURI.split(',')
     };
-    var config = { 'iceServers': [iceServer] };
+    var config = {'iceServers': [iceServer]};
     report.traceEventInstant('turn-config', config);
     setTimeout(onSuccess.bind(null, config), 0);
   } else {
-    Call.fetchCEODTurnConfig(onSuccess, onError);
+    Call.fetchCEODTurnConfig_(onSuccess, onError);
   }
-}
+};
 
 // Ask computeengineondemand to give us TURN server credentials and URIs.
 Call.CEOD_URL =
     'https://computeengineondemand.appspot.com/turn?username=1234&key=5678';
-Call.fetchCEODTurnConfig_ = function(onSucces, onError) {
+Call.fetchCEODTurnConfig_ = function(onSuccess, onError) {
   var xhr = new XMLHttpRequest();
   function onResult() {
     if (xhr.readyState !== 4) {
@@ -177,7 +177,7 @@ Call.fetchCEODTurnConfig_ = function(onSucces, onError) {
       'credential': response.password,
       'urls': response.uris
     };
-    var config = {'iceServer': [iceServer]};
+    var config = {'iceServers': [iceServer]};
     report.traceEventInstant('turn-config', config);
     onSuccess(config);
   }
