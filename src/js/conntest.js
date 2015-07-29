@@ -60,7 +60,11 @@ function filterConfig(config, protocol) {
 // and ctor params |params|. Succeed if any candidates pass the |isGood|
 // check, fail if we complete gathering without any passing.
 function gatherCandidates(config, params, isGood) {
-  var pc = new RTCPeerConnection(config, params);
+  try {
+    var pc = new RTCPeerConnection(config, params);
+  } catch (error) {
+    return reportFatal('Fail to create peer connection: ' + error);
+  }
 
   // In our candidate callback, stop if we get a candidate that passes |isGood|.
   pc.onicecandidate = function(e) {
