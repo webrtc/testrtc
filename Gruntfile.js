@@ -54,7 +54,9 @@ module.exports = function(grunt) {
         src: [
           '**/*.css',
           '!**/*_nolint.css',
+          '!browsers/**',
           '!components/**',
+          '!google_appengine/**',
           '!node_modules/**',
           '!out/**'
         ]
@@ -66,7 +68,9 @@ module.exports = function(grunt) {
         src: [
           // TODO: fix rule and enable html linting.
           '!**/*.html',
+          '!browsers/**',
           '!components/**',
+          '!google_appengine/**',
           '!node_modules/**',
           '!out/**'
         ]
@@ -78,7 +82,9 @@ module.exports = function(grunt) {
       options: {
         preset: 'google', // as per Google style guide – could use '.jscsrc' instead
         excludeFiles: [
+          'browsers/**',
           'components/**',
+          'google_appengine/**',
           'node_modules/**',
           'out/**'
         ]
@@ -88,7 +94,9 @@ module.exports = function(grunt) {
     jshint: {
       options: {
         ignores: [
+          'browsers/**',
           'components/**',
+          'google_appengine/**',
           'node_modules/**',
           'out/**'
         ],

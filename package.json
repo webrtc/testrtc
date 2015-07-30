@@ -9,6 +9,9 @@
   "authors": [
     "The WebRTC project authors (http://www.webrtc.org/)"
   ],
+  "scripts": {
+    "test": "grunt build && test/run-tests"
+  },
   "devDependencies": {
     "grunt-contrib-clean": "~0.6.0",
     "grunt-contrib-copy": "~0.8.0",
@@ -19,6 +22,10 @@
     "grunt-cli": "~0.1.13",
     "grunt-vulcanize": "~1.0.0",
     "grunt": "~0.4.5",
-    "bower": "~1.4.1"
+    "bower": "~1.4.1",
+    "chromedriver": "^2.16.0",
+    "selenium-webdriver": "^2.46.0",
+    "tape": "^4.0.0",
+    "travis-multirunner": "^2.6.0"
   }
 }
