@@ -33,6 +33,17 @@
       background-color: #9E9;
       color: #000;
     }
+
+    .section {
+      max-width: 40em;
+      margin-top: 3em;
+    }
+
+    .link {
+      text-overflow: ellipsis;
+      overflow-x: hidden;
+      white-space: nowrap;
+    }
   </style>
   <template>
     <gum-dialog heading="Welcome to WebRTC Troubleshooter" pending="{{pending}}"></gum-dialog>
@@ -48,18 +59,72 @@
     <!-- Settings dialog -->
     <paper-dialog id="settings">
       <h2>Settings</h2>
-      <div class="select"><label>Audio source: <select id="audioSource"></select></label></div>
-      <div class="select"><label>Video source: <select id="videoSource"></select></label></div>
+
+      <div class="section">
+        <h3>Media</h3>
+        <div class="select"><label>Audio source: <select id="audioSource"></select></label></div>
+        <div class="select"><label>Video source: <select id="videoSource"></select></label></div>
+      </div>
+
+      <div class="section">
+        <h3>TURN</h3>
+        <paper-input label="URI" always-float-label placeholder="E.g.: turn:myserver.com:3478" value="{{settings.turnURI}}"></paper-input>
+        <paper-input label="Username" always-float-label value="{{settings.turnUsername}}"></paper-input>
+        <paper-input label="Credential" always-float-label value="{{settings.turnCredential}}"></paper-input>
+      </div>
+
+      <div class="section">
+        <p>For convenience here is a link with these settings:</p>
+        <div class="link"><a href="[[_link]]">[[_link]]</a></div>
+      </div>
+
+      <div class="buttons">
+        <paper-button dialog-confirm>Continue</paper-button>
+      </div>
     </paper-dialog>
 
     <!-- Bug report dialog -->
     <report-dialog id="bugreport"></report-dialog>
   </template>
   <script>
+    // Parse URL parameters and configure test filters.
+    function parseUrlParameters() {
+      var output = {};
+      if (window.location.search !== '') {
+        // python SimpleHTTPServer always adds a / on the end of the request.
+        // Remove it so developers can easily run testrtc on their machines.
+        // Note that an actual / is still sent in most cases as %2F.
+        var args = window.location.search.replace(/\//g, '').substr(1).split('&');
+        for (var i = 0; i !== args.length; ++i) {
+          var split = args[i].split('=');
+          output[decodeURIComponent(split[0])] = decodeURIComponent(split[1]);
+        }
+      }
+      return output;
+    }
+
     Polymer({
       is: 'testrtc-main',
+      properties: {
+        settings: {
+          type: Object,
+          value: function() { return parseUrlParameters(); }
+        },
+      },
+      _updateLink: function() {
+        var location = window.location;
+        var queryParams = [];
+        for (var key in this.settings) {
+          if (this.settings[key] !== '') {
+            queryParams.push(encodeURIComponent(key) + '=' + encodeURIComponent(this.settings[key]));
+          }
+        }
+        var queryString = (queryParams.length != 0) ? '?' + queryParams.join('&') : '';
+        this._link = location.protocol + '//' + location.host + location.pathname + queryString;
+      },
       observers: [
-        '_pendingChanged(pending)'
+        '_pendingChanged(pending)',
+        '_updateLink(settings.*)'
       ],
       listeners: {
         'bug-report': 'openBugReport',

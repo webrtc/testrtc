@@ -76,6 +76,10 @@
       properties: {
         name: { type: String },
         testFunction: { type: Function },
+        settings: {
+          type: Object,
+          value: function() { return {}; }
+        },
         state: {
           value: "unknown",
           reflectToAttribute: true
@@ -105,6 +109,10 @@
       },
 
       run: function(doneCallback) {
+        // In order to avoid settings being updated while a test is run the value
+        // is stored into _settings before starting the test run.
+        // TODO(andresp): Propagate settings properly.
+        this.settings = document.getElementsByTagName('testrtc-main')[0].settings;
         this.successCount = 0;
         this.warningCount = 0;
         this.errorCount = 0;

@@ -41,15 +41,19 @@ function testHasIpv6Candidates() {
 }
 
 // Filter the RTCConfiguration |config| to only contain URLs with the
-// specified transport protocol |protocol|.
+// specified transport protocol |protocol|. If no turn transport is
+// specified it is added with the requested protocol.
 function filterConfig(config, protocol) {
   var transport = 'transport=' + protocol;
   for (var i = 0; i < config.iceServers.length; ++i) {
     var iceServer = config.iceServers[i];
     var newUrls = [];
     for (var j = 0; j < iceServer.urls.length; ++j) {
-      if (iceServer.urls[j].indexOf(transport) !== -1) {
-        newUrls.push(iceServer.urls[j]);
+      var uri = iceServer.urls[j];
+      if (uri.indexOf(transport) !== -1) {
+        newUrls.push(uri);
+      } else if (uri.indexOf('?transport=') === -1 && uri.startsWith('turn')) {
+        newUrls.push(uri + '?' + transport);
       }
     }
     iceServer.urls = newUrls;
@@ -60,7 +64,12 @@ function filterConfig(config, protocol) {
 // and ctor params |params|. Succeed if any candidates pass the |isGood|
 // check, fail if we complete gathering without any passing.
 function gatherCandidates(config, params, isGood) {
-  var pc = new RTCPeerConnection(config, params);
+  var pc;
+  try {
+    pc = new RTCPeerConnection(config, params);
+  } catch (error) {
+    return reportFatal('Fail to create peer connection: ' + error);
+  }
 
   // In our candidate callback, stop if we get a candidate that passes |isGood|.
   pc.onicecandidate = function(e) {

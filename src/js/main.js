@@ -65,20 +65,6 @@ function testIsExplicitlyEnabled(testName) {
   return false;
 }
 
-// Parse URL parameters and configure test filters.
-function parseUrlParameters() {
-  var output = {};
-  // python SimpleHTTPServer always adds a / on the end of the request.
-  // Remove it so developers can easily run testrtc on their machines.
-  // Note that an actual / is still sent in most cases as %2F.
-  var args = window.location.search.replace(/\//g, '').substr(1).split('&');
-  for (var i = 0; i !== args.length; ++i) {
-    var split = args[i].split('=');
-    output[decodeURIComponent(split[0])] = decodeURIComponent(split[1]);
-  }
-  return output;
-}
-
 var parameters = parseUrlParameters();
 var filterParameterName = 'test_filter';
 if (filterParameterName in parameters) {
