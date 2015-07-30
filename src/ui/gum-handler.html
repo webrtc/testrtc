@@ -32,11 +32,11 @@ visible on the page but is no more it will keep polling permissions once per sec
       },
       getUserMedia: {
         type: Function,
-        value: function() { return navigator.getUserMedia; }
+        value: function() { return navigator.getUserMedia.bind(navigator); }
       },
       enumerateDevices: {
         type: Function,
-        value: function() { return navigator.mediaDevices.enumerateDevices; }
+        value: function() { return navigator.mediaDevices.enumerateDevices.bind(navigator.mediaDevices); }
       },
     },
     ready: function () {
