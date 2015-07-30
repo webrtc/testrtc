@@ -41,15 +41,19 @@ function testHasIpv6Candidates() {
 }
 
 // Filter the RTCConfiguration |config| to only contain URLs with the
-// specified transport protocol |protocol|.
+// specified transport protocol |protocol|. If no turn transport is
+// specified it is added with the requested protocol.
 function filterConfig(config, protocol) {
   var transport = 'transport=' + protocol;
   for (var i = 0; i < config.iceServers.length; ++i) {
     var iceServer = config.iceServers[i];
     var newUrls = [];
     for (var j = 0; j < iceServer.urls.length; ++j) {
-      if (iceServer.urls[j].indexOf(transport) !== -1) {
-        newUrls.push(iceServer.urls[j]);
+      var uri = iceServer.urls[j];
+      if (uri.indexOf(transport) !== -1) {
+        newUrls.push(uri);
+      } else if (uri.indexOf('?transport=') === -1 && uri.startsWith('turn')) {
+        newUrls.push(uri + '?' + transport);
       }
     }
     iceServer.urls = newUrls;
