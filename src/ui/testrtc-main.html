@@ -33,6 +33,17 @@
       background-color: #9E9;
       color: #000;
     }
+
+    .section {
+      max-width: 40em;
+      margin-top: 3em;
+    }
+
+    .link {
+      text-overflow: ellipsis;
+      overflow-x: hidden;
+      white-space: nowrap;
+    }
   </style>
   <template>
     <gum-dialog heading="Welcome to WebRTC Troubleshooter" pending="{{pending}}"></gum-dialog>
@@ -49,20 +60,27 @@
     <paper-dialog id="settings">
       <h2>Settings</h2>
 
-      <div>
+      <div class="section">
         <h3>Media</h3>
         <div class="select"><label>Audio source: <select id="audioSource"></select></label></div>
         <div class="select"><label>Video source: <select id="videoSource"></select></label></div>
       </div>
 
-      <div>
+      <div class="section">
         <h3>TURN</h3>
         <paper-input label="URI" always-float-label placeholder="E.g.: turn:myserver.com:3478" value="{{settings.turnURI}}"></paper-input>
         <paper-input label="Username" always-float-label value="{{settings.turnUsername}}"></paper-input>
         <paper-input label="Credential" always-float-label value="{{settings.turnCredential}}"></paper-input>
       </div>
-      <p>For convenience here is a link with these settings:</p>
-      <p><a href="[[_link]]">[[_link]]</a></p>
+
+      <div class="section">
+        <p>For convenience here is a link with these settings:</p>
+        <div class="link"><a href="[[_link]]">[[_link]]</a></p>
+      </div>
+
+      <div class="buttons">
+        <paper-button dialog-confirm>Continue</paper-button>
+      </div>
     </paper-dialog>
 
     <!-- Bug report dialog -->
