@@ -56,7 +56,6 @@ module.exports = function(grunt) {
           '!**/*_nolint.css',
           '!browsers/**',
           '!components/**',
-          '!google_appengine/**',
           '!node_modules/**',
           '!out/**'
         ]
@@ -70,7 +69,6 @@ module.exports = function(grunt) {
           '!**/*.html',
           '!browsers/**',
           '!components/**',
-          '!google_appengine/**',
           '!node_modules/**',
           '!out/**'
         ]
@@ -84,7 +82,6 @@ module.exports = function(grunt) {
         excludeFiles: [
           'browsers/**',
           'components/**',
-          'google_appengine/**',
           'node_modules/**',
           'out/**'
         ]
@@ -96,7 +93,6 @@ module.exports = function(grunt) {
         ignores: [
           'browsers/**',
           'components/**',
-          'google_appengine/**',
           'node_modules/**',
           'out/**'
         ],
