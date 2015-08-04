@@ -51,7 +51,7 @@ test('Run TestRTC', function(t) {
   })
   // TODO: Dump console.log contents to stderr.
   .then(function() {
-    t.pass('startButton is active.');
+    t.pass('startButton is active. Test execution completed.');
     t.end();
   })
   .then(null, function(err) {

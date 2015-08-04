@@ -8,18 +8,14 @@ env:
     - BROWSER=chrome  BVER=stable
     - BROWSER=chrome  BVER=beta
     - BROWSER=chrome  BVER=unstable
-    # TODO: Enable more browsers when it runs successfully.
-    # - BROWSER=firefox BVER=stable
-    # - BROWSER=firefox BVER=beta
-    # - BROWSER=firefox BVER=unstable
-    # - BROWSER=firefox BVER=esr
+    - BROWSER=firefox BVER=stable
+    - BROWSER=firefox BVER=beta
 
 matrix:
   fast_finish: true
 
   allow_failures:
     - env: BROWSER=chrome  BVER=unstable
-    # - env: BROWSER=firefox BVER=unstable
 
 before_script:
   - npm install

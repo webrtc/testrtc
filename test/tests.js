@@ -13,7 +13,7 @@ var test = require('tape');
 
 // Add all test files here with a short comment.
 
-// Tests basic functionality of the the gum demo.
+// Checks that the tests can start and that execution finishes.
 require('./sanity-test');
 
 // This is run as a test so it is executed after all tests
