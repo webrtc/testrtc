@@ -101,7 +101,7 @@ Call.prototype = {
     this.pc1.setRemoteDescription(answer);
   },
 
-  onIceCandidate_: function(otherPeer) {
+  onIceCandidate_: function(event, otherPeer) {
     if (event.candidate) {
       var parsed = Call.parseCandidate(event.candidate.candidate);
       if (this.iceCandidateFilter_(parsed)) {
