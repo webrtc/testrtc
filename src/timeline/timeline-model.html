@@ -1,0 +1,259 @@
+<!--
+ *  Copyright (c) 2015 The WebRTC project authors. All Rights Reserved.
+ *
+ *  Use of this source code is governed by a BSD-style license
+ *  that can be found in the LICENSE file in the root of the source
+ *  tree.
+-->
+<link rel="import" href="../../components/polymer/polymer.html">
+<script>
+  /**
+   * A TimelineRecord represents a view of a property across time.
+   * Often this will be a time-series representations accessible via `times[i]` and `values[i]`.
+   *
+   * @polymerBehavior TimelineRecord
+   */
+  var TimelineRecord = {
+    properties: {
+      name: {
+        type: String,
+        readonly: true,
+      },
+      fullname: {
+        type: String,
+        readonly: true,
+      },
+      /**
+       * @type {Array<Number>}
+       */
+      times: {
+        type: Array,
+        readonly: true
+      },
+      /**
+       * @type {Array}
+       */
+      values: {
+        type: Array,
+        readonly: true
+      },
+      /**
+       * True if all the `values` members are of type `Number`.
+       */
+      numeric: {
+        type: Boolean,
+        readonly: true
+      }
+    }
+  };
+
+  /**
+   * This event struct is based on chromium's tracing mechanism.
+   *
+   * @polymerBehavior TraceEvent
+   */
+  var TraceEvent = {
+    properties: {
+      /** Phase of event. Expected value 'C' for counter. */
+      ph: {
+        type: String,
+        readonly: true
+      },
+      /** Timestamp of the event. */
+      ts: {
+        type: Number,
+        readonly: true
+      },
+      /** Event name. */
+      name: {
+        type: String,
+        readonly: true
+      },
+      /** Extra data related to the event. */
+      args: {
+        type: Object,
+        readonly: true
+      }
+    },
+  };
+
+  /**
+   * Processes trace events into a record array.
+   *
+   * TraceEvents are intended to be easy to generate/collect from an application
+   * though they are hard to analyze without being firstly digested. This
+   * behavior helps turning them into records with a time-series view.
+   *
+   * At the moment it only supports events of type 'C' counter, where the name
+   * of the event identifies the record and the event args are used to identify
+   * the instance. Dots in the event name define records hiearchy. E.g.:
+   * <pre>{
+   *  ph: 'C',
+   *  ts: 1439552039019,
+   *  name: 'stats.view.width',
+   *  args: { view: 'self', value: 720 }
+   * }</pre>
+   *
+   * @polymerBehavior TimelineModel
+   */
+  var TimelineModel = {
+    properties: {
+      /**
+       * Array of records currently on the model.
+       *
+       * @type {Array<TimelineRecord>}
+       */
+      records: {
+        type: Array,
+        value: function() { return []; },
+        notify: true
+      },
+
+      /**
+       * TimelineModel maintains a tree structure of the records.
+       */
+      _rootRecord: {
+        type: Object,
+        value: function() {
+          return {
+            name: '',
+            fullname: '',
+            times: [],
+            values: [],
+            numeric: true,
+            children: {},
+            depth: 0,
+            parent: null
+          };
+        }
+      },
+    },
+
+    /**
+     * Clears the model.
+     */
+    reset: function () {
+      this.records = TimelineModel.properties.records.value();
+      this._rootRecord = TimelineModel.properties._rootRecord.value();
+    },
+
+    /**
+     * Adds a trace event to the model. Note it may be necessary to call
+     * `update` to have the record list being updated.
+     *
+     * @param {TraceEvent}
+     */
+    addEvent: function (payload) {
+      if (payload.ph === "C") {
+        var record = this._findOrCreateRecord(payload.name, payload.args);
+        var time = payload.ts;
+        var value = payload.args.value;
+        if (value === null) {
+          // TODO(andresp): What should null mean here?
+          value = 'null';
+        }
+        if (typeof value !== 'number') {
+          value = value.toString();
+          record.numeric = false;
+        }
+        if (record.values.length == 0 || record.values[record.values.length - 1] != value) {
+          record.times.push(time);
+          record.values.push(value);
+        }
+      }
+    },
+
+    _findOrCreateRecord(name, args) {
+      var path = name.split('.');
+      var it = this._rootRecord;
+      for (var i = 0; i != path.length; i++) {
+        var instance = path[i] in args ? path[i] + '[' + args[path[i]] + ']' : path[i];
+        if (!(instance in it.children)) {
+          it.children[instance] =  {
+            name: instance,
+            shortName: path[i],
+            fullname: it.fullname + '.' + instance,
+            times: [],
+            values: [],
+            children: {},
+            parent: it,
+            depth: it.depth + 1,
+            numeric: true
+          };
+        }
+        it = it.children[instance];
+      }
+      return it;
+    },
+
+    /**
+     * Updates `records` to reflect the data in the model.
+     */
+    update: function () {
+      var out = [];
+      var self = this;
+      var traverse = function (record) {
+        record.minTime = Math.min.apply(null, record.times);
+        record.maxTime = Math.max.apply(null, record.times);
+
+        if (record.numeric) {
+          record.minValue = Math.min.apply(null, record.values);
+          record.maxValue = Math.max.apply(null, record.values);
+        }
+        if (record.numeric && self._isSmallSet(record.values)) {
+          record.numeric = false;
+        }
+        if (record !== self._rootRecord) {
+          out.push(record);
+        }
+
+        for (var child in record.children) {
+          traverse(record.children[child]);
+        }
+      }
+      traverse(this._rootRecord);
+      this.records = out;
+    },
+
+    _isSmallSet: function(items) {
+      var setSize = 0;
+      var seen = {};
+      for (var index = 0; index != items.length; index++) {
+        var val = items[index];
+        setSize = setSize + (val in seen ? 0 : 1);
+        if (setSize > 3) {
+          return false;
+        }
+        seen[val] = true;
+      }
+      return true;
+    }
+  };
+
+  /*
+   * Util behaviour to help provide a `src` that is fetch using XMLHttpRequest.
+   *
+   * TODO(andresp): Search if polymer already provides something like this.
+   * @polymerBehavior TimelineLoader
+   */
+  var TimelineLoader = {
+    properties: {
+      src: {
+        type: String,
+        value: null
+      }
+    },
+    observers: [
+      "_onSourceChange(src)"
+    ],
+    _onSourceChange: function (src) {
+      console.log("Loading: " + src);
+
+      var xhr = new XMLHttpRequest();
+      xhr.open("GET", this.src, true);
+      xhr.addEventListener('progress', this.fire.bind(this, 'progress'));
+      xhr.addEventListener('loadend', this.fire.bind(this, 'loadend'));
+      xhr.send();
+    }
+  };
+</script>

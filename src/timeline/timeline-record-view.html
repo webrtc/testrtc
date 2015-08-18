@@ -1,0 +1,309 @@
+<!--
+ *  Copyright (c) 2015 The WebRTC project authors. All Rights Reserved.
+ *
+ *  Use of this source code is governed by a BSD-style license
+ *  that can be found in the LICENSE file in the root of the source
+ *  tree.
+-->
+<link rel="import" href="../../components/iron-resizable-behavior/iron-resizable-behavior.html">
+<dom-module id="timeline-record-view">
+<template>
+  <canvas id="canvas" on-mousemove="_onMouseMove" on-mouseout="_onMouseOut"></canvas>
+</template>
+<script>
+  var ColorGenerator = function(hueSpace, satSpace, lightnessSpace, alphaSpace) {
+    this._hueSpace = { min: 0, max: 360, count: 20 };
+    this._satSpace = 67;
+    this._lightnessSpace = 80;
+    this._alphaSpace = 0.4;
+    this._colors = {};
+  };
+  ColorGenerator.prototype = {
+    hashCode: function(str) {
+      var result = 0;
+      for (var i = 0; i < str.length; ++i)
+          result = (result * 3 + str.charCodeAt(i)) | 0;
+      return result;
+    },
+
+    colorForID: function(id) {
+      var color = this._colors[id];
+      if (!color) {
+          color = this._generateColorForID(id);
+          this._colors[id] = color;
+      }
+      return color;
+    },
+
+    _generateColorForID: function(id) {
+      var hash = this.hashCode(id);
+      var h = this._indexToValueInSpace(hash, this._hueSpace);
+      var s = this._indexToValueInSpace(hash, this._satSpace);
+      var l = this._indexToValueInSpace(hash, this._lightnessSpace);
+      var a = this._indexToValueInSpace(hash, this._alphaSpace);
+      return "hsla(" + h + ", " + s + "%, " + l + "%, " + a + ")";
+    },
+
+    _indexToValueInSpace: function(index, space)
+    {
+      if (typeof space === "number")
+          return space;
+      index %= space.count;
+      return space.min + Math.floor(index / space.count * (space.max - space.min));
+    }
+  };
+
+  Polymer({
+    is: 'timeline-record-view',
+    _onMouseMove: function (e) {
+      var time = e.offsetX/this.xFactor + this.minTime;
+      var index = this._upperBound(this.record.times, time) - 1;
+      var value;
+      var valueY;
+      if (index >= 0) {
+        value = this.record.values[index];
+        if (this.record.numeric) {
+          valueY = this.canvasHeight - (value - this.minValue) * this.yFactor - this.verticalPadding;
+        } else {
+          valueY = this.canvasHeight / 2;
+        }
+        this.fire('tooltip', {clientX: e.clientX, clientY: e.clientY - e.offsetY + valueY, time: time, value: value});
+      } else {
+        this.fire('tooltip', {});
+      }
+
+    },
+    _upperBound: function(sortedArray, value) {
+      var l = 0;
+      var r = sortedArray.length;
+      while (l < r) {
+          var m = (l + r) >> 1;
+          if (sortedArray[m] < value)
+              l = m + 1;
+          else
+              r = m;
+      }
+      return r;
+    },
+    _onMouseOut: function(e) {
+      this.fire('tooltip', null);
+    },
+    behaviors: [
+      Polymer.IronResizableBehavior
+    ],
+    listeners: {
+      'iron-resize': '_onIronResize'
+    },
+    _onIronResize: function () {
+      this.draw(this.record);
+    },
+    properties: {
+      record: {
+        type: Object
+      },
+      numeric: {
+        type: Boolean
+      },
+      begin: {
+        type: Number
+      },
+      end: {
+        type: Number
+      },
+      // Color generator is a singleton across all timeline-record-view instances.
+      _colorGenerator: {
+        value: new ColorGenerator()
+      }
+    },
+    _isOnViewport: function () {
+      var rect = this.getBoundingClientRect();
+      return (
+          rect.top >= 0 &&
+          rect.left >= 0 &&
+          rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+          rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+      );
+    },
+    get parent() {
+      if (this.parentNode.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
+        return this.parentNode.host;
+      }
+      return this.parentNode;
+    },
+    ready: function() { this._ready = true; },
+    draw: function (record) {
+      if (!this._ready) {
+        return;
+      }
+      if (record) {
+        var verticalPadding = 3;
+        var canvas = this.$.canvas;
+        var parent = this.parent;
+        canvas.width = parent.offsetWidth;
+        canvas.height = parent.offsetHeight;
+
+        var minTime = this.begin;
+        var xFactor = canvas.width / (this.end - this.begin);
+
+        this.minTime = minTime;
+        this.xFactor = xFactor;
+
+        var minValue = Math.min(0, record.minValue);
+        var yFactor = (canvas.height - 2 * verticalPadding) / Math.abs(record.maxValue - minValue);
+
+        if (canvas.height > 0) {
+          var drawFunc = (record.numeric ? this._drawLine : this._drawState).bind(this);
+          drawFunc(canvas.getContext('2d'), record.times, record.values,
+              function(time) {
+                return Math.round(xFactor * (time - minTime));
+              },
+              function(value) {
+                var y = Math.round(canvas.height - (value - minValue) * yFactor - verticalPadding);
+                return y;
+              }, canvas.height);
+        }
+        this.minValue = minValue
+        this.yFactor = yFactor;
+        this.canvasHeight = canvas.height;
+        this.verticalPadding = verticalPadding;
+      }
+    },
+
+    _drawLine(ctx, times, values, calcX, calcY) {
+      ctx.save();
+      ctx.strokeStyle = "rgba(20,0,0,0.4)";
+      ctx.fillStyle = "rgba(214,225,254,0.8)";
+      ctx.lineWidth = window.devicePixelRatio;
+      if (ctx.lineWidth % 2)
+          ctx.translate(0.5, 0.5);
+
+      var zeroY = calcY(0);
+
+      var startX = null;
+      var lastY = null;
+
+      var finishSegmentIfAny = function (x) {
+        if (startX !== null) {
+          ctx.lineTo(x, lastY);
+          ctx.lineTo(x, zeroY);
+          ctx.lineTo(startX, zeroY);
+          ctx.fill();
+          ctx.stroke();
+          ctx.closePath();
+          startX = null;
+          lastY = null;
+        }
+      };
+
+      var begin = Math.max(0, this._upperBound(times, this.begin) - 1);
+      for (var i = begin; i !== times.length && times[i] <= this.end; i++) {
+        var currentX = calcX(times[i]);
+        var value = values[i];
+        if (value === null) {
+          finishSegmentIfAny(currentX);
+        } else {
+          var currentY = calcY(value);
+          if (startX === null) {
+            startX = currentX;
+            ctx.beginPath();
+            ctx.moveTo(currentX, zeroY);
+          } else {
+            ctx.lineTo(currentX, lastY);
+          }
+          ctx.lineTo(currentX, currentY);
+          lastY = currentY;
+        }
+      }
+      finishSegmentIfAny(calcX(this.end));
+
+      ctx.restore();
+    },
+
+    _drawState(context, times, values, calcX, calcY, height) {
+        var verticalPadding = 4;
+        var rectHeight = height - 2 * verticalPadding;
+        var originY = verticalPadding;
+        var textOriginY = Math.round(height/2);
+        var font = "12px";
+        var fontPadding = 4;
+
+        var counter = this.recordData;
+
+        context.save();
+        context.font = font;
+        context.beginPath();
+        context.strokeStyle = "#32f";
+        context.textBaseline = "middle";
+
+        var rectValue = null;
+        var rectBeginX = null;
+        var colorForID = this._colorGenerator.colorForID.bind(this._colorGenerator);
+
+        var prepareText = this._prepareText.bind(this);
+        var finishRectIfAny = function (x) {
+          if (rectValue !== null) {
+            var rectWidth = x - rectBeginX;
+            context.beginPath();
+            context.rect(rectBeginX, originY, rectWidth, rectHeight);
+            context.fillStyle = colorForID(rectValue);
+            context.fill();
+            context.closePath();
+            context.beginPath();
+            context.fillStyle = "#000";
+            var text = prepareText(context, rectValue, rectWidth - 2 * fontPadding);
+            context.fillText(text, rectBeginX + fontPadding, textOriginY);
+            context.closePath();
+            rectValue = null;
+          }
+        };
+
+        var begin = Math.max(0, this._upperBound(times, this.begin) - 1);
+        for (var i = begin; i != times.length && times[i] < this.end; i++) {
+          var currentX = Math.max(0, calcX(times[i]));
+          finishRectIfAny(currentX);
+          rectBeginX = currentX;
+          rectValue = (values[i] === null) ? null : String(values[i]);
+        }
+        finishRectIfAny(calcX(this.end));
+        context.restore();
+    },
+
+    _measureWidth: function(context, text)
+    {
+        return context.measureText(text).width;
+    },
+
+    _prepareText: function(context, title, maxSize)
+    {
+        var titleWidth = this._measureWidth(context, title);
+        if (maxSize >= titleWidth)
+            return title;
+
+        var l = 2;
+        var r = title.length;
+        while (l < r) {
+            var m = (l + r) >> 1;
+            if (this._measureWidth(context, this._trimMiddle(title, m)) <= maxSize)
+                l = m + 1;
+            else
+                r = m;
+        }
+        title = this._trimMiddle(title, r - 1);
+        return title !== "\u2026" ? title : "";
+    },
+
+    _trimMiddle: function(str, maxLength)
+    {
+      if (str.length <= maxLength)
+          return String(str);
+      var leftHalf = maxLength >> 1;
+      var rightHalf = maxLength - leftHalf - 1;
+      return str.substr(0, leftHalf) + "\u2026" + str.substr(str.length - rightHalf, rightHalf);
+    },
+
+    observers: [
+      "draw(record, begin, end)"
+    ]
+  });
+</script>
+</dom-module>
