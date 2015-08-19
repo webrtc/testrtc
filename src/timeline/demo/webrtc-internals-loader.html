@@ -1,0 +1,72 @@
+<!--
+ *  Copyright (c) 2015 The WebRTC project authors. All Rights Reserved.
+ *
+ *  Use of this source code is governed by a BSD-style license
+ *  that can be found in the LICENSE file in the root of the source
+ *  tree.
+-->
+<link rel="import" href="../../../components/polymer/polymer.html">
+<link rel="import" href="../timeline-model.html">
+<script>
+  /**
+   * Very basic implementation of a timeline model loader for chrome://webrtc-internals dumps.
+   */
+  Polymer({
+    is: 'webrtc-internals-loader',
+    behaviors: [
+      TimelineModel,
+      TimelineLoader
+    ],
+    listeners: {
+      'loadend': 'onload'
+    },
+
+    onload: function(e) {
+      this.reset();
+      try {
+        var data = JSON.parse(e.detail.target.response);
+        for (var pcName in data.PeerConnections) {
+          var pc = data.PeerConnections[pcName];
+          for (key in pc.stats)
+            this._parseStat(pcName, key, pc.stats[key]);
+        }
+      }
+      catch (error) {
+        console.log("Got parsing error: " + error, error);
+        this.reset();
+      }
+      this.update();
+    },
+
+    _parseStat: function(pcName, statName, stat) {
+      var date = new Date(stat.startTime);
+      if (date.getFullYear() <= 1970)
+      {
+          // Importing data with such an old date screws the timeline view. At the
+          // moment this happens for stats like:
+          //    bweforvideo-googReceivedPacketGroupPropagationDeltaDebug
+          //    googTrack_d154cbee-617a-4020-b443-644075f8cf93-googTrackId
+          // console.log("Ignoring stat with old date: " + pcName + "/" + statName + "=" + JSON.stringify(stat));
+          return;
+      }
+      var statStartTime = date.getTime();
+      var statValues = JSON.parse(stat.values);
+      var name = this._makeName(statName);
+      for (var i = 0; i < statValues.length; ++i) {
+        var timestamp = (statStartTime + 1000*i);
+        this.addEvent({name: name, args: { pc: pcName, value: statValues[i]}, ts: timestamp, ph: 'C'});
+      }
+    },
+
+    _makeName: function (statName) {
+      var name = '';
+      var lastDash = statName.lastIndexOf('-');
+      if (lastDash !== -1) {
+        name = statName.slice(0, lastDash) + '.' + statName.slice(lastDash + 1);
+      } else {
+        name = statName;
+      }
+      return 'pc.' + name;
+    }
+  });
+</script>

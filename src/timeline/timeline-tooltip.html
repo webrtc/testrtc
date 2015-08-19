@@ -1,0 +1,68 @@
+<!--
+ *  Copyright (c) 2015 The WebRTC project authors. All Rights Reserved.
+ *
+ *  Use of this source code is governed by a BSD-style license
+ *  that can be found in the LICENSE file in the root of the source
+ *  tree.
+-->
+<link rel="import" href="../../components/polymer/polymer.html">
+<dom-module id="timeline-tooltip">
+  <style>
+    /**
+     * Configure :host to cover the viewport and set overflow to hidden to avoid the
+     * tooltip to modify the page dimensions.
+     */
+    :host {
+      display: block;
+      position: fixed;
+      top: 0px;
+      left: 0px;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    #marker {
+      position: fixed;
+      margin-left: -3px;
+      margin-top: -2px;
+      height: 5px;
+      width: 5px;
+      border-radius: 3px;
+      background-color: rgb(107,112,127);
+    }   
+
+    #value {
+      position: fixed;
+      margin-left: 10px;
+      margin-top: -1em;
+      padding: 4px;
+      padding-left: 10px;
+      vertical-align: middle;
+      background-color: rgb(236, 236, 236);
+    }
+  </style>
+  <template>
+      <div hidden$="{{hidden}}" id="marker"></div>
+      <div hidden$="{{hidden}}" id="value"><content></content></div>
+  </template>
+  <script>
+  Polymer({
+    is: 'timeline-tooltip',
+    properties: {
+      hidden: { value: true }
+    },
+    show: function (x, y) {
+      this.$.marker.style.left = x + 'px';
+      this.$.marker.style.top = y + 'px';
+      this.$.value.style.left = x + 'px';
+      this.$.value.style.top = y + 'px';
+      this.hidden = false;
+    },
+    hide: function () {
+      this.hidden = true;
+    }
+  });
+  </script>
+</dom-module>

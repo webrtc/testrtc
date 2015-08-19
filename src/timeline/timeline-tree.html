@@ -1,0 +1,30 @@
+<link rel="import" href="../../components/polymer/polymer.html">
+<dom-module id="timeline-tree">
+  <template>
+    <span>{{depth}}</span>
+    <template is="dom-repeat" items="{{values}}">
+      <p>{{item.name}}</p>
+      <timeline-tree values="{{item.children}}" depth="[[add(depth,1)]]" expand></timeline-tree>
+    </template>
+    <content select=".show"></content>
+    <content></content>
+  </template>
+<script>
+    Polymer({
+        is: 'timeline-tree',
+        properties: {
+          values: {
+            type: Array
+          },
+          expand: {
+            type: Boolean
+          },
+          depth: {
+            type: Number,
+            value: 0
+          }
+        },
+        add: function (a, b) { return a + b;}
+    });
+</script>
+</dom-module>

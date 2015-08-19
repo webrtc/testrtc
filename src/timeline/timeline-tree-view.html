@@ -1,0 +1,171 @@
+<!--
+ *  Copyright (c) 2015 The WebRTC project authors. All Rights Reserved.
+ *
+ *  Use of this source code is governed by a BSD-style license
+ *  that can be found in the LICENSE file in the root of the source
+ *  tree.
+-->
+<link rel="import" href="../../components/polymer/polymer.html">
+<link rel="import" href="timeline-record-view.html">
+<link rel="import" href="timeline-tooltip.html">
+
+<!--
+Helper module to render the tree view. It displays the record name with an
+offset based on its tree depth.
+-->
+<dom-module id="timeline-tree-item">
+  <template><span title="[[record.name]]">[[record.name]]</span></template>
+  <script>
+    Polymer({
+      is: 'timeline-tree-item',
+      observers: [ "_recordChanged(record)" ],
+      _recordChanged: function (record) {
+        if (record !== null) {
+          this.style.textIndent = (5 + 12 * (record.depth - 1)) + 'px';
+        }
+      }
+    });
+  </script>
+</dom-module>
+
+<!--
+`timeline-tree-view` displays a collapsible tree view of a list of `records`.
+-->
+<dom-module id="timeline-tree-view">
+  <style>
+    .row {
+      display: flex;
+      height:24px;
+    }
+    .tree {
+      min-width: 200px;
+      width: 200px;
+      text-overflow: ellipsis;
+      width: 200px;
+      white-space: nowrap;
+      line-height:15px;
+      font-size:12px;
+      padding-top: 5px;
+      vertical-align: middle;
+      display: inline-block;
+      overflow: hidden;
+    }
+    .plot {
+      height: 24px;
+      overflow: hidden;
+      flex-grow: 1;
+    }
+  </style>
+  <template>
+    <timeline-tooltip id="tooltip">{{tooltipText}}</timeline-tooltip>
+    <template id="list" is="dom-repeat" items="[[records]]" as="record">
+      <div class="row" hidden$="[[_recordIsHidden(record,_filterFunction)]]">
+        <timeline-tree-item class="tree" record="[[record]]" on-tap="_onTap"></timeline-tree-item>
+        <timeline-record-view class="plot" record="[[record]]" begin="[[begin]]" end="[[end]]" on-tooltip="_onTooltip"></timeline-record-view>
+      </div>
+    </template>
+  </template>
+  <script>
+  Polymer({
+    is: 'timeline-tree-view',
+    properties: {
+      /**
+       * Array of records to display.
+       */
+      records: {
+        type: Array,
+        value: function () { return []; }
+      },
+
+      /**
+       * Regular expression to control which records are visible.
+       * Expression is matched against the record fullname.
+       */
+      filterRegex: {
+        value: "",
+        type: String
+      },
+
+      _filterFunction: {
+        type: Function,
+        value: function () { return true; }
+      },
+      _isCollapsed: {
+        type: Object,
+        value: function () { return {}; }
+      }
+    },
+    observers: [
+      '_recordsUpdated(records)',
+      '_filterChanged(filterRegex)'
+    ],
+
+    _onTooltip: function(e) {
+      if ('time' in e.detail) {
+        this.tooltipText = e.detail.value;
+        this.$.tooltip.show(e.detail.clientX, e.detail.clientY);
+      } else {
+        this.$.tooltip.hide();
+      }
+    },
+    _recordIsHidden: function(record, filterFunc) {
+      return !filterFunc(record);
+    },
+
+    _onTap: function(e) {
+      var id = e.model.record.fullname;
+      this._isCollapsed[id] = !this._isCollapsed[id];
+      this._filterFunction = this._recordIsVisible.bind(this);
+    },
+
+    _recordIsVisible: function(record) {
+      if (this._isFilteredOut[record.fullname]) {
+        return false;
+      }
+      record = record.parent;
+      while (record !== null) {
+        if (this._isCollapsed[record.fullname]) {
+          return false;
+        }
+        record = record.parent;
+      }
+      return true;
+    },
+
+    _recordsUpdated: function(records) {
+      this._isCollapsed = {};
+      if (records != null) {
+        for (var i = 0; i != records.length; i++) {
+          this._isCollapsed[records[i].fullname] = false;
+        }
+      }
+      this._filterChanged(this.filterRegex);
+    },
+
+    _filterChanged(filterRegex) {
+      this._isFilteredOut = {};
+      if (this.records !== null) {
+        for (var i = 0; i != this.records.length; i++) {
+          var record = this.records[i];
+          if (filterRegex !== "") {
+            if (record.fullname.match(filterRegex) === null) {
+              this._isFilteredOut[record.fullname] = true;
+              continue;
+            } else {
+              this._isFilteredOut[record.fullname] = false;
+              record = record.parent;
+              while (record !== null && this._isFilteredOut[record.fullname] == true) {
+                this._isFilteredOut[record.fullname] = false;
+                record = record.parent;
+              }
+            }
+          } else {
+            this._isFilteredOut[record.fullname] = false;
+          }
+        }
+        this._filterFunction = this._recordIsVisible.bind(this);
+      }
+    },
+  });
+  </script>
+</dom-module>

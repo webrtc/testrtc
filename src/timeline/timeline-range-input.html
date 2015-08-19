@@ -1,0 +1,140 @@
+<!--
+ *  Copyright (c) 2015 The WebRTC project authors. All Rights Reserved.
+ *
+ *  Use of this source code is governed by a BSD-style license
+ *  that can be found in the LICENSE file in the root of the source
+ *  tree.
+-->
+<link rel="import" href="../../components/polymer/polymer.html">
+<dom-module id="timeline-range-input">
+  <style>
+    .label {
+      display: flex;
+      justify-content: space-between;
+    }
+    #bar {
+      display: block;
+      position: relative;
+      width: auto;
+      margin: 1em;
+      height: 1em;
+      border: solid 1px black;
+      background-color: white;
+      display: flex;
+    }
+    #bar div {
+      height: 100%;
+      cursor: pointer;
+    }
+    #leftSlider {
+      width: 10px;
+      background-color: red;
+    }
+    #rightSlider {
+      width: 10px;
+      background-color: red;
+    }
+    #leftCurtain, #rightCurtain {
+      background-color: rgba(0, 0, 0, 0.4);
+    }
+    #rightCurtain {
+      flex: 1;
+    }
+  </style>
+  <template>
+    <div class="label">
+      <span id="leftLabel">[[_describeDate(begin)]]</span>
+      <span id="rightLabel">[[_describeDate(end)]]</span>
+    </div>
+    <div id="bar">
+      <div id="leftCurtain"></div>
+      <div id="leftSlider" on-track="_onTranslateBegin"></div>
+      <div id="overview" on-track="_onTranslate"></div>
+      <div id="rightSlider" on-track="_onTranslateEnd"></div>
+      <div id="rightCurtain"></div>
+    </div>
+  </template>
+  <script>
+    Polymer({
+      is: 'timeline-range-input',
+      properties: {
+        begin: {
+          type: Number,
+          notify: true,
+          value: null
+        },
+        end: {
+          type: Number,
+          notify: true,
+          value: null
+        },
+        records: {
+          type: Array,
+        }
+      },
+      behaviors: [
+        Polymer.IronResizableBehavior
+      ],
+      observers: [
+        "_recordsModified(records)"
+      ],
+      listeners: {
+        'iron-resize': '_redraw'
+      },
+      _describeDate: function(timestamp) {
+        return (new Date(timestamp)).toUTCString();
+      },
+      _redraw: function () {
+        this._onTransform(0, 0, null);
+      },
+      _recordsModified: function (records) {
+        var minTime = null;
+        var maxTime = null;
+        for (var i = 0; i != records.length; i++) {
+          minTime = Math.min(minTime ? minTime : records[i].minTime, records[i].minTime);
+          maxTime = Math.max(maxTime ? maxTime : records[i].maxTime, records[i].maxTime);
+        }
+        this._minTime = minTime;
+        this._maxTime = maxTime;
+        this.begin = minTime;
+        this.end = maxTime;
+        this._redraw();
+      },
+      _onTransform: function (dbegin, dend, event) {
+        this._xMin = Math.round(0);
+        this._xMax = Math.round(this.$.bar.offsetWidth - 2 * this.$.leftSlider.offsetWidth - 2);
+        if (this._xMax < this._xMin) {
+          return;
+        }
+        var ratio = (this._maxTime - this._minTime) / (this._xMax - this._xMin);
+
+        if (event === null || event.detail.state == 'start') {
+          this._xBegin = this._xMin + (this.begin - this._minTime) / ratio;
+          this._xEnd = this._xMin + (this.end - this._minTime) / ratio;
+        }
+        var tmpBegin = Math.max(this._xMin, Math.min(this._xMax, Math.round(this._xBegin + dbegin)));
+        var tmpEnd = Math.max(this._xMin, Math.min(this._xMax, Math.round(this._xEnd + dend)));
+        if (dend && tmpEnd < tmpBegin) tmpBegin = tmpEnd;
+        if (dbegin && tmpEnd < tmpBegin) tmpEnd = tmpBegin;
+
+        this.$.leftCurtain.style.width = (tmpBegin) + 'px';
+        this.$.overview.style.width = (tmpEnd - tmpBegin) + 'px';
+
+        if (event) {
+          this.begin = tmpBegin * ratio + this._minTime;
+          this.end = tmpEnd * ratio + this._minTime;
+          event.preventDefault();
+        }
+      },
+      _onTranslate: function (event) {
+        this._onTransform(event.detail.dx, event.detail.dx, event);
+      },
+      _onTranslateBegin: function (event) {
+        this._onTransform(event.detail.dx, 0, event);
+      },
+      _onTranslateEnd: function (event) {
+        this._onTransform(0, event.detail.dx, event);
+      }
+    });
+  </script>
+</dom-module>
