@@ -49,7 +49,7 @@ MicTest.prototype = {
   run: function() {
     if (typeof audioContext === 'undefined') {
       reportError('WebAudio is not supported, test cannot run.');
-      testFinished();
+      setTestFinished();
     } else {
       doGetUserMedia(this.constraints, this.gotStream.bind(this));
     }
@@ -57,7 +57,7 @@ MicTest.prototype = {
 
   gotStream: function(stream) {
     if (!this.checkAudioTracks(stream)) {
-      testFinished();
+      setTestFinished();
       return;
     }
     this.createAudioBuffer(stream);
@@ -124,7 +124,7 @@ MicTest.prototype = {
     this.audioSource.disconnect(this.scriptNode);
     this.scriptNode.disconnect(audioContext.destination);
     this.analyzeAudio(this.collectedAudio);
-    testFinished();
+    setTestFinished();
   },
 
   analyzeAudio: function(channels) {

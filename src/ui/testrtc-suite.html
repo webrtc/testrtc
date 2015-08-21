@@ -111,10 +111,10 @@
       run: function(doneCallback) {
         this.opened = true;
         this.state = 'running';
-        runAllSequentially(this.tests, this.allTestFinished.bind(this,
+        runAllSequentially(this.tests, this.allTestsFinished.bind(this,
                                                                  doneCallback));
       },
-      allTestFinished: function(doneCallback) {
+      allTestsFinished: function(doneCallback) {
         var errors = 0;
         var warnings = 0;
         var successes = 0;

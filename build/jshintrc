@@ -49,7 +49,7 @@
     "setTimeoutWithProgressBar": true,
     "Ssim": true,
     "StatisticsAggregate": true,
-    "testFinished": true,
+    "setTestFinished": true,
     "trace": true,
     "webrtcDetectedBrowser": true,
     "webrtcDetectedVersion": true
