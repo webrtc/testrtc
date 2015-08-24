@@ -215,7 +215,7 @@ function reportFatal(str) { currentTest.reportFatal(str); }
 function reportWarning(str) { currentTest.reportWarning(str); }
 function reportInfo(str) { currentTest.reportInfo(str); }
 function setTestProgress(value) { currentTest.setProgress(value); }
-function testFinished() { currentTest.done(); }
+function setTestFinished() { currentTest.done(); }
 function expectEquals() { currentTest.expectEquals.apply(currentTest,
                                                          arguments); }
 

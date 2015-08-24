@@ -218,7 +218,7 @@
       run: function() {
         var self = this;
         this.$.startButton.setAttribute('disabled', null);
-        runAllSequentially(testSuites, function() {
+        runAllSequentially(enumeratedTestSuites, function() {
           self.$.startButton.removeAttribute('disabled');
         });
       },

@@ -40,7 +40,7 @@ for (var index = 0; index < resolutions.length; index++) {
   if (resolutions[index][2]) {
     var testTitle = 'Check ' + resolutions[index][0] + 'x' +
                     resolutions[index][1] + ' resolution';
-    addTest('Camera', testTitle, testCamera_.bind(null, [resolutions[index]]));
+    addTest('Camera', testTitle, cameraTest_.bind(null, [resolutions[index]]));
   }
 }
 
@@ -51,10 +51,10 @@ for (var index = 0; index < resolutions.length; index++) {
  * resolution until the list is exhausted. Some resolutions are mandatory and
  * make the test fail if not supported.
  */
-addTest('Camera', 'Check supported resolutions', testCamera_.bind(null,
+addTest('Camera', 'Check supported resolutions', cameraTest_.bind(null,
         resolutions));
 
-function testCamera_(resolutions) {
+function cameraTest_(resolutions) {
   var test = new CamResolutionsTest(resolutions);
   test.run();
 }
@@ -307,7 +307,7 @@ CamResolutionsTest.prototype = {
                       'camera is not accessible or dead.');
         }
       }
-      testFinished();
+      setTestFinished();
     } else {
       this.triggerGetUserMedia_(this.resolutions[this.counter]);
     }

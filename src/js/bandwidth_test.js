@@ -11,10 +11,10 @@
 // with 1024 chars as possible while keeping dataChannel bufferedAmmount above
 // zero.
 addTest('Connectivity', 'Data throughput',
-  Call.asyncCreateTurnConfig.bind(null, testDataChannelThroughput,
+  Call.asyncCreateTurnConfig.bind(null, dataChannelThroughputTest,
                                   reportFatal));
 
-function testDataChannelThroughput(config) {
+function dataChannelThroughputTest(config) {
   var call = new Call(config);
   call.setIceCandidateFilter(Call.isRelay);
   var testDurationSeconds = 5.0;
@@ -88,7 +88,7 @@ function testDataChannelThroughput(config) {
       var receivedKBits = receivedPayloadBytes * 8 / 1000;
       reportSuccess('Total transmitted: ' + receivedKBits + ' kilo-bits in ' +
                     elapsedTime + ' seconds.');
-      testFinished();
+      setTestFinished();
     }
   }
 }
@@ -98,9 +98,9 @@ function testDataChannelThroughput(config) {
 // average and maximum as well as time to ramp up (defined as reaching 75% of
 // the max bitrate. It reports infinite time to ramp up if never reaches it.
 addTest('Connectivity', 'Video bandwidth',
-  Call.asyncCreateTurnConfig.bind(null, testVideoBandwidth, reportFatal));
+  Call.asyncCreateTurnConfig.bind(null, videoBandwidthTest, reportFatal));
 
-function testVideoBandwidth(config) {
+function videoBandwidthTest(config) {
   var maxVideoBitrateKbps = 2000;
   var durationMs = 40000;
   var statStepMs = 100;
@@ -186,19 +186,19 @@ function testVideoBandwidth(config) {
       reportInfo('Send bandwidth ramp-up time: ' + bweStats.getRampUpTime() +
           ' ms');
     }
-    testFinished();
+    setTestFinished();
   }
 }
 
 addExplicitTest('Connectivity', 'Network latency',
-  Call.asyncCreateTurnConfig.bind(null, testForWiFiPeriodicScan.bind(null,
+  Call.asyncCreateTurnConfig.bind(null, wiFiPeriodicScanTest.bind(null,
       Call.isNotHostCandidate), reportFatal));
 
 addExplicitTest('Connectivity', 'Network latency - Relay',
-  Call.asyncCreateTurnConfig.bind(null, testForWiFiPeriodicScan.bind(null,
+  Call.asyncCreateTurnConfig.bind(null, wiFiPeriodicScanTest.bind(null,
       Call.isRelay), reportFatal));
 
-function testForWiFiPeriodicScan(candidateFilter, config) {
+function wiFiPeriodicScanTest(candidateFilter, config) {
   var testDurationMs = 5 * 60 * 1000;
   var sendIntervalMs = 100;
   var running = true;
@@ -260,6 +260,6 @@ function testForWiFiPeriodicScan(candidateFilter, config) {
       reportError('There is a big difference between the min and max delay ' +
                   'of packets. Your network appears unstable.');
     }
-    testFinished();
+    setTestFinished();
   }
 }

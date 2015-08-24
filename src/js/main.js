@@ -19,17 +19,17 @@ try {
   console.log('Failed to instantiate an audio context, error: ' + e);
 }
 
-var testSuites = [];
-var testFilters = [];
+var enumeratedTestSuites = [];
+var enumeratedTestFilters = [];
 
 function addTest(suiteName, testName, func) {
-  if (testIsDisabled(testName)) {
+  if (isTestDisabled(testName)) {
     return;
   }
 
-  for (var i = 0; i !== testSuites.length; ++i) {
-    if (testSuites[i].name === suiteName) {
-      testSuites[i].addTest(testName, func);
+  for (var i = 0; i !== enumeratedTestSuites.length; ++i) {
+    if (enumeratedTestSuites[i].name === suiteName) {
+      enumeratedTestSuites[i].addTest(testName, func);
       return;
     }
   }
@@ -37,28 +37,28 @@ function addTest(suiteName, testName, func) {
   var suite = document.createElement('testrtc-suite');
   suite.name = suiteName;
   suite.addTest(testName, func);
-  testSuites.push(suite);
+  enumeratedTestSuites.push(suite);
   document.getElementById('content').appendChild(suite);
 }
 
 // Add a test that only runs if it is explicitly enabled with
 // ?test_filter=<TEST NAME>
 function addExplicitTest(suiteName, testName, func) {
-  if (testIsExplicitlyEnabled(testName)) {
+  if (isTestExplicitlyEnabled(testName)) {
     addTest(suiteName, testName, func);
   }
 }
 
-function testIsDisabled(testName) {
-  if (testFilters.length === 0) {
+function isTestDisabled(testName) {
+  if (enumeratedTestFilters.length === 0) {
     return false;
   }
-  return !testIsExplicitlyEnabled(testName);
+  return !isTestExplicitlyEnabled(testName);
 }
 
-function testIsExplicitlyEnabled(testName) {
-  for (var i = 0; i !== testFilters.length; ++i) {
-    if (testFilters[i] === testName) {
+function isTestExplicitlyEnabled(testName) {
+  for (var i = 0; i !== enumeratedTestFilters.length; ++i) {
+    if (enumeratedTestFilters[i] === testName) {
       return true;
     }
   }
@@ -68,5 +68,5 @@ function testIsExplicitlyEnabled(testName) {
 var parameters = parseUrlParameters();
 var filterParameterName = 'test_filter';
 if (filterParameterName in parameters) {
-  testFilters = parameters[filterParameterName].split(',');
+  enumeratedTestFilters = parameters[filterParameterName].split(',');
 }
