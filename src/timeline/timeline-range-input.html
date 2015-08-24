@@ -21,18 +21,18 @@
       border: solid 1px black;
       background-color: white;
       display: flex;
+      overflow: hidden;
     }
     #bar div {
       height: 100%;
       cursor: pointer;
     }
-    #leftSlider {
+    .slider {
       width: 10px;
+      transform: translate(-5px,0);
       background-color: red;
-    }
-    #rightSlider {
-      width: 10px;
-      background-color: red;
+      float: left;
+      position: absolute;
     }
     #leftCurtain, #rightCurtain {
       background-color: rgba(0, 0, 0, 0.4);
@@ -48,10 +48,10 @@
     </div>
     <div id="bar">
       <div id="leftCurtain"></div>
-      <div id="leftSlider" on-track="_onTranslateBegin"></div>
       <div id="overview" on-track="_onTranslate"></div>
-      <div id="rightSlider" on-track="_onTranslateEnd"></div>
       <div id="rightCurtain"></div>
+      <div id="leftSlider" class="slider" on-track="_onTranslateBegin"></div>
+      <div id="rightSlider" class="slider" on-track="_onTranslateEnd"></div>
     </div>
   </template>
   <script>
@@ -117,8 +117,13 @@
         if (dend && tmpEnd < tmpBegin) tmpBegin = tmpEnd;
         if (dbegin && tmpEnd < tmpBegin) tmpEnd = tmpBegin;
 
-        this.$.leftCurtain.style.width = (tmpBegin) + 'px';
-        this.$.overview.style.width = (tmpEnd - tmpBegin) + 'px';
+        var percentBegin = (tmpBegin - this._xMin) / this._xMax * 100.0;
+        var percentEnd = (tmpEnd - this._xMin) / this._xMax * 100.0;
+        console.log(tmpBegin, tmpEnd, this._xMax, percentBegin, percentEnd);
+        this.$.leftCurtain.style.width = percentBegin + '%';
+        this.$.leftSlider.style.left = percentBegin + '%';
+        this.$.rightSlider.style.left = percentEnd + '%';
+        this.$.overview.style.width = (percentEnd - percentBegin) + '%';
 
         if (event) {
           this.begin = tmpBegin * ratio + this._minTime;
