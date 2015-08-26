@@ -50,6 +50,8 @@
     "Ssim": true,
     "StatisticsAggregate": true,
     "setTestFinished": true,
+    "testCaseName": true,
+    "testSuiteName": true,
     "trace": true,
     "webrtcDetectedBrowser": true,
     "webrtcDetectedVersion": true

@@ -7,9 +7,12 @@
  */
 'use strict';
 
-addTest('Connectivity', 'Udp connectivity', udpConnectivityTest);
-addTest('Connectivity', 'Tcp connectivity', tcpConnectivityTest);
-addTest('Connectivity', 'Ipv6 enabled', hasIpv6CandidatesTest);
+addTest(testSuiteName.CONNECTIVITY, testCaseName.UDPCONNECTIVITY,
+    udpConnectivityTest);
+addTest(testSuiteName.CONNECTIVITY, testCaseName.TCPCONNECTIVITY,
+    tcpConnectivityTest);
+addTest(testSuiteName.CONNECTIVITY, testCaseName.IPV6ENABLED,
+    hasIpv6CandidatesTest);
 
 // Test whether it can connect via UDP to a TURN server
 // Get a TURN config, and try to get a relay candidate using UDP.
