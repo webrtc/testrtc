@@ -12,6 +12,7 @@
  *  TODO: Add/create new file containing the remainder of strings like error
  *  messages and general information.
  */
+
 // Enumerate test case names.
 function TestCaseNames() {
   this.testCases = {
