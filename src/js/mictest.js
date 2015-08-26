@@ -7,7 +7,7 @@
  */
 'use strict';
 
-addTest('Microphone', 'Audio capture', function() {
+addTest(testSuiteName.MICROPHONE, testCaseName.AUDIOCAPTURE, function() {
   var test = new MicTest();
   test.run();
 });

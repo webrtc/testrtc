@@ -38,9 +38,10 @@ var resolutions = [[160, 120, false],
  */
 for (var index = 0; index < resolutions.length; index++) {
   if (resolutions[index][2]) {
-    var testTitle = 'Check ' + resolutions[index][0] + 'x' +
-                    resolutions[index][1] + ' resolution';
-    addTest('Camera', testTitle, cameraTest_.bind(null, [resolutions[index]]));
+    var testTitle = testCaseName.CHECKRESOLUTION + resolutions[index][0] + 'x' +
+                    resolutions[index][1];
+    addTest(testSuiteName.CAMERA, testTitle,
+        cameraTest_.bind(null, [resolutions[index]]));
   }
 }
 
@@ -51,8 +52,8 @@ for (var index = 0; index < resolutions.length; index++) {
  * resolution until the list is exhausted. Some resolutions are mandatory and
  * make the test fail if not supported.
  */
-addTest('Camera', 'Check supported resolutions', cameraTest_.bind(null,
-        resolutions));
+addTest(testSuiteName.CAMERA, testCaseName.CHECKSUPPORTEDRESOLUTION,
+    cameraTest_.bind(null, resolutions));
 
 function cameraTest_(resolutions) {
   var test = new CamResolutionsTest(resolutions);

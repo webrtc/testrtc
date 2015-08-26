@@ -10,7 +10,7 @@
 // Creates a loopback via relay candidates and tries to send as many packets
 // with 1024 chars as possible while keeping dataChannel bufferedAmmount above
 // zero.
-addTest('Connectivity', 'Data throughput',
+addTest(testSuiteName.CONNECTIVITY, testCaseName.DATATHROUGHPUT,
   Call.asyncCreateTurnConfig.bind(null, dataChannelThroughputTest,
                                   reportFatal));
 
@@ -97,7 +97,7 @@ function dataChannelThroughputTest(config) {
 // relay candidates for 40 seconds. Computes rtt and bandwidth estimation
 // average and maximum as well as time to ramp up (defined as reaching 75% of
 // the max bitrate. It reports infinite time to ramp up if never reaches it.
-addTest('Connectivity', 'Video bandwidth',
+addTest(testSuiteName.CONNECTIVITY, testCaseName.VIDEOBANDWIDTH,
   Call.asyncCreateTurnConfig.bind(null, videoBandwidthTest, reportFatal));
 
 function videoBandwidthTest(config) {
@@ -190,11 +190,11 @@ function videoBandwidthTest(config) {
   }
 }
 
-addExplicitTest('Connectivity', 'Network latency',
+addExplicitTest(testSuiteName.CONNECTIVITY, testCaseName.NETWORKLATENCY,
   Call.asyncCreateTurnConfig.bind(null, wiFiPeriodicScanTest.bind(null,
       Call.isNotHostCandidate), reportFatal));
 
-addExplicitTest('Connectivity', 'Network latency - Relay',
+addExplicitTest(testSuiteName.CONNECTIVITY, testCaseName.NETWORKLATENCYRELAY,
   Call.asyncCreateTurnConfig.bind(null, wiFiPeriodicScanTest.bind(null,
       Call.isRelay), reportFatal));
 
