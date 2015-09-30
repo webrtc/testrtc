@@ -16,7 +16,9 @@ addTest(testSuiteName.CONNECTIVITY, testCaseName.DATATHROUGHPUT,
 
 function dataChannelThroughputTest(config) {
   var call = new Call(config);
-  call.setIceCandidateFilter(Call.isRelay);
+  if (!Call.configHasStunURI(config)) {
+    call.setIceCandidateFilter(Call.isRelay);
+  }
   var testDurationSeconds = 5.0;
   var startTime = null;
   var sentPayloadBytes = 0;
@@ -111,7 +113,9 @@ function videoBandwidthTest(config) {
   var startTime;
 
   var call = new Call(config);
-  call.setIceCandidateFilter(Call.isRelay);
+  if (!Call.configHasStunURI(config)) {
+    call.setIceCandidateFilter(Call.isRelay);
+  }
   call.constrainVideoBitrate(maxVideoBitrateKbps);
 
   // FEC makes it hard to study bandwidth estimation since there seems to be
