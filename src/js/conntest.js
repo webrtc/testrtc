@@ -20,7 +20,7 @@ function udpConnectivityTest() {
   Call.asyncCreateTurnConfig(
       function(config) {
         filterConfig(config, 'udp');
-        var filter = Call.configHasStunURI(config) ? Call.isUDP : Call.isRelay;
+        var filter = Call.configHasStunURI(config) ? Call.isUdp : Call.isRelay;
         gatherCandidates(config, null, filter);
       },
       reportFatal);
@@ -32,7 +32,7 @@ function tcpConnectivityTest() {
   Call.asyncCreateTurnConfig(
       function(config) {
         filterConfig(config, 'tcp');
-        var filter = Call.configHasStunURI(config) ? Call.isTCP : Call.isRelay;
+        var filter = Call.configHasStunURI(config) ? Call.isTcp : Call.isRelay;
         gatherCandidates(config, null, filter);
       },
       reportFatal);

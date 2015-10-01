@@ -127,11 +127,11 @@ Call.isIpv6 = function(candidate) {
   return candidate.address.indexOf(':') !== -1;
 };
 
-Call.isUDP = function(candidate) {
+Call.isUdp = function(candidate) {
   return candidate.protocol === 'udp';
 };
 
-Call.isTCP = function(candidate) {
+Call.isTcp = function(candidate) {
   return candidate.protocol === 'tcp';
 };
 
