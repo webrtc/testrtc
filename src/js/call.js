@@ -127,6 +127,14 @@ Call.isIpv6 = function(candidate) {
   return candidate.address.indexOf(':') !== -1;
 };
 
+Call.isUdp = function(candidate) {
+  return candidate.protocol === 'udp';
+};
+
+Call.isTcp = function(candidate) {
+  return candidate.protocol === 'tcp';
+};
+
 // Parse a 'candidate:' line into a JSON object.
 Call.parseCandidate = function(text) {
   var candidateStr = 'candidate:';
@@ -185,4 +193,17 @@ Call.fetchCEODTurnConfig_ = function(onSuccess, onError) {
   xhr.onreadystatechange = onResult;
   xhr.open('GET', Call.CEOD_URL, true);
   xhr.send();
+};
+
+Call.configHasStunURI = function(config) {
+  for (var i = 0; i < config.iceServers.length; ++i) {
+    var iceServer = config.iceServers[i];
+    for (var j = 0; j < iceServer.urls.length; ++j) {
+      var uri = iceServer.urls[j];
+      if (uri.indexOf('stun') === 0) {
+        return true;
+      }
+    }
+  }
+  return false;
 };

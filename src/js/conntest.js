@@ -20,7 +20,8 @@ function udpConnectivityTest() {
   Call.asyncCreateTurnConfig(
       function(config) {
         filterConfig(config, 'udp');
-        gatherCandidates(config, null, Call.isRelay);
+        var filter = Call.configHasStunURI(config) ? Call.isUdp : Call.isRelay;
+        gatherCandidates(config, null, filter);
       },
       reportFatal);
 }
@@ -31,7 +32,8 @@ function tcpConnectivityTest() {
   Call.asyncCreateTurnConfig(
       function(config) {
         filterConfig(config, 'tcp');
-        gatherCandidates(config, null, Call.isRelay);
+        var filter = Call.configHasStunURI(config) ? Call.isTcp : Call.isRelay;
+        gatherCandidates(config, null, filter);
       },
       reportFatal);
 }
@@ -53,7 +55,7 @@ function filterConfig(config, protocol) {
     var newUrls = [];
     for (var j = 0; j < iceServer.urls.length; ++j) {
       var uri = iceServer.urls[j];
-      if (uri.indexOf(transport) !== -1) {
+      if (uri.indexOf(transport) !== -1 || uri.indexOf('stun') === 0) {
         newUrls.push(uri);
       } else if (uri.indexOf('?transport=') === -1 && uri.startsWith('turn')) {
         newUrls.push(uri + '?' + transport);
