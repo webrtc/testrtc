@@ -25,7 +25,7 @@ function Call(config) {
 Call.prototype = {
   establishConnection: function() {
     this.traceEvent({state: 'start'});
-    this.pc1.createOffer(this.gotOffer_.bind(this));
+    this.pc1.createOffer(this.gotOffer_.bind(this), reportFatal);
   },
 
   close: function() {
@@ -88,7 +88,7 @@ Call.prototype = {
     }
     this.pc1.setLocalDescription(offer);
     this.pc2.setRemoteDescription(offer);
-    this.pc2.createAnswer(this.gotAnswer_.bind(this));
+    this.pc2.createAnswer(this.gotAnswer_.bind(this), reportFatal);
   },
 
   gotAnswer_: function(answer) {
