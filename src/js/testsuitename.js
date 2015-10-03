@@ -20,7 +20,8 @@ function TestSuiteNames() {
     CAMERA: 'Camera',
     MICROPHONE: 'Microphone',
     NETWORK: 'Network',
-    CONNECTIVITY: 'Connectivity'
+    CONNECTIVITY: 'Connectivity',
+    THROUGHPUT: 'Throughput'
   };
   return this.testSuites;
 }
