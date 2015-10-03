@@ -26,7 +26,10 @@ function TestCaseNames() {
     NETWORKLATENCYRELAY: 'Network latency - Relay',
     UDPENABLED: 'Udp enabled',
     TCPENABLED: 'Tcp enabled',
-    VIDEOBANDWIDTH: 'Video bandwidth'
+    VIDEOBANDWIDTH: 'Video bandwidth',
+    RELAYCONNECTIVITY: 'Relay connectivity',
+    REFLEXIVECONNECTIVITY: 'Reflexive connectivity',
+    HOSTCONNECTIVITY: 'Host connectivity'
   };
   return this.testCases;
 }

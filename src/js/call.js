@@ -123,6 +123,14 @@ Call.isNotHostCandidate = function(candidate) {
   return candidate.type !== 'host';
 };
 
+Call.isReflexive = function(candidate) {
+  return candidate.type === 'srflx';
+};
+
+Call.isHost = function(candidate) {
+  return candidate.type === 'host';
+};
+
 Call.isIpv6 = function(candidate) {
   return candidate.address.indexOf(':') !== -1;
 };
