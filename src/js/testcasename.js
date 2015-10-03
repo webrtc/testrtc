@@ -24,8 +24,8 @@ function TestCaseNames() {
     IPV6ENABLED: 'Ipv6 enabled',
     NETWORKLATENCY: 'Network latency',
     NETWORKLATENCYRELAY: 'Network latency - Relay',
-    UDPCONNECTIVITY: 'Udp connectivity',
-    TCPCONNECTIVITY: 'Tcp connectivity',
+    UDPENABLED: 'Udp enabled',
+    TCPENABLED: 'Tcp enabled',
     VIDEOBANDWIDTH: 'Video bandwidth'
   };
   return this.testCases;

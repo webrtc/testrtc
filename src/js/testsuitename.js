@@ -19,6 +19,7 @@ function TestSuiteNames() {
   this.testSuites = {
     CAMERA: 'Camera',
     MICROPHONE: 'Microphone',
+    NETWORK: 'Network',
     CONNECTIVITY: 'Connectivity'
   };
   return this.testSuites;
