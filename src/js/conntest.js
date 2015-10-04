@@ -14,6 +14,8 @@ addTest(testSuiteName.CONNECTIVITY, testCaseName.REFLEXIVECONNECTIVITY,
 addTest(testSuiteName.CONNECTIVITY, testCaseName.HOSTCONNECTIVITY,
     hostConnectivityTest);
 
+var timeout = null;
+
 function relayConnectivityTest() {
   Call.asyncCreateTurnConfig(
     runConnectivityTest.bind(null, Call.isRelay),
@@ -44,6 +46,7 @@ function runConnectivityTest(iceCandidateFilter, config) {
     call.pc1.channel.send('hello');
   });
   call.pc1.channel.addEventListener('message', function(event) {
+    clearTimeout(timeout);
     if (event.data !== 'world') {
       reportFatal();
     } else {
@@ -55,6 +58,7 @@ function runConnectivityTest(iceCandidateFilter, config) {
     call.pc2.channel = event.channel;
     call.pc2.channel.addEventListener('message', function(event) {
       if (event.data !== 'hello') {
+        clearTimeout(timeout);
         reportFatal();
       } else {
         call.pc2.channel.send('world');
@@ -62,4 +66,5 @@ function runConnectivityTest(iceCandidateFilter, config) {
     });
   });
   call.establishConnection();
+  timeout = setTimeout(reportFatal.bind(null, 'Timed out'), 2000);
 }
