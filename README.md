@@ -20,11 +20,19 @@ create a temporary link with the report result.
     * Reports encode time and average framerate
   * Check supported resolutions
     * Lists resolutions that appear to be supported
-* Connectivity
-  * Udp/Tcp connectivity
+* Network
+  * Udp/Tcp
     * Verifies it can talk with a turn server with the given protocol
   * IPv6 connectivity
     * Verifies it can gather at least one IPv6 candidate
+* Connectivity
+  * Relay
+    * Verifies connections can be established between peers through a TURN server
+  * Reflexive
+    * Verifies connections can be established between peers through NAT
+  * Host
+    * Verifies connections can be established between peers with the same IP address
+* Throughput
   * Data throughput
     * Establishes a loopback call and tests data channels throughput on the link
   * Video bandwidth
