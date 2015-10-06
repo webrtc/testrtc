@@ -16,12 +16,18 @@ addTest(testSuiteName.CONNECTIVITY, testCaseName.HOSTCONNECTIVITY,
 
 var timeout = null;
 
+// Set up a datachannel between two peers through a relay
+// and verify data can be transmitted and received
+// (packets travel through the public internet)
 function relayConnectivityTest() {
   Call.asyncCreateTurnConfig(
     runConnectivityTest.bind(null, Call.isRelay),
     reportFatal);
 }
 
+// Set up a datachannel between two peers through a public IP address
+// and verify data can be transmitted and received
+// (packets should stay on the link if behind a router doing NAT)
 function reflexiveConnectivityTest() {
   runConnectivityTest(Call.isReflexive, {
     iceServers: [
@@ -34,6 +40,9 @@ function reflexiveConnectivityTest() {
   });
 }
 
+// Set up a datachannel between two peers through a local IP address
+// and verify data can be transmitted and received
+// (packets should not leave the machine running the test)
 function hostConnectivityTest() {
   runConnectivityTest(Call.isHost);
 }
