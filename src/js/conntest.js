@@ -49,11 +49,11 @@ function hostConnectivityTest() {
 function runConnectivityTest(iceCandidateFilter, config) {
   var call = new Call(config);
   call.setIceCandidateFilter(iceCandidateFilter);
-  call.pc1.channel = call.pc1.createDataChannel(null);
-  call.pc1.channel.addEventListener('open', function() {
-    call.pc1.channel.send('hello');
+  var ch1 = call.pc1.createDataChannel(null);
+  ch1.addEventListener('open', function() {
+    ch1.send('hello');
   });
-  call.pc1.channel.addEventListener('message', function(event) {
+  ch1.addEventListener('message', function(event) {
     clearTimeout(timeout);
     if (event.data !== 'world') {
       reportFatal();
@@ -63,13 +63,13 @@ function runConnectivityTest(iceCandidateFilter, config) {
     }
   });
   call.pc2.addEventListener('datachannel', function(event) {
-    call.pc2.channel = event.channel;
-    call.pc2.channel.addEventListener('message', function(event) {
+    var ch2 = event.channel;
+    ch2.addEventListener('message', function(event) {
       if (event.data !== 'hello') {
         clearTimeout(timeout);
         reportFatal();
       } else {
-        call.pc2.channel.send('world');
+        ch2.send('world');
       }
     });
   });
