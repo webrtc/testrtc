@@ -21,8 +21,7 @@ var timeout = null;
 // (packets travel through the public internet)
 function relayConnectivityTest() {
   Call.asyncCreateTurnConfig(
-    runConnectivityTest.bind(null, Call.isRelay),
-    reportFatal);
+    runConnectivityTest.bind(null, Call.isRelay), reportFatal);
 }
 
 // Set up a datachannel between two peers through a public IP address
