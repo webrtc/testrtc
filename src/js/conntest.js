@@ -27,7 +27,7 @@ function reflexiveConnectivityTest() {
     iceServers: [
       {
         urls: [
-          'stun:23.21.150.121'
+          'stun:stun.l.google.com:19302'
         ]
       }
     ]
