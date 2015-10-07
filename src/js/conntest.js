@@ -28,15 +28,7 @@ function relayConnectivityTest() {
 // and verify data can be transmitted and received
 // (packets should stay on the link if behind a router doing NAT)
 function reflexiveConnectivityTest() {
-  runConnectivityTest(Call.isReflexive, {
-    iceServers: [
-      {
-        urls: [
-          'stun:stun.l.google.com:19302'
-        ]
-      }
-    ]
-  });
+  runConnectivityTest(Call.isReflexive, Call.createStunConfig());
 }
 
 // Set up a datachannel between two peers through a local IP address

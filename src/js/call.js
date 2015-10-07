@@ -194,3 +194,25 @@ Call.fetchCEODTurnConfig_ = function(onSuccess, onError) {
   xhr.open('GET', Call.CEOD_URL, true);
   xhr.send();
 };
+
+// Get a STUN config, either from settings or the provided default
+Call.createStunConfig = function() {
+  var urls = [
+    'stun:stun.l.google.com:19302',
+    'stun:stun1.l.google.com:19302',
+    'stun:stun2.l.google.com:19302',
+    'stun:stun3.l.google.com:19302',
+    'stun:stun4.l.google.com:19302'
+  ];
+  var settings = currentTest.settings;
+  if (settings.stunURI) {
+    urls = settings.stunURI.split(',');
+  }
+  return {
+    iceServers: [
+      {
+        urls: urls
+      }
+    ]
+  };
+};
