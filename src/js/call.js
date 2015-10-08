@@ -147,7 +147,7 @@ Call.parseCandidate = function(text) {
   };
 };
 
-// Get a TURN a config, either from settings or from CEOD.
+// Get a TURN config, either from settings or from CEOD.
 Call.asyncCreateTurnConfig = function(onSuccess, onError) {
   var settings = currentTest.settings;
   if (typeof(settings.turnURI) === 'string' && settings.turnURI !== '') {
