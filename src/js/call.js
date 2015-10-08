@@ -160,7 +160,40 @@ Call.asyncCreateTurnConfig = function(onSuccess, onError) {
     report.traceEventInstant('turn-config', config);
     setTimeout(onSuccess.bind(null, config), 0);
   } else {
-    Call.fetchCEODTurnConfig_(onSuccess, onError);
+    Call.fetchCEODTurnConfig_(function(response) {
+      var iceServer = {
+        'username': response.username,
+        'credential': response.password,
+        'urls': response.uris
+      };
+      var config = {'iceServers': [iceServer]};
+      report.traceEventInstant('turn-config', config);
+      onSuccess(config);
+    }, onError);
+  }
+};
+
+// Get a STUN config, either from settings or from CEOD.
+Call.asyncCreateStunConfig = function(onSuccess, onError) {
+  var settings = currentTest.settings;
+  if (typeof(settings.stunURI) === 'string' && settings.stunURI !== '') {
+    var iceServer = {
+      'urls': settings.stunURI.split(',')
+    };
+    var config = {'iceServers': [iceServer]};
+    report.traceEventInstant('stun-config', config);
+    setTimeout(onSuccess.bind(null, config), 0);
+  } else {
+    Call.fetchCEODTurnConfig_(function(response) {
+      var iceServer = {
+        'urls': response.uris.map(function(uri) {
+          return uri.replace(/^turn/, 'stun');
+        })
+      };
+      var config = {'iceServers': [iceServer]};
+      report.traceEventInstant('stun-config', config);
+      onSuccess(config);
+    }, onError);
   }
 };
 
@@ -180,39 +213,10 @@ Call.fetchCEODTurnConfig_ = function(onSuccess, onError) {
     }
 
     var response = JSON.parse(xhr.responseText);
-    var iceServer = {
-      'username': response.username,
-      'credential': response.password,
-      'urls': response.uris
-    };
-    var config = {'iceServers': [iceServer]};
-    report.traceEventInstant('turn-config', config);
-    onSuccess(config);
+    onSuccess(response);
   }
 
   xhr.onreadystatechange = onResult;
   xhr.open('GET', Call.CEOD_URL, true);
   xhr.send();
-};
-
-// Get a STUN config, either from settings or the provided default
-Call.createStunConfig = function() {
-  var urls = [
-    'stun:stun.l.google.com:19302',
-    'stun:stun1.l.google.com:19302',
-    'stun:stun2.l.google.com:19302',
-    'stun:stun3.l.google.com:19302',
-    'stun:stun4.l.google.com:19302'
-  ];
-  var settings = currentTest.settings;
-  if (settings.stunURI) {
-    urls = settings.stunURI.split(',');
-  }
-  return {
-    iceServers: [
-      {
-        urls: urls
-      }
-    ]
-  };
 };

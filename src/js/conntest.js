@@ -28,7 +28,8 @@ function relayConnectivityTest() {
 // and verify data can be transmitted and received
 // (packets should stay on the link if behind a router doing NAT)
 function reflexiveConnectivityTest() {
-  runConnectivityTest(Call.isReflexive, Call.createStunConfig());
+  Call.asyncCreateStunConfig(
+    runConnectivityTest.bind(null, Call.isReflexive), reportFatal);
 }
 
 // Set up a datachannel between two peers through a local IP address
