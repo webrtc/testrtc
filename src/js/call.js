@@ -25,7 +25,7 @@ function Call(config) {
 Call.prototype = {
   establishConnection: function() {
     this.traceEvent({state: 'start'});
-    this.pc1.createOffer(this.gotOffer_.bind(this));
+    this.pc1.createOffer(this.gotOffer_.bind(this), reportFatal);
   },
 
   close: function() {
@@ -88,7 +88,7 @@ Call.prototype = {
     }
     this.pc1.setLocalDescription(offer);
     this.pc2.setRemoteDescription(offer);
-    this.pc2.createAnswer(this.gotAnswer_.bind(this));
+    this.pc2.createAnswer(this.gotAnswer_.bind(this), reportFatal);
   },
 
   gotAnswer_: function(answer) {
@@ -123,6 +123,14 @@ Call.isNotHostCandidate = function(candidate) {
   return candidate.type !== 'host';
 };
 
+Call.isReflexive = function(candidate) {
+  return candidate.type === 'srflx';
+};
+
+Call.isHost = function(candidate) {
+  return candidate.type === 'host';
+};
+
 Call.isIpv6 = function(candidate) {
   return candidate.address.indexOf(':') !== -1;
 };
@@ -139,7 +147,7 @@ Call.parseCandidate = function(text) {
   };
 };
 
-// Get a TURN a config, either from settings or from CEOD.
+// Get a TURN config, either from settings or from CEOD.
 Call.asyncCreateTurnConfig = function(onSuccess, onError) {
   var settings = currentTest.settings;
   if (typeof(settings.turnURI) === 'string' && settings.turnURI !== '') {
@@ -152,7 +160,40 @@ Call.asyncCreateTurnConfig = function(onSuccess, onError) {
     report.traceEventInstant('turn-config', config);
     setTimeout(onSuccess.bind(null, config), 0);
   } else {
-    Call.fetchCEODTurnConfig_(onSuccess, onError);
+    Call.fetchCEODTurnConfig_(function(response) {
+      var iceServer = {
+        'username': response.username,
+        'credential': response.password,
+        'urls': response.uris
+      };
+      var config = {'iceServers': [iceServer]};
+      report.traceEventInstant('turn-config', config);
+      onSuccess(config);
+    }, onError);
+  }
+};
+
+// Get a STUN config, either from settings or from CEOD.
+Call.asyncCreateStunConfig = function(onSuccess, onError) {
+  var settings = currentTest.settings;
+  if (typeof(settings.stunURI) === 'string' && settings.stunURI !== '') {
+    var iceServer = {
+      'urls': settings.stunURI.split(',')
+    };
+    var config = {'iceServers': [iceServer]};
+    report.traceEventInstant('stun-config', config);
+    setTimeout(onSuccess.bind(null, config), 0);
+  } else {
+    Call.fetchCEODTurnConfig_(function(response) {
+      var iceServer = {
+        'urls': response.uris.map(function(uri) {
+          return uri.replace(/^turn/, 'stun');
+        })
+      };
+      var config = {'iceServers': [iceServer]};
+      report.traceEventInstant('stun-config', config);
+      onSuccess(config);
+    }, onError);
   }
 };
 
@@ -172,14 +213,7 @@ Call.fetchCEODTurnConfig_ = function(onSuccess, onError) {
     }
 
     var response = JSON.parse(xhr.responseText);
-    var iceServer = {
-      'username': response.username,
-      'credential': response.password,
-      'urls': response.uris
-    };
-    var config = {'iceServers': [iceServer]};
-    report.traceEventInstant('turn-config', config);
-    onSuccess(config);
+    onSuccess(response);
   }
 
   xhr.onreadystatechange = onResult;

@@ -19,7 +19,9 @@ function TestSuiteNames() {
   this.testSuites = {
     CAMERA: 'Camera',
     MICROPHONE: 'Microphone',
-    CONNECTIVITY: 'Connectivity'
+    NETWORK: 'Network',
+    CONNECTIVITY: 'Connectivity',
+    THROUGHPUT: 'Throughput'
   };
   return this.testSuites;
 }

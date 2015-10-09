@@ -10,7 +10,9 @@
     "The WebRTC project authors (http://www.webrtc.org/)"
   ],
   "scripts": {
-    "test": "grunt build && test/run-tests"
+    "test": "grunt build && test/run-tests",
+    "build": "grunt build",
+    "lint": "grunt"
   },
   "devDependencies": {
     "grunt-contrib-clean": "~0.6.0",
