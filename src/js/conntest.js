@@ -49,7 +49,7 @@ function runConnectivityTest(iceCandidateFilter, config) {
   ch1.addEventListener('message', function(event) {
     clearTimeout(timeout);
     if (event.data !== 'world') {
-      reportFatal();
+      reportFatal('Data not transmitted.');
     } else {
       reportSuccess('Data successfully transmitted between peers.');
       setTestFinished();
@@ -60,12 +60,12 @@ function runConnectivityTest(iceCandidateFilter, config) {
     ch2.addEventListener('message', function(event) {
       if (event.data !== 'hello') {
         clearTimeout(timeout);
-        reportFatal();
+        reportFatal('Data not transmitted.');
       } else {
         ch2.send('world');
       }
     });
   });
   call.establishConnection();
-  timeout = setTimeout(reportFatal.bind(null, 'Timed out'), 2000);
+  timeout = setTimeout(reportFatal.bind(null, 'Timed out'), 5000);
 }
