@@ -43,6 +43,15 @@ function hostConnectivityTest() {
 function runConnectivityTest(iceCandidateFilter, config) {
   call = new Call(config);
   call.setIceCandidateFilter(iceCandidateFilter);
+  call.pc1.addEventListener('icecandidate', function(event) {
+    if (event.candidate) {
+      var parsed = Call.parseCandidate(event.candidate.candidate);
+      if (iceCandidateFilter(parsed)) {
+        reportSuccess('Gathered candidate with type: ' + parsed.type +
+                      ' address: ' + parsed.address);
+      }
+    }
+  });
   var ch1 = call.pc1.createDataChannel(null);
   ch1.addEventListener('open', function() {
     ch1.send('hello');
