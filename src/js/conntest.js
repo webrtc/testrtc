@@ -14,6 +14,7 @@ addTest(testSuiteName.CONNECTIVITY, testCaseName.REFLEXIVECONNECTIVITY,
 addTest(testSuiteName.CONNECTIVITY, testCaseName.HOSTCONNECTIVITY,
     hostConnectivityTest);
 
+var call = null;
 var timeout = null;
 
 // Set up a datachannel between two peers through a relay
@@ -40,32 +41,49 @@ function hostConnectivityTest() {
 }
 
 function runConnectivityTest(iceCandidateFilter, config) {
-  var call = new Call(config);
+  call = new Call(config);
   call.setIceCandidateFilter(iceCandidateFilter);
+  call.pc1.addEventListener('icecandidate', function(event) {
+    if (event.candidate) {
+      var parsed = Call.parseCandidate(event.candidate.candidate);
+      if (iceCandidateFilter(parsed)) {
+        reportSuccess('Gathered candidate with type: ' + parsed.type +
+                      ' address: ' + parsed.address);
+      }
+    }
+  });
   var ch1 = call.pc1.createDataChannel(null);
   ch1.addEventListener('open', function() {
     ch1.send('hello');
   });
   ch1.addEventListener('message', function(event) {
-    clearTimeout(timeout);
     if (event.data !== 'world') {
-      reportFatal();
+      endTest('Invalid data transmitted.');
     } else {
-      reportSuccess('Data successfully transmitted between peers.');
-      setTestFinished();
+      endTest();
     }
   });
   call.pc2.addEventListener('datachannel', function(event) {
     var ch2 = event.channel;
     ch2.addEventListener('message', function(event) {
       if (event.data !== 'hello') {
-        clearTimeout(timeout);
-        reportFatal();
+        endTest('Invalid data transmitted.');
       } else {
         ch2.send('world');
       }
     });
   });
   call.establishConnection();
-  timeout = setTimeout(reportFatal.bind(null, 'Timed out'), 2000);
+  timeout = setTimeout(endTest.bind(null, 'Timed out.'), 5000);
+}
+
+function endTest(error) {
+  clearTimeout(timeout);
+  call.close();
+  if (error) {
+    reportError(error);
+  } else {
+    reportSuccess('Data transmitted successfully between peers.');
+  }
+  setTestFinished();
 }
