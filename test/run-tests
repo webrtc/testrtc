@@ -3,7 +3,7 @@
 # Installs Chrome or Firefox if missing and sets default browser to
 # chrome stable.
 #
-echo "\nPreparing Selenium webdriver tests."
+echo "Preparing Selenium webdriver tests."
 
 BINDIR=./browsers/bin
 export BROWSER=${BROWSER-chrome}

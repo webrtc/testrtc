@@ -71,7 +71,12 @@ function gatherCandidates(config, params, isGood) {
   try {
     pc = new RTCPeerConnection(config, params);
   } catch (error) {
-    return reportFatal('Fail to create peer connection: ' + error);
+    if (params.optional[0].googIPv6) {
+      return reportWarning('Failed to create peer connection, IPv6 ' +
+          'might not be setup/supported on the network.');
+    } else {
+      return reportError('Failed to create peer connection: ' + error);
+    }
   }
 
   // In our candidate callback, stop if we get a candidate that passes |isGood|.
@@ -91,7 +96,13 @@ function gatherCandidates(config, params, isGood) {
       }
     } else {
       pc.close();
-      reportFatal('Failed to gather specified candidates');
+      if (!params.optional[0].googIPv6) {
+        reportWarning('Failed to gather IPv6 candidates, it ' +
+          'might not be setup/supported on the network.');
+      } else {
+        reportError('Failed to gather specified candidates');
+        setTestFinished();
+      }
     }
   };
 

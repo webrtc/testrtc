@@ -40,32 +40,62 @@ function hostConnectivityTest() {
 }
 
 function runConnectivityTest(iceCandidateFilter, config) {
+  var candidates = [];
   var call = new Call(config);
   call.setIceCandidateFilter(iceCandidateFilter);
+
+  // Collect all candidate for validation.
+  call.pc1.onicecandidate = function(event) {
+    if (event.candidate) {
+      candidates.push(Call.parseCandidate(event.candidate.candidate));
+    }
+  };
+
   var ch1 = call.pc1.createDataChannel(null);
   ch1.addEventListener('open', function() {
     ch1.send('hello');
   });
   ch1.addEventListener('message', function(event) {
-    clearTimeout(timeout);
     if (event.data !== 'world') {
-      reportFatal('Data not transmitted.');
+      reportError('Data not transmitted.');
     } else {
       reportSuccess('Data successfully transmitted between peers.');
-      setTestFinished();
     }
+    hangup();
   });
   call.pc2.addEventListener('datachannel', function(event) {
     var ch2 = event.channel;
     ch2.addEventListener('message', function(event) {
       if (event.data !== 'hello') {
-        clearTimeout(timeout);
-        reportFatal('Data not transmitted.');
+        hangup('Data not transmitted.');
       } else {
         ch2.send('world');
       }
     });
   });
   call.establishConnection();
-  timeout = setTimeout(reportFatal.bind(null, 'Timed out'), 5000);
+  timeout = setTimeout(hangup.bind(null, 'Timed out'), 5000);
+
+  function hangup(errorMessage) {
+    if (errorMessage) {
+      var reflexiveCandidateFound = function() {
+        for (var candidate in candidates) {
+          if (Call.isReflexive(candidates[candidate])) {
+            return true;
+          }
+        }
+      };
+
+      var warningMessage = 'Server reflexive candidate received but cannot ' +
+            'connect. Most likely due to the network environment.';
+      if (reflexiveCandidateFound) {
+        reportWarning(warningMessage);
+      } else {
+        reportError(errorMessage);
+      }
+    }
+    clearTimeout(timeout);
+    call.close();
+    setTestFinished();
+  }
 }
