@@ -40,14 +40,23 @@ function hostConnectivityTest() {
 }
 
 function runConnectivityTest(iceCandidateFilter, config) {
-  var candidates = [];
+  var parsedCandidates = [];
   var call = new Call(config);
   call.setIceCandidateFilter(iceCandidateFilter);
 
   // Collect all candidate for validation.
   call.pc1.onicecandidate = function(event) {
     if (event.candidate) {
-      candidates.push(Call.parseCandidate(event.candidate.candidate));
+      var parsedCandidate = Call.parseCandidate(event.candidate.candidate);
+      parsedCandidates.push(parsedCandidate);
+
+      // Report candidate info based on iceCandidateFilter.
+      if (iceCandidateFilter(parsedCandidate)) {
+        reportInfo(
+          'Gathered candidate of Type: ' + parsedCandidate.type +
+          ' Protocol: ' + parsedCandidate.protocol +
+          ' Address: ' + parsedCandidate.address);
+      }
     }
   };
 
@@ -57,7 +66,7 @@ function runConnectivityTest(iceCandidateFilter, config) {
   });
   ch1.addEventListener('message', function(event) {
     if (event.data !== 'world') {
-      reportError('Data not transmitted.');
+      reportError('Invalid data transmitted.');
     } else {
       reportSuccess('Data successfully transmitted between peers.');
     }
@@ -67,7 +76,7 @@ function runConnectivityTest(iceCandidateFilter, config) {
     var ch2 = event.channel;
     ch2.addEventListener('message', function(event) {
       if (event.data !== 'hello') {
-        hangup('Data not transmitted.');
+        hangup('Invalid data transmitted.');
       } else {
         ch2.send('world');
       }
@@ -76,24 +85,22 @@ function runConnectivityTest(iceCandidateFilter, config) {
   call.establishConnection();
   timeout = setTimeout(hangup.bind(null, 'Timed out'), 5000);
 
+  function findParsedCandidateOfSpecifiedType(candidateTypeMethod) {
+    for (var candidate in parsedCandidates) {
+      if (candidateTypeMethod(parsedCandidates[candidate])) {
+        return candidateTypeMethod(parsedCandidates[candidate]);
+      }
+    }
+  }
+
   function hangup(errorMessage) {
     if (errorMessage) {
-      // Handle warning message for reflexive failures.
-      var getReflexiveCandidate = function() {
-        for (var candidate in candidates) {
-          if (Call.isReflexive(candidates[candidate])) {
-            return candidates[candidate];
-          }
-        }
-      };
-      if (Call.isReflexive(getReflexiveCandidate())) {
-        var reflexCandidate = getReflexiveCandidate();
-        reportWarning(
-            'Gathered candidate with type: ' + reflexCandidate.type +
-            ' Protocol: ' + reflexCandidate.protocol +
-            ' Address: ' + reflexCandidate.address +
-            ' but failed to connect using it, likely due to the network ' +
-            'environment.');
+      // Report warning for server reflexive test if it times out.
+      if (errorMessage === 'Timed out' &&
+          iceCandidateFilter.toString() === Call.isReflexive.toString() &&
+          findParsedCandidateOfSpecifiedType(Call.isReflexive)) {
+        reportWarning('Could not connect using reflexive candidates, likely ' +
+            'due to the network environment/configuration.');
       } else {
         reportError(errorMessage);
       }

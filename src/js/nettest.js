@@ -90,7 +90,8 @@ function gatherCandidates(config, params, isGood) {
     if (e.candidate) {
       var parsed = Call.parseCandidate(e.candidate.candidate);
       if (isGood(parsed)) {
-        reportSuccess('Gathered candidate with Type: ' + parsed.type +
+        reportSuccess('Gathered candidate of Type: ' + parsed.type +
+                      ' Protocol: ' + parsed.protocol +
                       ' Address: ' + parsed.address);
         pc.close();
         setTestFinished();
