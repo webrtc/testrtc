@@ -142,12 +142,12 @@
 
         if (success) {
           this.state = 'success';
-        } else if (this.errorCount > 0) {
-          this.state = 'failure';
-        } else if (this.warningCount > 0) {
+        } else if (this.warningCount > 0 && this.errorCount === 0) {
           this.state = 'warning';
         } else if (this.isDisabled) {
           this.state = 'disabled';
+        } else {
+          this.state = 'failure';
         }
 
         this.traceTestEvent({status: this.state});

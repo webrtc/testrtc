@@ -78,18 +78,22 @@ function runConnectivityTest(iceCandidateFilter, config) {
 
   function hangup(errorMessage) {
     if (errorMessage) {
-      var reflexiveCandidateFound = function() {
+      // Handle warning message for reflexive failures.
+      var getReflexiveCandidate = function() {
         for (var candidate in candidates) {
           if (Call.isReflexive(candidates[candidate])) {
-            return true;
+            return candidates[candidate];
           }
         }
       };
-
-      var warningMessage = 'Server reflexive candidate received but cannot ' +
-            'connect. Most likely due to the network environment.';
-      if (reflexiveCandidateFound) {
-        reportWarning(warningMessage);
+      if (Call.isReflexive(getReflexiveCandidate())) {
+        var reflexCandidate = getReflexiveCandidate();
+        reportWarning(
+            'Gathered candidate with type: ' + reflexCandidate.type +
+            ' Protocol: ' + reflexCandidate.protocol +
+            ' Address: ' + reflexCandidate.address +
+            ' but failed to connect using it, likely due to the network ' +
+            'environment.');
       } else {
         reportError(errorMessage);
       }
