@@ -14,8 +14,6 @@ addTest(testSuiteName.CONNECTIVITY, testCaseName.REFLEXIVECONNECTIVITY,
 addTest(testSuiteName.CONNECTIVITY, testCaseName.HOSTCONNECTIVITY,
     hostConnectivityTest);
 
-var timeout = null;
-
 // Set up a datachannel between two peers through a relay
 // and verify data can be transmitted and received
 // (packets travel through the public internet)
@@ -40,12 +38,13 @@ function hostConnectivityTest() {
 }
 
 function runConnectivityTest(iceCandidateFilter, config) {
+  var timeout = null;
   var parsedCandidates = [];
   var call = new Call(config);
   call.setIceCandidateFilter(iceCandidateFilter);
 
   // Collect all candidate for validation.
-  call.pc1.onicecandidate = function(event) {
+  call.pc1.addEventListener('icecandidate', function(event) {
     if (event.candidate) {
       var parsedCandidate = Call.parseCandidate(event.candidate.candidate);
       parsedCandidates.push(parsedCandidate);
@@ -58,7 +57,7 @@ function runConnectivityTest(iceCandidateFilter, config) {
           ' Address: ' + parsedCandidate.address);
       }
     }
-  };
+  });
 
   var ch1 = call.pc1.createDataChannel(null);
   ch1.addEventListener('open', function() {

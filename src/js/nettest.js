@@ -81,7 +81,7 @@ function gatherCandidates(config, params, isGood) {
   }
 
   // In our candidate callback, stop if we get a candidate that passes |isGood|.
-  pc.onicecandidate = function(e) {
+  pc.addEventListener('icecandidate', function(e) {
     // Once we've decided, ignore future callbacks.
     if (pc.signalingState === 'closed') {
       return;
@@ -107,7 +107,7 @@ function gatherCandidates(config, params, isGood) {
         setTestFinished();
       }
     }
-  };
+  });
 
   // Create an audio-only, recvonly offer, and setLD with it.
   // This will trigger candidate gathering.
