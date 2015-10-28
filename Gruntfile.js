@@ -15,7 +15,8 @@ module.exports = function(grunt) {
             'app.yaml',
             'testrtc.py',
             'src/manual/**',
-            'components/webrtc-adapter/adapter.js'
+            'components/webrtc-adapter/adapter.js',
+            'src/images/**'
             ],
             dest: 'out',
             nonull: true,
