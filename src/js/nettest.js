@@ -71,11 +71,17 @@ function gatherCandidates(config, params, isGood) {
   try {
     pc = new RTCPeerConnection(config, params);
   } catch (error) {
-    return reportFatal('Fail to create peer connection: ' + error);
+    if (params !== null && params.optional[0].googIPv6) {
+      reportWarning('Failed to create peer connection, IPv6 ' +
+          'might not be setup/supported on the network.');
+    } else {
+      reportError('Failed to create peer connection: ' + error);
+    }
+    setTestFinished();
   }
 
   // In our candidate callback, stop if we get a candidate that passes |isGood|.
-  pc.onicecandidate = function(e) {
+  pc.addEventListener('icecandidate', function(e) {
     // Once we've decided, ignore future callbacks.
     if (pc.signalingState === 'closed') {
       return;
@@ -84,16 +90,24 @@ function gatherCandidates(config, params, isGood) {
     if (e.candidate) {
       var parsed = Call.parseCandidate(e.candidate.candidate);
       if (isGood(parsed)) {
-        reportSuccess('Gathered candidate with type: ' + parsed.type +
-                      ' address: ' + parsed.address);
+        reportSuccess('Gathered candidate of Type: ' + parsed.type +
+                      ' Protocol: ' + parsed.protocol +
+                      ' Address: ' + parsed.address);
         pc.close();
         setTestFinished();
       }
     } else {
       pc.close();
-      reportFatal('Failed to gather specified candidates');
+      if (!params.optional[0].googIPv6) {
+        reportWarning('Failed to gather IPv6 candidates, it ' +
+          'might not be setup/supported on the network.');
+        setTestFinished();
+      } else {
+        reportError('Failed to gather specified candidates');
+        setTestFinished();
+      }
     }
-  };
+  });
 
   // Create an audio-only, recvonly offer, and setLD with it.
   // This will trigger candidate gathering.
