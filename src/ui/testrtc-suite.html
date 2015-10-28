@@ -93,7 +93,7 @@
       },
       _iconForState: function (state) {
         if (state === 'failure') { return 'close'; }
-        if (state === 'warning') { return 'check'; }
+        if (state === 'warning') { return 'warning'; }
         if (state === 'success') { return 'check'; }
         if (state === 'running') { return 'more-horiz'; }
         return '';
@@ -129,7 +129,7 @@
           this.opened = false;
         } else if (errors === 0 && warnings > 0) {
           this.state = 'warning';
-          this.opened = false;
+          this.opened = true;
         } else {
           this.state = 'failure';
           this.opened = true;
