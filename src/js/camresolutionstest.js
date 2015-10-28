@@ -338,6 +338,7 @@ function VideoFrameChecker(videoElement) {
 VideoFrameChecker.prototype = {
   stop: function() {
     this.videoElement_.removeEventListener('play' , this.listener_);
+    this.running_ = false;
   },
 
   getCurrentImageData_: function() {
