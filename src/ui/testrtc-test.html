@@ -128,7 +128,8 @@
         this.state = "running";
         this.traceTestEvent({name: this.name, status: this.state});
         if (!this.isDisabled) {
-          this.testFunction();
+          // Pass in the "this" object for test reporting and control.
+          this.testFunction(this);
         } else {
           this.reportInfo('Test is disabled.');
           this.done();
@@ -136,6 +137,9 @@
       },
 
       done: function() {
+        if (this.state !== "running") {
+          return;
+        }
         this.setProgress(null);
         var success =
           (this.errorCount + this.warningCount === 0 && this.successCount > 0);
