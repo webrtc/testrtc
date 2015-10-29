@@ -182,11 +182,10 @@ MicTest.prototype = {
       var dBPeak = this.dBFS(maxPeak);
       var dBRms = this.dBFS(maxRms);
       this.test.reportInfo('Channel ' + channelNumber + ' levels: ' +
-                 dBPeak.toFixed(1) + ' dB (peak), ' +
-                 dBRms.toFixed(1) + ' dB (RMS)');
+          dBPeak.toFixed(1) + ' dB (peak), ' + dBRms.toFixed(1) + ' dB (RMS)');
       if (dBRms < this.lowVolumeThreshold) {
         this.test.reportError('Microphone input level is low, increase input ' +
-                    'volume or move closer to the microphone.');
+            'volume or move closer to the microphone.');
       }
       if (maxClipCount > this.clipCountThreshold) {
         this.test.reportWarning('Clipping detected! Microphone input level ' +
