@@ -46,7 +46,7 @@ test('Run TestRTC', function(t) {
     };
 
     return driver.wait(isElementDisabled(driver
-        .findElement(webdriver.By.css('#startButton'))), 60 * 1000,
+        .findElement(webdriver.By.css('#startButton'))), 90 * 1000,
         'startButton is not enabled');
   })
   // TODO: Dump console.log contents to stderr.
