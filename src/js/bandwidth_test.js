@@ -52,7 +52,7 @@ DataChannelThroughputTest.prototype = {
       this.call.establishConnection();
     }.bind(this);
 
-    Call.asyncCreateTurnConfig(start.bind(this), this.test.reportFatal);
+    Call.asyncCreateTurnConfig(start, this.test.reportFatal.bind(this.test));
   },
 
   onReceiverChannel: function(event) {
@@ -156,7 +156,7 @@ VideoBandwidthTest.prototype = {
       doGetUserMedia(this.constraints, this.gotStream.bind(this));
     }.bind(this);
 
-    Call.asyncCreateTurnConfig(start.bind(this), this.test.reportFatal);
+    Call.asyncCreateTurnConfig(start, this.test.reportFatal.bind(this.test));
   },
 
   gotStream: function(stream) {
