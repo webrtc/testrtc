@@ -250,8 +250,6 @@ function WiFiPeriodicScanTest(test) {
 WiFiPeriodicScanTest.prototype = {
   run: function(candidateFilter) {
     var start = function(candidateFilter, config) {
-      console.log('config: ', config);
-      console.log('candidateFilter: ', candidateFilter);
       this.running = true;
       this.call = new Call(config);
       this.chart = this.test.createLineChart();
@@ -266,7 +264,6 @@ WiFiPeriodicScanTest.prototype = {
 
       setTimeoutWithProgressBar(this.finishTest.bind(this),
           this.testDurationMs);
-      console.log('here');
     }.bind(this);
 
     Call.asyncCreateTurnConfig(start.bind(null, candidateFilter),
@@ -317,7 +314,7 @@ WiFiPeriodicScanTest.prototype = {
 
     if (max > (min + 100) * 2) {
       this.test.reportError('There is a big difference between the min and ' +
-        'max delay of packets. Your network appears unstable.');
+          'max delay of packets. Your network appears unstable.');
     }
     this.test.done();
   }
