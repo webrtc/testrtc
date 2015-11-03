@@ -227,75 +227,98 @@ VideoBandwidthTest.prototype = {
 };
 
 addExplicitTest(testSuiteName.THROUGHPUT, testCaseName.NETWORKLATENCY,
-  Call.asyncCreateTurnConfig.bind(null, wiFiPeriodicScanTest.bind(null,
-      Call.isNotHostCandidate), reportFatal));
+  function(test) {
+    var wiFiPeriodicScanTest = new WiFiPeriodicScanTest(test);
+    wiFiPeriodicScanTest.run(Call.isNotHostCandidate);
+  });
 
 addExplicitTest(testSuiteName.THROUGHPUT, testCaseName.NETWORKLATENCYRELAY,
-  Call.asyncCreateTurnConfig.bind(null, wiFiPeriodicScanTest.bind(null,
-      Call.isRelay), reportFatal));
+  function(test) {
+    var wiFiPeriodicScanTest = new WiFiPeriodicScanTest(test);
+    wiFiPeriodicScanTest.run(Call.isRelay);
+  });
 
-function wiFiPeriodicScanTest(candidateFilter, config) {
-  var testDurationMs = 5 * 60 * 1000;
-  var sendIntervalMs = 100;
-  var running = true;
-  var delays = [];
-  var recvTimeStamps = [];
-  var call = new Call(config);
-  var chart = createLineChart();
-  call.setIceCandidateFilter(candidateFilter);
+function WiFiPeriodicScanTest(test) {
+  this.test = test;
+  this.testDurationMs = 5 * 60 * 1000;
+  this.sendIntervalMs = 100;
+  this.delays = [];
+  this.recvTimeStamps = [];
+  this.running = false;
+}
 
-  var senderChannel = call.pc1.createDataChannel({ordered: false,
-                                                  maxRetransmits: 0});
-  senderChannel.addEventListener('open', send);
-  call.pc2.addEventListener('datachannel', onReceiverChannel);
-  call.establishConnection();
+WiFiPeriodicScanTest.prototype = {
+  run: function(candidateFilter) {
+    var start = function(candidateFilter, config) {
+      console.log('config: ', config);
+      console.log('candidateFilter: ', candidateFilter);
+      this.running = true;
+      this.call = new Call(config);
+      this.chart = this.test.createLineChart();
+      this.call.setIceCandidateFilter(candidateFilter);
 
-  setTimeoutWithProgressBar(finishTest, testDurationMs);
+      this.senderChannel = this.call.pc1.createDataChannel({ordered: false,
+          maxRetransmits: 0});
+      this.senderChannel.addEventListener('open', this.send.bind(this));
+      this.call.pc2.addEventListener('datachannel',
+          this.onReceiverChannel.bind(this));
+      this.call.establishConnection();
 
-  function onReceiverChannel(event) {
-    event.channel.addEventListener('message', receive);
-  }
+      setTimeoutWithProgressBar(this.finishTest.bind(this),
+          this.testDurationMs);
+      console.log('here');
+    }.bind(this);
 
-  function send() {
-    if (!running) { return; }
-    senderChannel.send('' + Date.now());
-    setTimeout(send, sendIntervalMs);
-  }
+    Call.asyncCreateTurnConfig(start.bind(null, candidateFilter),
+        this.test.reportFatal.bind(this.test));
+  },
 
-  function receive(event) {
-    if (!running) { return; }
+  onReceiverChannel: function(event) {
+    event.channel.addEventListener('message', this.receive.bind(this));
+  },
+
+  send: function() {
+    if (!this.running) { return; }
+    this.senderChannel.send('' + Date.now());
+    setTimeout(this.send.bind(this), this.sendIntervalMs);
+  },
+
+  receive: function(event) {
+    if (!this.running) { return; }
     var sendTime = parseInt(event.data);
     var delay = Date.now() - sendTime;
-    recvTimeStamps.push(sendTime);
-    delays.push(delay);
-    chart.addDatapoint(sendTime + delay, delay);
-  }
+    this.recvTimeStamps.push(sendTime);
+    this.delays.push(delay);
+    this.chart.addDatapoint(sendTime + delay, delay);
+  },
 
-  function finishTest() {
-    report.traceEventInstant('periodic-delay', {delays: delays,
-        recvTimeStamps: recvTimeStamps});
-    running = false;
-    call.close();
-    chart.parentElement.removeChild(chart);
+  finishTest: function() {
+    report.traceEventInstant('periodic-delay', {delays: this.delays,
+        recvTimeStamps: this.recvTimeStamps});
+    this.running = false;
+    this.call.close();
+    this.call = null;
+    this.chart.parentElement.removeChild(this.chart);
 
-    var avg = arrayAverage(delays);
-    var max = arrayMax(delays);
-    var min = arrayMin(delays);
-    reportInfo('Average delay: ' + avg + ' ms.');
-    reportInfo('Min delay: ' + min + ' ms.');
-    reportInfo('Max delay: ' + max + ' ms.');
+    var avg = arrayAverage(this.delays);
+    var max = arrayMax(this.delays);
+    var min = arrayMin(this.delays);
+    this.test.reportInfo('Average delay: ' + avg + ' ms.');
+    this.test.reportInfo('Min delay: ' + min + ' ms.');
+    this.test.reportInfo('Max delay: ' + max + ' ms.');
 
-    if (delays.length < 0.8 * testDurationMs / sendIntervalMs) {
-      reportError('Not enough samples gathered. Keep the page on the ' +
-          'foreground while the test is running.');
+    if (this.delays.length < 0.8 * this.testDurationMs / this.sendIntervalMs) {
+      this.test.reportError('Not enough samples gathered. Keep the page on ' +
+          ' the foreground while the test is running.');
     } else {
-      reportSuccess('Collected ' + delays.length + ' delay samples.');
+      this.test.reportSuccess('Collected ' + this.delays.length +
+          ' delay samples.');
     }
 
     if (max > (min + 100) * 2) {
-      reportError('There is a big difference between the min and max delay ' +
-          'of packets. Your network appears unstable.');
+      this.test.reportError('There is a big difference between the min and ' +
+        'max delay of packets. Your network appears unstable.');
     }
-    setTestFinished();
+    this.test.done();
   }
-}
+};
