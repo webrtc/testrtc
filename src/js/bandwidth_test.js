@@ -228,19 +228,23 @@ VideoBandwidthTest.prototype = {
 
 addExplicitTest(testSuiteName.THROUGHPUT, testCaseName.NETWORKLATENCY,
   function(test) {
-    var wiFiPeriodicScanTest = new WiFiPeriodicScanTest(test);
-    wiFiPeriodicScanTest.run(Call.isNotHostCandidate);
+    var wiFiPeriodicScanTest = new WiFiPeriodicScanTest(test,
+        Call.isNotHostCandidate);
+    wiFiPeriodicScanTest.run();
   });
 
 addExplicitTest(testSuiteName.THROUGHPUT, testCaseName.NETWORKLATENCYRELAY,
   function(test) {
-    var wiFiPeriodicScanTest = new WiFiPeriodicScanTest(test);
-    wiFiPeriodicScanTest.run(Call.isRelay);
+    var wiFiPeriodicScanTest = new WiFiPeriodicScanTest(test, Call.isRelay);
+    wiFiPeriodicScanTest.run();
   });
 
-function WiFiPeriodicScanTest(test) {
+var globalDataChannel;
+
+function WiFiPeriodicScanTest(test, candidateFilter) {
   this.test = test;
-  this.testDurationMs = 5 * 60 * 1000;
+  this.candidateFilter = candidateFilter;
+  this.testDurationMs = 1 * 60 * 1000;
   this.sendIntervalMs = 100;
   this.delays = [];
   this.recvTimeStamps = [];
@@ -248,30 +252,32 @@ function WiFiPeriodicScanTest(test) {
 }
 
 WiFiPeriodicScanTest.prototype = {
-  run: function(candidateFilter) {
-    var start = function(candidateFilter, config) {
-      this.running = true;
-      this.call = new Call(config);
-      this.chart = this.test.createLineChart();
-      this.call.setIceCandidateFilter(candidateFilter);
-
-      this.senderChannel = this.call.pc1.createDataChannel({ordered: false,
-          maxRetransmits: 0});
-      this.senderChannel.addEventListener('open', this.send.bind(this));
-      this.call.pc2.addEventListener('datachannel',
-          this.onReceiverChannel.bind(this));
-      this.call.establishConnection();
-
-      setTimeoutWithProgressBar(this.finishTest.bind(this),
-          this.testDurationMs);
-    }.bind(this);
-
-    Call.asyncCreateTurnConfig(start.bind(null, candidateFilter),
+  run: function() {
+    Call.asyncCreateTurnConfig(this.start.bind(this),
         this.test.reportFatal.bind(this.test));
   },
 
+  start: function(config) {
+    this.running = true;
+    this.call = new Call(config);
+    this.chart = this.test.createLineChart();
+    this.call.setIceCandidateFilter(this.candidateFilter);
+
+    this.senderChannel = this.call.pc1.createDataChannel({ordered: false,
+        maxRetransmits: 0});
+    this.senderChannel.addEventListener('open', this.send.bind(this));
+    this.call.pc2.addEventListener('datachannel',
+        this.onReceiverChannel.bind(this));
+    this.call.establishConnection();
+
+    setTimeoutWithProgressBar(this.finishTest.bind(this),
+        this.testDurationMs);
+  },
+
   onReceiverChannel: function(event) {
-    event.channel.addEventListener('message', this.receive.bind(this));
+    event.channel.addEventListener('message', function(event) {
+      this.receive.apply(this, arguments);
+    });
   },
 
   send: function() {
