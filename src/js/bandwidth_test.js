@@ -40,19 +40,20 @@ function DataChannelThroughputTest(test) {
 
 DataChannelThroughputTest.prototype = {
   run: function() {
-    var start = function(config) {
-      this.call = new Call(config);
-      this.call.setIceCandidateFilter(Call.isRelay);
-      this.senderChannel = this.call.pc1.createDataChannel(null);
-      this.senderChannel.addEventListener('open', this.sendingStep.bind(this));
+    Call.asyncCreateTurnConfig(this.start.bind(this),
+        this.test.reportFatal.bind(this.test));
+  },
 
-      this.call.pc2.addEventListener('datachannel',
-          this.onReceiverChannel.bind(this));
+  start: function(config) {
+    this.call = new Call(config);
+    this.call.setIceCandidateFilter(Call.isRelay);
+    this.senderChannel = this.call.pc1.createDataChannel(null);
+    this.senderChannel.addEventListener('open', this.sendingStep.bind(this));
 
-      this.call.establishConnection();
-    }.bind(this);
+    this.call.pc2.addEventListener('datachannel',
+        this.onReceiverChannel.bind(this));
 
-    Call.asyncCreateTurnConfig(start, this.test.reportFatal.bind(this.test));
+    this.call.establishConnection();
   },
 
   onReceiverChannel: function(event) {
@@ -131,6 +132,7 @@ function VideoBandwidthTest(test) {
   this.packetsLost = null;
   this.videoStats = [];
   this.startTime = null;
+  this.call = null;
   // Open the camera in 720p to get a correct measurement of ramp-up time.
   this.constraints = {
     audio: false,
@@ -145,18 +147,19 @@ function VideoBandwidthTest(test) {
 
 VideoBandwidthTest.prototype = {
   run: function() {
-    var start = function(config) {
-      this.call = new Call(config);
-      this.call.setIceCandidateFilter(Call.isRelay);
-      // FEC makes it hard to study bandwidth estimation since there seems to be
-      // a spike when it is enabled and disabled. Disable it for now. FEC issue
-      // tracked on: https://code.google.com/p/webrtc/issues/detail?id=3050
-      this.call.disableVideoFec();
-      this.call.constrainVideoBitrate(this.maxVideoBitrateKbps);
-      doGetUserMedia(this.constraints, this.gotStream.bind(this));
-    }.bind(this);
+    Call.asyncCreateTurnConfig(this.start.bind(this),
+      this.test.reportFatal.bind(this.test));
+  },
 
-    Call.asyncCreateTurnConfig(start, this.test.reportFatal.bind(this.test));
+  start: function(config) {
+    this.call = new Call(config);
+    this.call.setIceCandidateFilter(Call.isRelay);
+    // FEC makes it hard to study bandwidth estimation since there seems to be
+    // a spike when it is enabled and disabled. Disable it for now. FEC issue
+    // tracked on: https://code.google.com/p/webrtc/issues/detail?id=3050
+    this.call.disableVideoFec();
+    this.call.constrainVideoBitrate(this.maxVideoBitrateKbps);
+    doGetUserMedia(this.constraints, this.gotStream.bind(this));
   },
 
   gotStream: function(stream) {
@@ -239,8 +242,6 @@ addExplicitTest(testSuiteName.THROUGHPUT, testCaseName.NETWORKLATENCYRELAY,
     wiFiPeriodicScanTest.run();
   });
 
-var globalDataChannel;
-
 function WiFiPeriodicScanTest(test, candidateFilter) {
   this.test = test;
   this.candidateFilter = candidateFilter;
@@ -249,6 +250,9 @@ function WiFiPeriodicScanTest(test, candidateFilter) {
   this.delays = [];
   this.recvTimeStamps = [];
   this.running = false;
+  this.call = null;
+  this.senderChannel = null;
+  this.receiveChannel = null;
 }
 
 WiFiPeriodicScanTest.prototype = {
@@ -275,9 +279,8 @@ WiFiPeriodicScanTest.prototype = {
   },
 
   onReceiverChannel: function(event) {
-    event.channel.addEventListener('message', function(event) {
-      this.receive.apply(this, arguments);
-    });
+    this.receiveChannel = event.channel;
+    this.receiveChannel.addEventListener('message', this.receive.bind(this));
   },
 
   send: function() {
