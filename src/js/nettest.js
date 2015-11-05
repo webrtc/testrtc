@@ -98,14 +98,13 @@ function gatherCandidates(config, params, isGood) {
       }
     } else {
       pc.close();
-      if (!params.optional[0].googIPv6) {
+      if (params.optional[0].googIPv6) {
         reportWarning('Failed to gather IPv6 candidates, it ' +
           'might not be setup/supported on the network.');
-        setTestFinished();
       } else {
         reportError('Failed to gather specified candidates');
-        setTestFinished();
       }
+      setTestFinished();
     }
   });
 
