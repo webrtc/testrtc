@@ -237,7 +237,7 @@ function setTestFinished() { currentTest.done(); }
 function expectEquals() { currentTest.expectEquals.apply(currentTest,
                                                          arguments); }
 
-
+// TODO(jansson): Remove from global scope, add it to test object?
 function setTimeoutWithProgressBar(timeoutCallback, timeoutMs) {
   var start = window.performance.now();
   var updateProgressBar = setInterval(function() {
