@@ -18,8 +18,10 @@
 function TestCaseNames() {
   this.testCases = {
     AUDIOCAPTURE: 'Audio capture',
-    CHECKSUPPORTEDRESOLUTION: 'Check supported resolutions',
-    CHECKRESOLUTION: 'Check resolution: ',
+    CHECKRESOLUTION240: 'Check resolution 320x240',
+    CHECKRESOLUTION480: 'Check resolution 640x480',
+    CHECKRESOLUTION720: 'Check resolution 1280x720',
+    CHECKSUPPORTEDRESOLUTIONS: 'Check supported resolutions',
     DATATHROUGHPUT: 'Data throughput',
     IPV6ENABLED: 'Ipv6 enabled',
     NETWORKLATENCY: 'Network latency',
