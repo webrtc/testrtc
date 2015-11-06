@@ -22,44 +22,80 @@
  */
 
 addTest(testSuiteName.CAMERA, testCaseName.CHECKRESOLUTION240, function(test) {
-  var camResolutionsTest = new CamResolutionsTest(test);
-  camResolutionsTest.run([320, 240]);
+  var camResolutionsTest = new CamResolutionsTest(test , [[320, 240]]);
+  camResolutionsTest.run();
 });
 
 addTest(testSuiteName.CAMERA, testCaseName.CHECKRESOLUTION480, function(test) {
-  var camResolutionsTest = new CamResolutionsTest(test);
-  camResolutionsTest.run([640, 480]);
+  var camResolutionsTest = new CamResolutionsTest(test, [[640, 480]]);
+  camResolutionsTest.run();
 });
 
 addTest(testSuiteName.CAMERA, testCaseName.CHECKRESOLUTION720, function(test) {
-  var camResolutionsTest = new CamResolutionsTest(test);
-  camResolutionsTest.run([1280, 720]);
+  var camResolutionsTest = new CamResolutionsTest(test, [[1280, 720]]);
+  camResolutionsTest.run();
 });
 
-function CamResolutionsTest(test) {
+addTest(testSuiteName.CAMERA, testCaseName.CHECKSUPPORTEDRESOLUTIONS,
+  function(test) {
+  var resolutionArray = [
+      [160, 120], [320, 180], [320, 240], [640, 360], [640, 480], [768, 576],
+      [1024, 576], [1280, 720], [1280, 768], [1280, 800], [1920, 1080],
+      [1920, 1200], [3840, 2160], [4096, 2160]
+  ];
+  var camResolutionsTest = new CamResolutionsTest(test, resolutionArray);
+  camResolutionsTest.run();
+});
+
+function CamResolutionsTest(test, resolutions) {
   this.test = test;
-  this.mandatoryUnsupportedResolutions = 0;
-  this.counter = 0;
-  this.supportedResolutions = 0;
-  this.unsupportedResolutions = 0;
-  this.currentResolutionForCheckEncodeTime = null;
+  this.resolutions = resolutions;
+  this.currentResolution = 0;
   this.isMuted = false;
 }
 
 CamResolutionsTest.prototype = {
-  run: function(resolution) {
+  run: function() {
+    this.startGetUserMedia(this.resolutions[this.currentResolution]);
+  },
+
+  startGetUserMedia: function(resolution) {
     var constraints = {
       audio: false,
-      video: {width: {exact: resolution[0]}, height: {exact: resolution[1]}}
+      video: {width: {exact: resolution[0]},
+          height: {exact: resolution[1]}}
     };
     navigator.mediaDevices.getUserMedia(constraints)
     .then(function(stream) {
-      this.collectAndAnalyzeStats_(stream, resolution);
+      // Do not check actual video frames when more than one resolution is
+      // provided.
+      if (this.resolutions.length > 1) {
+        this.test.reportSuccess('Supported: ' + resolution[0] + 'x' +
+            resolution[1]);
+        stream.getTracks().forEach(function(track) {track.stop();});
+        this.maybeContinueGetUserMedia();
+      } else {
+        this.collectAndAnalyzeStats_(stream, resolution);
+      }
     }.bind(this))
     .catch(function(error) {
-      this.test.reportError('getUserMedia failed with error: ' + error);
-      this.test.done();
+      if (this.resolutions.length > 1) {
+        this.test.reportInfo(resolution[0] + 'x' + resolution[1] +
+            ' not supported');
+        this.maybeContinueGetUserMedia();
+      } else {
+        this.test.reportError('getUserMedia failed with error: ' + error.name);
+        this.test.done();
+      }
     }.bind(this));
+  },
+
+  maybeContinueGetUserMedia: function() {
+    if (this.currentResolution === this.resolutions.length) {
+      this.test.done();
+      return;
+    }
+    this.startGetUserMedia(this.resolutions[this.currentResolution++]);
   },
 
   collectAndAnalyzeStats_: function(stream, resolution) {
@@ -88,8 +124,6 @@ CamResolutionsTest.prototype = {
     var video = document.createElement('video');
     video.setAttribute('autoplay', '');
     video.setAttribute('muted', '');
-    window.videoElement = video;
-    window.stream = stream;
     video.width = resolution[0];
     video.height = resolution[1];
     attachMediaStream(video, stream);
@@ -113,12 +147,8 @@ CamResolutionsTest.prototype = {
     frameChecker.stop();
 
     stream.getTracks().forEach(function(track) {
-      track.onended = null;
-      track.onmute = null;
-      track.onunmute = null;
       track.stop();
     });
-
     this.test.done();
   },
 
