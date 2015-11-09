@@ -7,113 +7,132 @@
  */
 'use strict';
 
-addTest(testSuiteName.NETWORK, testCaseName.UDPENABLED,
-    udpConnectivityTest);
-addTest(testSuiteName.NETWORK, testCaseName.TCPENABLED,
-    tcpConnectivityTest);
-addTest(testSuiteName.NETWORK, testCaseName.IPV6ENABLED,
-    hasIpv6CandidatesTest);
-
 // Test whether it can connect via UDP to a TURN server
 // Get a TURN config, and try to get a relay candidate using UDP.
-function udpConnectivityTest() {
-  Call.asyncCreateTurnConfig(
-      function(config) {
-        filterConfig(config, 'udp');
-        gatherCandidates(config, null, Call.isRelay);
-      },
-      reportFatal);
-}
+addTest(testSuiteName.NETWORK, testCaseName.UDPENABLED, function(test) {
+  var networkTest = new NetworkTest(test, 'udp', null, Call.isRelay);
+  networkTest.run();
+});
 
 // Test whether it can connect via TCP to a TURN server
 // Get a TURN config, and try to get a relay candidate using TCP.
-function tcpConnectivityTest() {
-  Call.asyncCreateTurnConfig(
-      function(config) {
-        filterConfig(config, 'tcp');
-        gatherCandidates(config, null, Call.isRelay);
-      },
-      reportFatal);
-}
+addTest(testSuiteName.NETWORK, testCaseName.TCPENABLED, function(test) {
+  var networkTest = new NetworkTest(test, 'tcp', null, Call.isRelay);
+  networkTest.run();
+});
 
 // Test whether it is IPv6 enabled (TODO: test IPv6 to a destination).
 // Turn on IPv6, and try to get an IPv6 host candidate.
-function hasIpv6CandidatesTest() {
+addTest(testSuiteName.NETWORK, testCaseName.IPV6ENABLED, function(test) {
   var params = {optional: [{googIPv6: true}]};
-  gatherCandidates(null, params, Call.isIpv6);
-}
+  var networkTest = new NetworkTest(test, null, params, Call.isIpv6);
+  networkTest.run();
+});
 
-// Filter the RTCConfiguration |config| to only contain URLs with the
-// specified transport protocol |protocol|. If no turn transport is
-// specified it is added with the requested protocol.
-function filterConfig(config, protocol) {
-  var transport = 'transport=' + protocol;
-  for (var i = 0; i < config.iceServers.length; ++i) {
-    var iceServer = config.iceServers[i];
-    var newUrls = [];
-    for (var j = 0; j < iceServer.urls.length; ++j) {
-      var uri = iceServer.urls[j];
-      if (uri.indexOf(transport) !== -1) {
-        newUrls.push(uri);
-      } else if (uri.indexOf('?transport=') === -1 && uri.startsWith('turn')) {
-        newUrls.push(uri + '?' + transport);
-      }
-    }
-    iceServer.urls = newUrls;
-  }
-}
+var NetworkTest = function(test, protocol, params, iceCandidateFilter) {
+  this.test = test;
+  this.protocol = protocol;
+  this.params = params;
+  this.iceCandidateFilter = iceCandidateFilter;
+};
 
-// Create a PeerConnection, and gather candidates using RTCConfig |config|
-// and ctor params |params|. Succeed if any candidates pass the |isGood|
-// check, fail if we complete gathering without any passing.
-function gatherCandidates(config, params, isGood) {
-  var pc;
-  try {
-    pc = new RTCPeerConnection(config, params);
-  } catch (error) {
-    if (params !== null && params.optional[0].googIPv6) {
-      reportWarning('Failed to create peer connection, IPv6 ' +
-          'might not be setup/supported on the network.');
+NetworkTest.prototype = {
+  run: function() {
+    // Do not create turn config for IPV6 test.
+    if (this.iceCandidateFilter.toString() === Call.isIpv6.toString()) {
+      this.gatherCandidates(null, this.params, this.iceCandidateFilter);
     } else {
-      reportError('Failed to create peer connection: ' + error);
+      Call.asyncCreateTurnConfig(this.start.bind(this),
+        this.test.reportFatal.bind(this.test));
     }
-    setTestFinished();
-  }
+  },
 
-  // In our candidate callback, stop if we get a candidate that passes |isGood|.
-  pc.addEventListener('icecandidate', function(e) {
-    // Once we've decided, ignore future callbacks.
-    if (pc.signalingState === 'closed') {
+  start: function(config) {
+    this.filterConfig(config, this.protocol);
+    this.gatherCandidates(config, this.params, this.iceCandidateFilter);
+  },
+
+  // Filter the RTCConfiguration |config| to only contain URLs with the
+  // specified transport protocol |protocol|. If no turn transport is
+  // specified it is added with the requested protocol.
+  filterConfig: function(config, protocol) {
+    var transport = 'transport=' + protocol;
+    for (var i = 0; i < config.iceServers.length; ++i) {
+      var iceServer = config.iceServers[i];
+      var newUrls = [];
+      for (var j = 0; j < iceServer.urls.length; ++j) {
+        var uri = iceServer.urls[j];
+        if (uri.indexOf(transport) !== -1) {
+          newUrls.push(uri);
+        } else if (
+          uri.indexOf('?transport=') === -1 && uri.startsWith('turn')) {
+          newUrls.push(uri + '?' + transport);
+        }
+      }
+      iceServer.urls = newUrls;
+    }
+  },
+
+  // Create a PeerConnection, and gather candidates using RTCConfig |config|
+  // and ctor params |params|. Succeed if any candidates pass the |isGood|
+  // check, fail if we complete gathering without any passing.
+  gatherCandidates: function(config, params, isGood) {
+    var pc;
+    try {
+      pc = new RTCPeerConnection(config, params);
+    } catch (error) {
+      if (params !== null && params.optional[0].googIPv6) {
+        this.test.reportWarning('Failed to create peer connection, IPv6 ' +
+            'might not be setup/supported on the network.');
+      } else {
+        this.test.reportError('Failed to create peer connection: ' + error);
+      }
+      this.test.done();
       return;
     }
 
-    if (e.candidate) {
-      var parsed = Call.parseCandidate(e.candidate.candidate);
-      if (isGood(parsed)) {
-        reportSuccess('Gathered candidate of Type: ' + parsed.type +
-                      ' Protocol: ' + parsed.protocol +
-                      ' Address: ' + parsed.address);
-        pc.close();
-        setTestFinished();
+    // In our candidate callback, stop if we get a candidate that passes
+    // |isGood|.
+    pc.addEventListener('icecandidate', function(e) {
+      // Once we've decided, ignore future callbacks.
+      if (e.currentTarget.signalingState === 'closed') {
+        return;
       }
-    } else {
-      pc.close();
-      if (params.optional[0].googIPv6) {
-        reportWarning('Failed to gather IPv6 candidates, it ' +
-          'might not be setup/supported on the network.');
+
+      if (e.candidate) {
+        var parsed = Call.parseCandidate(e.candidate.candidate);
+        if (isGood(parsed)) {
+          this.test.reportSuccess('Gathered candidate of Type: ' + parsed.type +
+              ' Protocol: ' + parsed.protocol + ' Address: ' + parsed.address);
+          pc.close();
+          pc = null;
+          this.test.done();
+        }
       } else {
-        reportError('Failed to gather specified candidates');
+        pc.close();
+        pc = null;
+        if (params.optional[0].googIPv6) {
+          this.test.reportWarning('Failed to gather IPv6 candidates, it ' +
+              'might not be setup/supported on the network.');
+        } else {
+          this.test.reportError('Failed to gather specified candidates');
+        }
+        this.test.done();
       }
-      setTestFinished();
-    }
-  });
+    }.bind(this));
+
+    this.createAudioOnlyReceiveOffer(pc);
+  },
 
   // Create an audio-only, recvonly offer, and setLD with it.
   // This will trigger candidate gathering.
-  var createOfferParams = {mandatory: {OfferToReceiveAudio: true}};
-  pc.createOffer(function(offer) { pc.setLocalDescription(offer, noop, noop) ;},
-                 noop, createOfferParams);
-}
+  createAudioOnlyReceiveOffer: function(pc) {
+    var createOfferParams = {mandatory: {OfferToReceiveAudio: true}};
+    pc.createOffer(function(offer) {
+      pc.setLocalDescription(offer, noop, noop);
+    }, noop, createOfferParams);
 
-function noop() {
-}
+    // Empty function for callbacks requiring a function.
+    function noop() {}
+  }
+};
