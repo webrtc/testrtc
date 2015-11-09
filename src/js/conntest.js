@@ -7,105 +7,115 @@
  */
 'use strict';
 
-addTest(testSuiteName.CONNECTIVITY, testCaseName.RELAYCONNECTIVITY,
-    relayConnectivityTest);
-addTest(testSuiteName.CONNECTIVITY, testCaseName.REFLEXIVECONNECTIVITY,
-    reflexiveConnectivityTest);
-addTest(testSuiteName.CONNECTIVITY, testCaseName.HOSTCONNECTIVITY,
-    hostConnectivityTest);
-
 // Set up a datachannel between two peers through a relay
 // and verify data can be transmitted and received
 // (packets travel through the public internet)
-function relayConnectivityTest() {
-  Call.asyncCreateTurnConfig(
-    runConnectivityTest.bind(null, Call.isRelay), reportFatal);
-}
+addTest(
+  testSuiteName.CONNECTIVITY, testCaseName.RELAYCONNECTIVITY, function(test) {
+  var runConnectivityTest =  new RunConnectivityTest(test, Call.isRelay);
+  runConnectivityTest.run();
+});
 
 // Set up a datachannel between two peers through a public IP address
 // and verify data can be transmitted and received
 // (packets should stay on the link if behind a router doing NAT)
-function reflexiveConnectivityTest() {
-  Call.asyncCreateStunConfig(
-    runConnectivityTest.bind(null, Call.isReflexive), reportFatal);
-}
+addTest(testSuiteName.CONNECTIVITY, testCaseName.REFLEXIVECONNECTIVITY,
+  function(test) {
+  var runConnectivityTest =  new RunConnectivityTest(test, Call.isReflexive);
+  runConnectivityTest.run();
+});
 
 // Set up a datachannel between two peers through a local IP address
 // and verify data can be transmitted and received
 // (packets should not leave the machine running the test)
-function hostConnectivityTest() {
-  runConnectivityTest(Call.isHost);
+addTest(
+  testSuiteName.CONNECTIVITY, testCaseName.HOSTCONNECTIVITY, function(test) {
+  var runConnectivityTest =  new RunConnectivityTest(test, Call.isHost);
+  runConnectivityTest.run();
+});
+
+function RunConnectivityTest(test, iceCandidateFilter) {
+  this.test = test;
+  this.iceCandidateFilter = iceCandidateFilter;
+  this.timeout = null;
+  this.parsedCandidates = [];
+  this.call = null;
 }
 
-function runConnectivityTest(iceCandidateFilter, config) {
-  var timeout = null;
-  var parsedCandidates = [];
-  var call = new Call(config);
-  call.setIceCandidateFilter(iceCandidateFilter);
+RunConnectivityTest.prototype = {
+  run: function() {
+    Call.asyncCreateTurnConfig(this.start.bind(this),
+        this.test.reportFatal.bind(this.test));
+  },
 
-  // Collect all candidate for validation.
-  call.pc1.addEventListener('icecandidate', function(event) {
-    if (event.candidate) {
-      var parsedCandidate = Call.parseCandidate(event.candidate.candidate);
-      parsedCandidates.push(parsedCandidate);
+  start: function(config) {
+    this.call = new Call(config);
+    this.call.setIceCandidateFilter(this.iceCandidateFilter);
 
-      // Report candidate info based on iceCandidateFilter.
-      if (iceCandidateFilter(parsedCandidate)) {
-        reportInfo(
-          'Gathered candidate of Type: ' + parsedCandidate.type +
-          ' Protocol: ' + parsedCandidate.protocol +
-          ' Address: ' + parsedCandidate.address);
+    // Collect all candidates for validation.
+    this.call.pc1.addEventListener('icecandidate', function(event) {
+      if (event.candidate) {
+        var parsedCandidate = Call.parseCandidate(event.candidate.candidate);
+        this.parsedCandidates.push(parsedCandidate);
+
+        // Report candidate info based on iceCandidateFilter.
+        if (this.iceCandidateFilter(parsedCandidate)) {
+          this.test.reportInfo(
+            'Gathered candidate of Type: ' + parsedCandidate.type +
+            ' Protocol: ' + parsedCandidate.protocol +
+            ' Address: ' + parsedCandidate.address);
+        }
       }
-    }
-  });
+    }.bind(this));
 
-  var ch1 = call.pc1.createDataChannel(null);
-  ch1.addEventListener('open', function() {
-    ch1.send('hello');
-  });
-  ch1.addEventListener('message', function(event) {
-    if (event.data !== 'world') {
-      reportError('Invalid data transmitted.');
-    } else {
-      reportSuccess('Data successfully transmitted between peers.');
-    }
-    hangup();
-  });
-  call.pc2.addEventListener('datachannel', function(event) {
-    var ch2 = event.channel;
-    ch2.addEventListener('message', function(event) {
-      if (event.data !== 'hello') {
-        hangup('Invalid data transmitted.');
-      } else {
-        ch2.send('world');
-      }
+    var ch1 = this.call.pc1.createDataChannel(null);
+    ch1.addEventListener('open', function() {
+      ch1.send('hello');
     });
-  });
-  call.establishConnection();
-  timeout = setTimeout(hangup.bind(null, 'Timed out'), 5000);
+    ch1.addEventListener('message', function(event) {
+      if (event.data !== 'world') {
+        this.test.reportError('Invalid data transmitted.');
+      } else {
+        this.test.reportSuccess('Data successfully transmitted between peers.');
+      }
+      this.hangup();
+    }.bind(this));
+    this.call.pc2.addEventListener('datachannel', function(event) {
+      var ch2 = event.channel;
+      ch2.addEventListener('message', function(event) {
+        if (event.data !== 'hello') {
+          this.hangup('Invalid data transmitted.');
+        } else {
+          ch2.send('world');
+        }
+      }.bind(this));
+    }.bind(this));
+    this.call.establishConnection();
+    this.timeout = setTimeout(this.hangup.bind(this, 'Timed out'), 5000);
+  },
 
-  function findParsedCandidateOfSpecifiedType(candidateTypeMethod) {
-    for (var candidate in parsedCandidates) {
-      if (candidateTypeMethod(parsedCandidates[candidate])) {
-        return candidateTypeMethod(parsedCandidates[candidate]);
+  findParsedCandidateOfSpecifiedType: function(candidateTypeMethod) {
+    for (var candidate in this.parsedCandidates) {
+      if (candidateTypeMethod(this.parsedCandidates[candidate])) {
+        return candidateTypeMethod(this.parsedCandidates[candidate]);
       }
     }
-  }
+  },
 
-  function hangup(errorMessage) {
+  hangup: function(errorMessage) {
     if (errorMessage) {
       // Report warning for server reflexive test if it times out.
       if (errorMessage === 'Timed out' &&
-          iceCandidateFilter.toString() === Call.isReflexive.toString() &&
-          findParsedCandidateOfSpecifiedType(Call.isReflexive)) {
-        reportWarning('Could not connect using reflexive candidates, likely ' +
-            'due to the network environment/configuration.');
+          this.iceCandidateFilter.toString() === Call.isReflexive.toString() &&
+          this.findParsedCandidateOfSpecifiedType(Call.isReflexive)) {
+        this.test.reportWarning('Could not connect using reflexive ' +
+            'candidates, likely due to the network environment/configuration.');
       } else {
-        reportError(errorMessage);
+        this.test.reportError(errorMessage);
       }
     }
-    clearTimeout(timeout);
-    call.close();
-    setTestFinished();
+    clearTimeout(this.timeout);
+    this.call.close();
+    this.test.done();
   }
-}
+};
