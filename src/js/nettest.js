@@ -111,7 +111,7 @@ NetworkTest.prototype = {
       } else {
         pc.close();
         pc = null;
-        if (params.optional[0].googIPv6) {
+        if (params !== null && params.optional[0].googIPv6) {
           this.test.reportWarning('Failed to gather IPv6 candidates, it ' +
               'might not be setup/supported on the network.');
         } else {
