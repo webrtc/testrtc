@@ -110,16 +110,16 @@ CamResolutionsTest.prototype = {
     // Register events.
     videoTrack.addEventListener('ended', function() {
       this.test.reportError('Video track ended, camera stopped working');
-    });
+    }.bind(this));
     videoTrack.addEventListener('mute', function() {
       this.test.reportError('Your camera reported itself as muted.');
       // MediaStreamTrack.muted property is not wired up in Chrome yet, checking
       // isMuted local state.
       this.isMuted = true;
-    });
+    }.bind(this));
     videoTrack.addEventListener('unmute', function() {
       this.isMuted = false;
-    });
+    }.bind(this));
 
     var video = document.createElement('video');
     video.setAttribute('autoplay', '');
