@@ -245,7 +245,7 @@ addExplicitTest(testSuiteName.THROUGHPUT, testCaseName.NETWORKLATENCYRELAY,
 function WiFiPeriodicScanTest(test, candidateFilter) {
   this.test = test;
   this.candidateFilter = candidateFilter;
-  this.testDurationMs = 1 * 60 * 1000;
+  this.testDurationMs = 5 * 60 * 1000;
   this.sendIntervalMs = 100;
   this.delays = [];
   this.recvTimeStamps = [];
