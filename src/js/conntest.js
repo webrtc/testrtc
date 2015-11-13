@@ -31,7 +31,7 @@ addTest(testSuiteName.CONNECTIVITY, testCaseName.REFLEXIVECONNECTIVITY,
 addTest(
   testSuiteName.CONNECTIVITY, testCaseName.HOSTCONNECTIVITY, function(test) {
   var runConnectivityTest =  new RunConnectivityTest(test, Call.isHost);
-  runConnectivityTest.run();
+  runConnectivityTest.start();
 });
 
 function RunConnectivityTest(test, iceCandidateFilter) {
