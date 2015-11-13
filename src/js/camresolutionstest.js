@@ -146,10 +146,10 @@ CamResolutionsTest.prototype = {
 
     frameChecker.stop();
 
+    this.test.done();
     stream.getTracks().forEach(function(track) {
       track.stop();
     });
-    this.test.done();
   },
 
   analyzeStats_: function(resolution, videoElement, stream,
