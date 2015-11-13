@@ -16,6 +16,7 @@ matrix:
 
   allow_failures:
     - env: BROWSER=chrome  BVER=unstable
+    - env: BROWSER=firefox BVER=beta
 
 before_script:
   - npm install
