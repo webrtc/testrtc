@@ -52,6 +52,7 @@ function CamResolutionsTest(test, resolutions) {
   this.resolutions = resolutions;
   this.currentResolution = 0;
   this.isMuted = false;
+  this.isShuttingDown = false;
 }
 
 CamResolutionsTest.prototype = {
@@ -109,15 +110,28 @@ CamResolutionsTest.prototype = {
     var videoTrack = tracks[0];
     // Register events.
     videoTrack.addEventListener('ended', function() {
+      // Ignore events when shutting down the test.
+      if (this.isShuttingDown) {
+        return;
+      }
       this.test.reportError('Video track ended, camera stopped working');
     }.bind(this));
     videoTrack.addEventListener('mute', function() {
+      // Ignore events when shutting down the test.
+      if (this.isShuttingDown) {
+        return;
+      }
       this.test.reportError('Your camera reported itself as muted.');
       // MediaStreamTrack.muted property is not wired up in Chrome yet, checking
       // isMuted local state.
       this.isMuted = true;
     }.bind(this));
     videoTrack.addEventListener('unmute', function() {
+      // Ignore events when shutting down the test.
+      if (this.isShuttingDown) {
+        return;
+      }
+      this.test.reportInfo('Your camera reported itself as unmuted.');
       this.isMuted = false;
     }.bind(this));
 
@@ -136,7 +150,7 @@ CamResolutionsTest.prototype = {
                                             stream, frameChecker),
                      100);
 
-    setTimeoutWithProgressBar(call.close.bind(call), 8000);
+    setTimeoutWithProgressBar(this.endCall_.bind(this, call, stream), 8000);
   },
 
   onCallEnded_: function(resolution, videoElement, stream, frameChecker,
@@ -147,9 +161,6 @@ CamResolutionsTest.prototype = {
     frameChecker.stop();
 
     this.test.done();
-    stream.getTracks().forEach(function(track) {
-      track.stop();
-    });
   },
 
   analyzeStats_: function(resolution, videoElement, stream,
@@ -200,6 +211,14 @@ CamResolutionsTest.prototype = {
     report.traceEventInstant('video-stats', statsReport);
 
     this.testExpectations_(statsReport);
+  },
+
+  endCall_: function(callObject, stream) {
+    this.isShuttingDown = true;
+    stream.getTracks().forEach(function(track) {
+      track.stop();
+    });
+    callObject.close();
   },
 
   extractEncoderSetupTime_: function(stats, statsTime) {
