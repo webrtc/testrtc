@@ -127,7 +127,7 @@ NetworkTest.prototype = {
   // Create an audio-only, recvonly offer, and setLD with it.
   // This will trigger candidate gathering.
   createAudioOnlyReceiveOffer: function(pc) {
-    var createOfferParams = {mandatory: {OfferToReceiveAudio: true}};
+    var createOfferParams = {offerToReceiveAudio: true};
     pc.createOffer(function(offer) {
       pc.setLocalDescription(offer, noop, noop);
     }, noop, createOfferParams);
