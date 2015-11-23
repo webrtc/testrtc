@@ -91,7 +91,6 @@ CamResolutionsTest.prototype = {
   },
 
   maybeContinueGetUserMedia: function() {
-    console.log(this.currentResolution, this.resolutions.length);
     if (this.currentResolution === this.resolutions.length) {
       this.test.done();
       return;
