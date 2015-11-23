@@ -178,9 +178,7 @@ VideoBandwidthTest.prototype = {
     } else {
       this.test.setProgress((now - this.startTime) * 100 / this.durationMs);
       this.call.pc1.getStats(this.localStream)
-      .then(function(response) {
-        this.gotStats(response);
-      }.bind(this))
+      .then(this.gotStats.bind(this))
       .catch(function(error) {
         this.test.reportError('Failed to getStats: ' + error);
       }.bind(this));
@@ -249,10 +247,6 @@ VideoBandwidthTest.prototype = {
       } else {
         this.test.reportSuccess('Video resolution: ' + this.videoStats[0] +
             'x' + this.videoStats[1]);
-        this.test.reportInfo('RTT average: ' + this.rttStats.getAverage() +
-            ' ms');
-        this.test.reportInfo('RTT max: ' + this.rttStats.getMax() + ' ms');
-        this.test.reportInfo('Lost packets: ' + this.packetsLost);
         this.test.reportInfo('Send bandwidth estimate average: ' +
             this.bweStats.getAverage() + ' bps');
         this.test.reportInfo('Send bandwidth estimate max: ' +
@@ -268,16 +262,17 @@ VideoBandwidthTest.prototype = {
         this.test.reportError('Frame rate mean is 0, cannot test bandwidth ' +
             'without a working camera.');
       }
-      this.test.reportInfo('RTT average: ' + this.rttStats.getAverage() +
-          ' ms');
-      this.test.reportInfo('RTT max: ' + this.rttStats.getMax() + ' ms');
-      this.test.reportInfo('Lost packets: ' + parseInt(this.packetsLost));
       this.test.reportInfo('Send bitrate mean: ' + parseInt(this.bitrateMean) +
           ' bps');
       this.test.reportInfo('Send bitrate standard deviation: ' +
           parseInt(this.bitrateStdDev) + ' bps');
 
     }
+    this.test.reportInfo('RTT average: ' + this.rttStats.getAverage() +
+            ' ms');
+    this.test.reportInfo('RTT max: ' + this.rttStats.getMax() + ' ms');
+    this.test.reportInfo('Lost packets: ' + this.packetsLost);
+
     this.test.done();
   }
 };
