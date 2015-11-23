@@ -83,15 +83,15 @@ CamResolutionsTest.prototype = {
       if (this.resolutions.length > 1) {
         this.test.reportInfo(resolution[0] + 'x' + resolution[1] +
             ' not supported');
-        this.maybeContinueGetUserMedia();
       } else {
         this.test.reportError('getUserMedia failed with error: ' + error);
-        this.test.done();
       }
+      this.maybeContinueGetUserMedia();
     }.bind(this));
   },
 
   maybeContinueGetUserMedia: function() {
+    console.log(this.currentResolution, this.resolutions.length);
     if (this.currentResolution === this.resolutions.length) {
       this.test.done();
       return;
@@ -139,7 +139,6 @@ CamResolutionsTest.prototype = {
         this.isMuted = false;
       }.bind(this));
     }
-
 
     var video = document.createElement('video');
     video.setAttribute('autoplay', '');
