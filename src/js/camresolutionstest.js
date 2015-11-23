@@ -83,11 +83,10 @@ CamResolutionsTest.prototype = {
       if (this.resolutions.length > 1) {
         this.test.reportInfo(resolution[0] + 'x' + resolution[1] +
             ' not supported');
-        this.maybeContinueGetUserMedia();
       } else {
-        this.test.reportError('getUserMedia failed with error: ' + error.name);
-        this.test.done();
+        this.test.reportError('getUserMedia failed with error: ' + error);
       }
+      this.maybeContinueGetUserMedia();
     }.bind(this));
   },
 
@@ -103,37 +102,42 @@ CamResolutionsTest.prototype = {
     var tracks = stream.getVideoTracks();
     if (tracks.length < 1) {
       this.test.reportError('No video track in returned stream.');
-      this.finishTestOrRetrigger_();
+      this.maybeContinueGetUserMedia();
       return;
     }
 
+    // Firefox does not support event handlers on mediaStreamTrack yet.
+    // https://developer.mozilla.org/en-US/docs/Web/API/MediaStreamTrack
+    // TODO: remove if (...) when event handlers are supported by Firefox.
     var videoTrack = tracks[0];
-    // Register events.
-    videoTrack.addEventListener('ended', function() {
-      // Ignore events when shutting down the test.
-      if (this.isShuttingDown) {
-        return;
-      }
-      this.test.reportError('Video track ended, camera stopped working');
-    }.bind(this));
-    videoTrack.addEventListener('mute', function() {
-      // Ignore events when shutting down the test.
-      if (this.isShuttingDown) {
-        return;
-      }
-      this.test.reportError('Your camera reported itself as muted.');
-      // MediaStreamTrack.muted property is not wired up in Chrome yet, checking
-      // isMuted local state.
-      this.isMuted = true;
-    }.bind(this));
-    videoTrack.addEventListener('unmute', function() {
-      // Ignore events when shutting down the test.
-      if (this.isShuttingDown) {
-        return;
-      }
-      this.test.reportInfo('Your camera reported itself as unmuted.');
-      this.isMuted = false;
-    }.bind(this));
+    if (typeof videoTrack.addEventListener === 'function') {
+      // Register events.
+      videoTrack.addEventListener('ended', function() {
+        // Ignore events when shutting down the test.
+        if (this.isShuttingDown) {
+          return;
+        }
+        this.test.reportError('Video track ended, camera stopped working');
+      }.bind(this));
+      videoTrack.addEventListener('mute', function() {
+        // Ignore events when shutting down the test.
+        if (this.isShuttingDown) {
+          return;
+        }
+        this.test.reportError('Your camera reported itself as muted.');
+        // MediaStreamTrack.muted property is not wired up in Chrome yet,
+        // checking isMuted local state.
+        this.isMuted = true;
+      }.bind(this));
+      videoTrack.addEventListener('unmute', function() {
+        // Ignore events when shutting down the test.
+        if (this.isShuttingDown) {
+          return;
+        }
+        this.test.reportInfo('Your camera reported itself as unmuted.');
+        this.isMuted = false;
+      }.bind(this));
+    }
 
     var video = document.createElement('video');
     video.setAttribute('autoplay', '');
