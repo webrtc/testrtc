@@ -166,6 +166,7 @@ VideoBandwidthTest.prototype = {
     this.call.pc1.addStream(stream);
     this.call.establishConnection();
     this.startTime = new Date();
+    this.localStream = stream.getVideoTracks()[0];
     setTimeout(this.gatherStats.bind(this), this.statStepMs);
   },
 
@@ -176,24 +177,55 @@ VideoBandwidthTest.prototype = {
       this.completed();
     } else {
       this.test.setProgress((now - this.startTime) * 100 / this.durationMs);
-      this.call.pc1.getStats(this.gotStats.bind(this));
+      this.call.pc1.getStats(this.localStream)
+      .then(function(response) {
+        this.gotStats(response);
+      }.bind(this))
+      .catch(function(error) {
+        this.test.reportError('Failed to getStats: ' + error);
+      }.bind(this));
     }
   },
 
   gotStats: function(response) {
-    for (var index in response.result()) {
-      var report = response.result()[index];
-      if (report.id === 'bweforvideo') {
-        this.bweStats.add(Date.parse(report.timestamp),
-          parseInt(report.stat('googAvailableSendBandwidth')));
-      } else if (report.type === 'ssrc') {
-        this.rttStats.add(Date.parse(report.timestamp),
-          parseInt(report.stat('googRtt')));
-        // Grab the last stats.
-        this.videoStats[0] = parseInt(report.stat('googFrameWidthSent'));
-        this.videoStats[1] = parseInt(report.stat('googFrameHeightSent'));
-        this.packetsLost = parseInt(report.stat('packetsLost'));
+    // TODO: Remove browser specific stats gathering hack once adapter.js or
+    // browsers converge on a standard.
+    if (webrtcDetectedBrowser === 'chrome') {
+      for (var i in response.result()) {
+        var report = response.result()[i];
+        if (report.id === 'bweforvideo') {
+          this.bweStats.add(Date.parse(report.timestamp),
+            parseInt(report.stat('googAvailableSendBandwidth')));
+        } else if (report.type === 'ssrc') {
+          this.rttStats.add(Date.parse(report.timestamp),
+            parseInt(report.stat('googRtt')));
+          // Grab the last stats.
+          this.videoStats[0] = report.stat('googFrameWidthSent');
+          this.videoStats[1] = report.stat('googFrameHeightSent');
+          this.packetsLost = report.stat('packetsLost');
+        }
       }
+    } else if (webrtcDetectedBrowser === 'firefox') {
+      for (var j in response) {
+        var stats = response[j];
+        if (stats.id === 'outbound_rtcp_video_0') {
+          this.rttStats.add(Date.parse(stats.timestamp),
+            parseInt(stats.mozRtt));
+          // Grab the last stats.
+          this.jitter = stats.jitter;
+          this.packetsLost = stats.packetsLost;
+        } else if (stats.id === 'outbound_rtp_video_0') {
+          // TODO: Get dimensions from getStats when supported in FF.
+          this.videoStats[0] = 'Not supported on Firefox';
+          this.videoStats[1] = 'Not supported on Firefox';
+          this.bitrateMean = stats.bitrateMean;
+          this.bitrateStdDev = stats.bitrateStdDev;
+          this.framerateMean = stats.framerateMean;
+        }
+      }
+    } else {
+      this.test.reportError('Only Firefox and Chrome getStats implementations' +
+        ' are supported.');
     }
     setTimeout(this.gatherStats.bind(this), this.statStepMs);
   },
@@ -205,25 +237,46 @@ VideoBandwidthTest.prototype = {
     this.call.close();
     this.call = null;
 
-    // Checking if greater than 2 because Chrome sometimes reports 2x2 when
-    // a camera starts but fails to deliver frames.
-    if (this.videoStats[0] < 2 && this.videoStats[1] < 2) {
-      this.test.reportError('Camera failure: ' + this.videoStats[0] + 'x' +
-          this.videoStats[1] + '. Cannot test bandwidth without a working ' +
-          ' camera.');
-    } else {
-      this.test.reportSuccess('Video resolution: ' + this.videoStats[0] + 'x' +
-          this.videoStats[1]);
+    // TODO: Remove browser specific stats gathering hack once adapter.js or
+    // browsers converge on a standard.
+    if (webrtcDetectedBrowser === 'chrome') {
+      // Checking if greater than 2 because Chrome sometimes reports 2x2 when
+      // a camera starts but fails to deliver frames.
+      if (this.videoStats[0] < 2 && this.videoStats[1] < 2) {
+        this.test.reportError('Camera failure: ' + this.videoStats[0] + 'x' +
+            this.videoStats[1] + '. Cannot test bandwidth without a working ' +
+            ' camera.');
+      } else {
+        this.test.reportSuccess('Video resolution: ' + this.videoStats[0] +
+            'x' + this.videoStats[1]);
+        this.test.reportInfo('RTT average: ' + this.rttStats.getAverage() +
+            ' ms');
+        this.test.reportInfo('RTT max: ' + this.rttStats.getMax() + ' ms');
+        this.test.reportInfo('Lost packets: ' + this.packetsLost);
+        this.test.reportInfo('Send bandwidth estimate average: ' +
+            this.bweStats.getAverage() + ' bps');
+        this.test.reportInfo('Send bandwidth estimate max: ' +
+            this.bweStats.getMax() + ' bps');
+        this.test.reportInfo('Send bandwidth ramp-up time: ' +
+            this.bweStats.getRampUpTime() + ' ms');
+      }
+    } else if (webrtcDetectedBrowser === 'firefox') {
+      if (parseInt(this.framerateMean) > 0) {
+        this.test.reportSuccess('Frame rate mean: ' +
+            parseInt(this.framerateMean));
+      } else {
+        this.test.reportError('Frame rate mean is 0, cannot test bandwidth ' +
+            'without a working camera.');
+      }
       this.test.reportInfo('RTT average: ' + this.rttStats.getAverage() +
           ' ms');
       this.test.reportInfo('RTT max: ' + this.rttStats.getMax() + ' ms');
-      this.test.reportInfo('Lost packets: ' + this.packetsLost);
-      this.test.reportInfo('Send bandwidth estimate average: ' +
-          this.bweStats.getAverage() + ' bps');
-      this.test.reportInfo('Send bandwidth estimate max: ' +
-          this.bweStats.getMax() + ' bps');
-      this.test.reportInfo('Send bandwidth ramp-up time: ' +
-          this.bweStats.getRampUpTime() + ' ms');
+      this.test.reportInfo('Lost packets: ' + parseInt(this.packetsLost));
+      this.test.reportInfo('Send bitrate mean: ' + parseInt(this.bitrateMean) +
+          ' bps');
+      this.test.reportInfo('Send bitrate standard deviation: ' +
+          parseInt(this.bitrateStdDev) + ' bps');
+
     }
     this.test.done();
   }
