@@ -124,7 +124,7 @@ CamResolutionsTest.prototype = {
         if (this.isShuttingDown) {
           return;
         }
-        this.test.reportError('Your camera reported itself as muted.');
+        this.test.reportWarning('Your camera reported itself as muted.');
         // MediaStreamTrack.muted property is not wired up in Chrome yet,
         // checking isMuted local state.
         this.isMuted = true;
