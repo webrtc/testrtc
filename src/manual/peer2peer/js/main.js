@@ -364,7 +364,7 @@ function getDevices() {
       } else if (devices[i].kind === 'audiooutput')  {
         // TODO: Add output device selection.
         return;
-      } else { 
+      } else {
         error_('Device type ' + devices[i].kind + ' not recognized, ' +
                 'cannot enumerate device. Currently only device types' +
                 '\'audio\' and \'video\' are supported');
@@ -837,7 +837,8 @@ function doGetUserMedia_(constraints) {
   }
 
   print_('Requesting doGetUserMedia: constraints: ' + constraints);
-  navigator.mediaDevices.getUserMedia(evaluatedConstraints).then(function(stream) {
+  navigator.mediaDevices.getUserMedia(evaluatedConstraints)
+  .then(function(stream) {
     global.localStream = stream;
     success_('getUserMedia');
 
@@ -854,8 +855,8 @@ function doGetUserMedia_(constraints) {
       };
       // Print information on track going to mute or back from it.
       stream.getVideoTracks()[0].onmute = function() {
-        error_(global.localStream + ' MediaStreamTrack.onmute event has fired, ' +
-               'no frames to the track.');
+        error_(global.localStream + ' MediaStreamTrack.onmute event has ' +
+            'fired, no frames to the track.');
       };
       stream.getVideoTracks()[0].onunmute = function() {
         warning_(global.localStream + ' MediaStreamTrack.onunmute event has ' +
@@ -864,7 +865,7 @@ function doGetUserMedia_(constraints) {
     }
   }).catch(function(error) {
     error_('GetUserMedia failed with error: ' + error.name);
-  })
+  });
 }
 
 // Must be called after calling doGetUserMedia.
