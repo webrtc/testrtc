@@ -916,7 +916,6 @@ function getSourcesFromField_(audioSelect, videoSelect) {
     videoId: null
   };
   if (audioSelect.options.length > 0) {
-
     source.audioId = audioSelect.options[audioSelect.selectedIndex].value;
   }
   if (videoSelect.options.length > 0) {
