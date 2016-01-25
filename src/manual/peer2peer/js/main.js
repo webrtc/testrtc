@@ -248,14 +248,14 @@ function updateGetUserMediaConstraints() {
                                        selectedVideoDevice);
 
     if ($('audio').checked) {
-      if (typeof devices.audioId !== 'undefined') {
-        global.constraints.audio = {optional: [{sourceId: devices.audioId}]};
+      if (devices.audioId !== null) {
+        global.constraints.audio = {optional: [{deviceId: devices.audioId}]};
       }
     }
 
     if ($('video').checked) {
-      if (typeof devices.videoId !== 'undefined') {
-        global.constraints.video.optional.push({sourceId: devices.videoId});
+      if (devices.videoId !== null) {
+        global.constraints.video.optional.push({deviceId: devices.videoId});
       }
     }
   }
@@ -336,39 +336,43 @@ function getDevices() {
   selectedAudioDevice.innerHTML = '';
   selectedVideoDevice.innerHTML = '';
 
-  if (typeof(MediaStreamTrack.getSources) === 'undefined') {
+  if (typeof navigator.mediaDevices.enumerateDevices === 'undefined') {
     selectedAudioDevice.disabled = true;
     selectedVideoDevice.disabled = true;
     $('get-devices').disabled = true;
     $('get-devices-onload').disabled = true;
     updateGetUserMediaConstraints();
-    error_('getSources not found, device enumeration not supported');
+    error_('enumerateDevices not found, device enumeration not supported');
   }
 
-  MediaStreamTrack.getSources(function(devices) {
+  navigator.mediaDevices.enumerateDevices().then(function(devices) {
     for (var i = 0; i < devices.length; i++) {
       var option = document.createElement('option');
-      option.value = devices[i].id;
+      option.value = devices[i].deviceId;
       option.text = devices[i].label;
 
-      if (devices[i].kind === 'audio') {
+      if (devices[i].kind === 'audioinput') {
         if (option.text === '') {
-          option.text = devices[i].id;
+          option.text = devices[i].deviceId;
         }
         selectedAudioDevice.appendChild(option);
-      } else if (devices[i].kind === 'video') {
+      } else if (devices[i].kind === 'videoinput') {
         if (option.text === '') {
-          option.text = devices[i].id;
+          option.text = devices[i].deviceId;
         }
         selectedVideoDevice.appendChild(option);
+      } else if (devices[i].kind === 'audiooutput')  {
+        // TODO: Add output device selection.
+        return;
       } else {
         error_('Device type ' + devices[i].kind + ' not recognized, ' +
                 'cannot enumerate device. Currently only device types' +
                 '\'audio\' and \'video\' are supported');
         updateGetUserMediaConstraints();
-        return;
       }
     }
+  }).catch(function(error) {
+    error_('Could not enumerateDevices: ' + error);
   });
 
   checkIfDeviceDropdownsArePopulated_();
@@ -821,7 +825,7 @@ function getReadyState_() {
 // and optional constraints defined. The contents of this parameter depends
 // on the WebRTC version. This should be JavaScript code that we eval().
 function doGetUserMedia_(constraints) {
-  if (!getUserMedia) {
+  if (!navigator.getUserMedia) {
     print_('Browser does not support WebRTC.');
     return;
   }
@@ -833,8 +837,35 @@ function doGetUserMedia_(constraints) {
   }
 
   print_('Requesting doGetUserMedia: constraints: ' + constraints);
-  getUserMedia(evaluatedConstraints, getUserMediaOkCallback_,
-               getUserMediaFailedCallback_);
+  navigator.mediaDevices.getUserMedia(evaluatedConstraints)
+  .then(function(stream) {
+    global.localStream = stream;
+    success_('getUserMedia');
+
+    if (stream.getVideoTracks().length > 0) {
+      // Show the video element if we did request video in the getUserMedia call.
+      var videoElement = $('local-view');
+      attachMediaStream(videoElement, stream);
+      window.addEventListener('loadedmetadata', function() {
+          displayVideoSize(videoElement);}, true);
+      // Throw an error when no video is sent from camera but gUM returns OK.
+      stream.getVideoTracks()[0].onended = function() {
+        error_(global.localStream + ' getUserMedia successful but ' +
+               'MediaStreamTrack.onended event fired, no frames from camera.');
+      };
+      // Print information on track going to mute or back from it.
+      stream.getVideoTracks()[0].onmute = function() {
+        error_(global.localStream + ' MediaStreamTrack.onmute event has ' +
+            'fired, no frames to the track.');
+      };
+      stream.getVideoTracks()[0].onunmute = function() {
+        warning_(global.localStream + ' MediaStreamTrack.onunmute event has ' +
+                 'fired.');
+      };
+    }
+  }).catch(function(error) {
+    error_('GetUserMedia failed with error: ' + error.name);
+  });
 }
 
 // Must be called after calling doGetUserMedia.
@@ -892,11 +923,6 @@ function getSourcesFromField_(audioSelect, videoSelect) {
     source.videoId = videoSelect.options[videoSelect.selectedIndex].value;
   }
   return source;
-}
-
-// @param {NavigatorUserMediaError} error Error containing details.
-function getUserMediaFailedCallback_(error) {
-  error_('GetUserMedia failed with error: ' + error.name);
 }
 
 function iceCallback_(event) {
@@ -959,40 +985,11 @@ function hookupDataChannelEvents() {
 function onDataChannelReadyStateChange_() {
   print_('DataChannel state:' + global.dataChannel.readyState);
   global.dataStatusCallback(global.dataChannel.readyState);
-  console.log(global.dataStatusCallback);
   // Display dataChannel.id only when dataChannel is active/open.
   if (global.dataChannel.readyState === 'open') {
     $('data-channel-id').value = global.dataChannel.id;
   } else if (global.dataChannel.readyState === 'closed') {
     $('data-channel-id').value = '';
-  }
-}
-
-// @param {MediaStream} stream Media stream.
-function getUserMediaOkCallback_(stream) {
-  global.localStream = stream;
-  success_('getUserMedia');
-
-  if (stream.getVideoTracks().length > 0) {
-    // Show the video element if we did request video in the getUserMedia call.
-    var videoElement = $('local-view');
-    attachMediaStream(videoElement, stream);
-    window.addEventListener('loadedmetadata', function() {
-        displayVideoSize(videoElement);}, true);
-    // Throw an error when no video is sent from camera but gUM returns OK.
-    stream.getVideoTracks()[0].onended = function() {
-      error_(global.localStream + ' getUserMedia successful but ' +
-             'MediaStreamTrack.onended event fired, no frames from camera.');
-    };
-    // Print information on track going to mute or back from it.
-    stream.getVideoTracks()[0].onmute = function() {
-      error_(global.localStream + ' MediaStreamTrack.onmute event has fired, ' +
-             'no frames to the track.');
-    };
-    stream.getVideoTracks()[0].onunmute = function() {
-      warning_(global.localStream + ' MediaStreamTrack.onunmute event has ' +
-               'fired.');
-    };
   }
 }
 
@@ -1066,7 +1063,6 @@ function getLocalStorageField_(element) {
 // Stores the string value of the element object using local storage.
 // @param {!Object} element of which id is representing the key parameter for
 // local storage.
-
 function storeLocalStorageField_(element) {
   if (element.type === 'checkbox') {
     localStorage.setItem(element.id, element.checked);
