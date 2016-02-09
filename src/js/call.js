@@ -160,11 +160,11 @@ Call.asyncCreateTurnConfig = function(onSuccess, onError) {
     report.traceEventInstant('turn-config', config);
     setTimeout(onSuccess.bind(null, config), 0);
   } else {
-    Call.fetchCEODTurnConfig_(function(response) {
+    Call.fetchTurnConfig_(function(response) {
       var iceServer = {
-        'username': response.username,
-        'credential': response.password,
-        'urls': response.uris
+        'username': response.iceServers[0].username,
+        'credential': response.iceServers[0].credential,
+        'urls': response.iceServers[0].urls
       };
       var config = {'iceServers': [iceServer]};
       report.traceEventInstant('turn-config', config);
@@ -184,11 +184,9 @@ Call.asyncCreateStunConfig = function(onSuccess, onError) {
     report.traceEventInstant('stun-config', config);
     setTimeout(onSuccess.bind(null, config), 0);
   } else {
-    Call.fetchCEODTurnConfig_(function(response) {
+    Call.fetchTurnConfig_(function(response) {
       var iceServer = {
-        'urls': response.uris.map(function(uri) {
-          return uri.replace(/^turn/, 'stun');
-        })
+        'urls': response.urls
       };
       var config = {'iceServers': [iceServer]};
       report.traceEventInstant('stun-config', config);
@@ -197,10 +195,16 @@ Call.asyncCreateStunConfig = function(onSuccess, onError) {
   }
 };
 
-// Ask computeengineondemand to give us TURN server credentials and URIs.
-Call.CEOD_URL =
-    'https://computeengineondemand.appspot.com/turn?username=1234&key=5678';
-Call.fetchCEODTurnConfig_ = function(onSuccess, onError) {
+// Ask network traversal API to give us TURN server credentials and URLs.
+Call.fetchTurnConfig_ = function(onSuccess, onError) {
+  // API_KEY is replaced with API_KEY environment variable during build time
+  // by uglifyJS.
+  // jscs:disable
+  /* jshint ignore:start */
+  var TURN_URL =
+    'https://networktraversal.googleapis.com/v1alpha/iceconfig?key=' + API_KEY;
+  // jscs:enable
+  /* jshint ignore:end */
   var xhr = new XMLHttpRequest();
   function onResult() {
     if (xhr.readyState !== 4) {
@@ -217,6 +221,10 @@ Call.fetchCEODTurnConfig_ = function(onSuccess, onError) {
   }
 
   xhr.onreadystatechange = onResult;
-  xhr.open('GET', Call.CEOD_URL, true);
+  // jscs:disable
+  /* jshint ignore:start */
+  xhr.open('POST', TURN_URL, true);
+  // jscs:enable
+  /* jshint ignore:end */
   xhr.send();
 };
