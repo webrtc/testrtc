@@ -13,7 +13,7 @@
 var test = require('tape');
 
 var webdriver = require('selenium-webdriver');
-var seleniumHelpers = require('./selenium-lib');
+var seleniumHelpers = require('webrtc-utilities').seleniumLib;
 
 test('Run TestRTC', function(t) {
   // FIXME: use env[SELENIUM_BROWSER] instead?
@@ -30,8 +30,7 @@ test('Run TestRTC', function(t) {
   })
   .then(function(element) {
     t.pass('Located startButton');
-    return new webdriver.ActionSequence(driver).
-        doubleClick(element).perform();
+    return element.click();
   })
   .then(function() {
     t.pass('Clicked on startButton.');
