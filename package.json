@@ -6,13 +6,12 @@
     "type": "git",
     "url": "git://github.com/webrtc/testrtc"
   },
+  "license": "BSD-3-Clause",
   "authors": [
     "The WebRTC project authors (http://www.webrtc.org/)"
   ],
   "scripts": {
-    "test": "grunt build && test/run-tests",
-    "build": "grunt build",
-    "lint": "grunt"
+    "test": "grunt build && start-tests"
   },
   "devDependencies": {
     "grunt-contrib-clean": "~0.6.0",
@@ -25,9 +24,6 @@
     "grunt-vulcanize": "~1.0.0",
     "grunt": "~0.4.5",
     "bower": "~1.4.1",
-    "chromedriver": "^2.16.0",
-    "selenium-webdriver": "^2.46.0",
-    "tape": "^4.0.0",
-    "travis-multirunner": "^3.0.0"
+    "webrtc-utilities": ">=0.0.1"
   }
 }
