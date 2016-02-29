@@ -161,12 +161,7 @@ Call.asyncCreateTurnConfig = function(onSuccess, onError) {
     setTimeout(onSuccess.bind(null, config), 0);
   } else {
     Call.fetchTurnConfig_(function(response) {
-      var iceServer = {
-        'username': response.iceServers[0].username,
-        'credential': response.iceServers[0].credential,
-        'urls': response.iceServers[0].urls
-      };
-      var config = {'iceServers': [iceServer]};
+      var config = {'iceServers': response.iceServers};
       report.traceEventInstant('turn-config', config);
       onSuccess(config);
     }, onError);
@@ -185,10 +180,7 @@ Call.asyncCreateStunConfig = function(onSuccess, onError) {
     setTimeout(onSuccess.bind(null, config), 0);
   } else {
     Call.fetchTurnConfig_(function(response) {
-      var iceServer = {
-        'urls': response.urls
-      };
-      var config = {'iceServers': [iceServer]};
+      var config = {'iceServers': response.iceServers.urls};
       report.traceEventInstant('stun-config', config);
       onSuccess(config);
     }, onError);
