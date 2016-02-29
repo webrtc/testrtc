@@ -6,6 +6,10 @@
 'use strict';
 
 var dataSources = ['screen', 'window'];
+if (getChromeVersion() >= 50) {
+  dataSources.push("tab");
+  dataSources.push("audio");
+}
 var desktopMediaRequestId = '';
 
 chrome.runtime.onConnect.addListener(function(port) {
@@ -43,4 +47,9 @@ function cancelScreenSharing() {
   if (desktopMediaRequestId) {
     chrome.desktopCapture.cancelChooseDesktopMedia(desktopMediaRequestId);
   }
+}
+
+function getChromeVersion() {
+  var raw = navigator.userAgent.match(/Chrome\/([0-9]+)\./);
+  return raw ? parseInt(raw[1],10) : -1;
 }

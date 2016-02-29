@@ -411,7 +411,12 @@ function screenCaptureExtensionHandler_() {
     // user chose a stream
     if (event.data.type && (event.data.type === 'SS_DIALOG_SUCCESS')) {
       var constraints = {
-        audio: false,
+        audio: {
+          mandatory: {
+            chromeMediaSource: 'desktop',
+            chromeMediaSourceId: event.data.streamId
+          }
+        },
         video: {
           mandatory: {
             chromeMediaSource: 'desktop',
