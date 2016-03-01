@@ -189,14 +189,6 @@ Call.asyncCreateStunConfig = function(onSuccess, onError) {
 
 // Ask network traversal API to give us TURN server credentials and URLs.
 Call.fetchTurnConfig_ = function(onSuccess, onError) {
-  // API_KEY is replaced with API_KEY environment variable during build time
-  // by uglifyJS.
-  // jscs:disable
-  /* jshint ignore:start */
-  var TURN_URL =
-    'https://networktraversal.googleapis.com/v1alpha/iceconfig?key=' + API_KEY;
-  // jscs:enable
-  /* jshint ignore:end */
   var xhr = new XMLHttpRequest();
   function onResult() {
     if (xhr.readyState !== 4) {
@@ -213,9 +205,11 @@ Call.fetchTurnConfig_ = function(onSuccess, onError) {
   }
 
   xhr.onreadystatechange = onResult;
+  // API_KEY and TURN_URL is replaced with API_KEY environment variable via
+  // Gruntfile.js during build time by uglifyJS.
   // jscs:disable
   /* jshint ignore:start */
-  xhr.open('POST', TURN_URL, true);
+  xhr.open('POST', TURN_URL + API_KEY, true);
   // jscs:enable
   /* jshint ignore:end */
   xhr.send();

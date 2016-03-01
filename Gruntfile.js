@@ -113,7 +113,8 @@ module.exports = function(grunt) {
       options: {
         compress: {
           global_defs: {
-            'API_KEY': process.env.API_KEY
+            'API_KEY': process.env.API_KEY,
+            'TURN_URL': 'https://networktraversal.googleapis.com/v1alpha/iceconfig?key='
           },
           dead_code: true,
         },
