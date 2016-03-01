@@ -38,6 +38,11 @@ handlers:
   static_dir: src/css
   secure: always
 
+- url: /main.js
+  static_files: src/main.js
+  upload: src/main.js
+  secure: always
+
 - url: /
   static_files: src/index.html
   upload: src/index.html

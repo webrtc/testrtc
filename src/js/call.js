@@ -160,13 +160,8 @@ Call.asyncCreateTurnConfig = function(onSuccess, onError) {
     report.traceEventInstant('turn-config', config);
     setTimeout(onSuccess.bind(null, config), 0);
   } else {
-    Call.fetchCEODTurnConfig_(function(response) {
-      var iceServer = {
-        'username': response.username,
-        'credential': response.password,
-        'urls': response.uris
-      };
-      var config = {'iceServers': [iceServer]};
+    Call.fetchTurnConfig_(function(response) {
+      var config = {'iceServers': response.iceServers};
       report.traceEventInstant('turn-config', config);
       onSuccess(config);
     }, onError);
@@ -184,23 +179,16 @@ Call.asyncCreateStunConfig = function(onSuccess, onError) {
     report.traceEventInstant('stun-config', config);
     setTimeout(onSuccess.bind(null, config), 0);
   } else {
-    Call.fetchCEODTurnConfig_(function(response) {
-      var iceServer = {
-        'urls': response.uris.map(function(uri) {
-          return uri.replace(/^turn/, 'stun');
-        })
-      };
-      var config = {'iceServers': [iceServer]};
+    Call.fetchTurnConfig_(function(response) {
+      var config = {'iceServers': response.iceServers.urls};
       report.traceEventInstant('stun-config', config);
       onSuccess(config);
     }, onError);
   }
 };
 
-// Ask computeengineondemand to give us TURN server credentials and URIs.
-Call.CEOD_URL =
-    'https://computeengineondemand.appspot.com/turn?username=1234&key=5678';
-Call.fetchCEODTurnConfig_ = function(onSuccess, onError) {
+// Ask network traversal API to give us TURN server credentials and URLs.
+Call.fetchTurnConfig_ = function(onSuccess, onError) {
   var xhr = new XMLHttpRequest();
   function onResult() {
     if (xhr.readyState !== 4) {
@@ -217,6 +205,12 @@ Call.fetchCEODTurnConfig_ = function(onSuccess, onError) {
   }
 
   xhr.onreadystatechange = onResult;
-  xhr.open('GET', Call.CEOD_URL, true);
+  // API_KEY and TURN_URL is replaced with API_KEY environment variable via
+  // Gruntfile.js during build time by uglifyJS.
+  // jscs:disable
+  /* jshint ignore:start */
+  xhr.open('POST', TURN_URL + API_KEY, true);
+  // jscs:enable
+  /* jshint ignore:end */
   xhr.send();
 };

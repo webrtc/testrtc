@@ -57,6 +57,7 @@ NetworkTest.prototype = {
   // specified it is added with the requested protocol.
   filterConfig: function(config, protocol) {
     var transport = 'transport=' + protocol;
+    var newIceServers = [];
     for (var i = 0; i < config.iceServers.length; ++i) {
       var iceServer = config.iceServers[i];
       var newUrls = [];
@@ -66,11 +67,15 @@ NetworkTest.prototype = {
           newUrls.push(uri);
         } else if (
           uri.indexOf('?transport=') === -1 && uri.startsWith('turn')) {
-          newUrls.push(uri + '?' + transport);
+            newUrls.push(uri + '?' + transport);
         }
       }
-      iceServer.urls = newUrls;
+      if (newUrls.length !== 0) {
+        iceServer.urls = newUrls;
+        newIceServers.push(iceServer);
+      }
     }
+    config.iceServers = newIceServers;
   },
 
   // Create a PeerConnection, and gather candidates using RTCConfig |config|
