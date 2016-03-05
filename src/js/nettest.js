@@ -65,9 +65,9 @@ NetworkTest.prototype = {
         var uri = iceServer.urls[j];
         if (uri.indexOf(transport) !== -1) {
           newUrls.push(uri);
-        } else if (
-          uri.indexOf('?transport=') === -1 && uri.startsWith('turn')) {
-            newUrls.push(uri + '?' + transport);
+        } else if (uri.indexOf('?transport=') === -1 &&
+            uri.startsWith('turn')) {
+          newUrls.push(uri + '?' + transport);
         }
       }
       if (newUrls.length !== 0) {
