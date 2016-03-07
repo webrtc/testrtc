@@ -410,13 +410,15 @@ function screenCaptureExtensionHandler_() {
 
     // user chose a stream
     if (event.data.type && (event.data.type === 'SS_DIALOG_SUCCESS')) {
-      var constraints = {
-        audio: {
+      var audioConstraint =
+        (webrtcDetectedBrowser === 'chrome' && webrtcDetectedVersion >= 50) ? {
           mandatory: {
             chromeMediaSource: 'desktop',
             chromeMediaSourceId: event.data.streamId
           }
-        },
+        } : false;
+      var constraints = {
+        audio: audioConstraint,
         video: {
           mandatory: {
             chromeMediaSource: 'desktop',
