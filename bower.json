@@ -16,7 +16,6 @@
   "license": "BSD-3-Clause",
   "dependencies": {
     "polymer": "Polymer/polymer#~1.2.0",
-    "webrtc-adapter": "webrtc/adapter#~0.2.5",
     "paper-toolbar": "PolymerElements/paper-toolbar#~1.0.3",
     "iron-icon": "PolymerElements/iron-icon#~1.0.2",
     "iron-icons": "PolymerElements/iron-icons#~1.0.3",

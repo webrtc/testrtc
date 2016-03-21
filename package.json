@@ -25,6 +25,7 @@
     "grunt-htmlhint": "~0.4.1",
     "grunt-jscs": "~1.8.0",
     "grunt-vulcanize": "~1.0.0",
+    "webrtc-adapter": "^1.0.4",
     "webrtc-utilities": ">=0.0.1"
   }
 }

@@ -45,7 +45,7 @@ DataChannelThroughputTest.prototype = {
   },
 
   start: function(config) {
-    this.call = new Call(config);
+    this.call = new Call(config, this.test);
     this.call.setIceCandidateFilter(Call.isRelay);
     this.senderChannel = this.call.pc1.createDataChannel(null);
     this.senderChannel.addEventListener('open', this.sendingStep.bind(this));
@@ -152,7 +152,7 @@ VideoBandwidthTest.prototype = {
   },
 
   start: function(config) {
-    this.call = new Call(config);
+    this.call = new Call(config, this.test);
     this.call.setIceCandidateFilter(Call.isRelay);
     // FEC makes it hard to study bandwidth estimation since there seems to be
     // a spike when it is enabled and disabled. Disable it for now. FEC issue
@@ -311,7 +311,7 @@ WiFiPeriodicScanTest.prototype = {
 
   start: function(config) {
     this.running = true;
-    this.call = new Call(config);
+    this.call = new Call(config, this.test);
     this.chart = this.test.createLineChart();
     this.call.setIceCandidateFilter(this.candidateFilter);
 

@@ -49,7 +49,7 @@ RunConnectivityTest.prototype = {
   },
 
   start: function(config) {
-    this.call = new Call(config);
+    this.call = new Call(config, this.test);
     this.call.setIceCandidateFilter(this.iceCandidateFilter);
 
     // Collect all candidates for validation.

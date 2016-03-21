@@ -146,7 +146,7 @@ CamResolutionsTest.prototype = {
     video.height = resolution[1];
     attachMediaStream(video, stream);
     var frameChecker = new VideoFrameChecker(video);
-    var call = new Call();
+    var call = new Call(null, this.test);
     call.pc1.addStream(stream);
     call.establishConnection();
     call.gatherStats(call.pc1,

@@ -7,7 +7,8 @@
  */
 'use strict';
 
-function Call(config) {
+function Call(config, test) {
+  this.test = test;
   this.traceEvent = report.traceEventAsync('call');
   this.traceEvent({config: config});
 
@@ -25,7 +26,8 @@ function Call(config) {
 Call.prototype = {
   establishConnection: function() {
     this.traceEvent({state: 'start'});
-    this.pc1.createOffer(this.gotOffer_.bind(this), reportFatal);
+    this.pc1.createOffer(this.gotOffer_.bind(this),
+        this.test.reportFatal.bind(this.test));
   },
 
   close: function() {
@@ -85,10 +87,13 @@ Call.prototype = {
                                     '$1\r\n');
       offer.sdp = offer.sdp.replace(/a=rtpmap:116 red\/90000\r\n/g, '');
       offer.sdp = offer.sdp.replace(/a=rtpmap:117 ulpfec\/90000\r\n/g, '');
+      offer.sdp = offer.sdp.replace(/a=rtpmap:98 rtx\/90000\r\n/g, '');
+      offer.sdp = offer.sdp.replace(/a=fmtp:98 apt=116\r\n/g, '');
     }
     this.pc1.setLocalDescription(offer);
     this.pc2.setRemoteDescription(offer);
-    this.pc2.createAnswer(this.gotAnswer_.bind(this), reportFatal);
+    this.pc2.createAnswer(this.gotAnswer_.bind(this),
+        this.test.reportFatal.bind(this.test));
   },
 
   gotAnswer_: function(answer) {
