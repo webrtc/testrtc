@@ -84,7 +84,7 @@ CamResolutionsTest.prototype = {
         this.test.reportInfo(resolution[0] + 'x' + resolution[1] +
             ' not supported');
       } else {
-        this.test.reportError('getUserMedia failed with error: ' + error);
+        this.test.reportError('getUserMedia failed with error: ' + error.name);
       }
       this.maybeContinueGetUserMedia();
     }.bind(this));
@@ -144,7 +144,7 @@ CamResolutionsTest.prototype = {
     video.setAttribute('muted', '');
     video.width = resolution[0];
     video.height = resolution[1];
-    attachMediaStream(video, stream);
+    video.srcObject = stream;
     var frameChecker = new VideoFrameChecker(video);
     var call = new Call(null, this.test);
     call.pc1.addStream(stream);

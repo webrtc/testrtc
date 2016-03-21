@@ -18,8 +18,8 @@ handlers:
   static_dir: src/manual
   secure: always
 
-- url: /components
-  static_dir: components
+- url: /node_modules
+  static_dir: node_modules
   secure: always
 
 - url: /js

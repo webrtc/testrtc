@@ -852,7 +852,7 @@ function doGetUserMedia_(constraints) {
     if (stream.getVideoTracks().length > 0) {
       // Show the video element if we did request video in the getUserMedia call.
       var videoElement = $('local-view');
-      attachMediaStream(videoElement, stream);
+      adapter.browserShim.attachMediaStream(videoElement, stream);
       window.addEventListener('loadedmetadata', function() {
           displayVideoSize(videoElement);}, true);
       // Throw an error when no video is sent from camera but gUM returns OK.
@@ -958,7 +958,7 @@ function setLocalAndSendMessage_(sessionDescription) {
 function addStreamCallback_(event) {
   print_('Receiving remote stream...');
   var videoElement = document.getElementById('remote-view');
-  attachMediaStream(videoElement, event.stream);
+  adapter.browserShim.attachMediaStream(videoElement, event.stream);
 
   window.addEventListener('loadedmetadata',
       function() {displayVideoSize(videoElement);}, true);

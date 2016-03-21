@@ -135,6 +135,8 @@
         'bug-report': 'openBugReport',
       },
       _pendingChanged: function (pending) {
+        this.traceEnumDevice = report.traceEventAsync('enumerateDevices');
+        adapter.disableLog(true);
         if (pending === false) {
           // Populate the device selection drop down menu after the gUM dialog closes.
           navigator.mediaDevices.enumerateDevices()
@@ -163,7 +165,7 @@
           option.text = sourceInfo.label || 'camera ' + (this.$.videoSource.length + 1);
           this.$.videoSource.appendChild(option);
         } else {
-          console.log('Some other kind of source');
+          this.traceEnumDevice('Some other kind of source: ' + sourceInfo.kind);
         }
       },
 
@@ -171,29 +173,29 @@
         var self = this;
         var traceGumEvent = report.traceEventAsync('getusermedia');
 
-        // Call into getUserMedia via the polyfill (adapter.js).
-        var successFunc = function(stream) {
-          var cam = self.getDeviceName_(stream.getVideoTracks());
-          var mic = self.getDeviceName_(stream.getAudioTracks());
-          traceGumEvent({'status': 'success', 'camera': cam, 'microphone': mic});
-          onSuccess.apply(this, arguments);
-        };
-        var failFunc = function(error) {
-          traceGumEvent({'status': 'fail', 'error': error});
-          if (onFail) {
-            onFail.apply(this, arguments);
-          } else {
-            reportFatal('Failed to get access to local media due to error: ' +
-                        error.name);
-          }
-        };
         try {
           // Append the constraints with the getSource constraints.
           this.appendSourceId(this.$.audioSource.value, 'audio', constraints);
           this.appendSourceId(this.$.videoSource.value, 'video', constraints);
 
           traceGumEvent({'status': 'pending', 'constraints': constraints});
-          getUserMedia(constraints, successFunc, failFunc);
+          // Call into getUserMedia via the polyfill (adapter.js).
+          navigator.mediaDevices.getUserMedia(constraints)
+          .then(function(stream) {
+            var cam = self.getDeviceName_(stream.getVideoTracks());
+            var mic = self.getDeviceName_(stream.getAudioTracks());
+            traceGumEvent({'status': 'success', 'camera': cam, 'microphone': mic});
+            onSuccess.apply(this, arguments);
+          })
+          .catch(function(error) {
+            traceGumEvent({'status': 'fail', 'error': error});
+            if (onFail) {
+              onFail.apply(this, arguments);
+            } else {
+              reportFatal('Failed to get access to local media due to error: ' +
+                          error.name);
+            }
+            });
         } catch (e) {
           console.log(e);
           traceGumEvent({'status': 'exception', 'error': e.message});

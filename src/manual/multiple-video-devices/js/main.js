@@ -31,7 +31,7 @@ function getSources_() {
 }
 
 function requestVideo_(id) {
-  getUserMedia({
+  navigator.getUserMedia({
     video: {optional: [{sourceId: id}]},
     audio: false},
     function(stream) {
@@ -61,7 +61,7 @@ function getUserMediaOkCallback_(stream) {
     div.appendChild(deviceLabel);
   }
   stream.getVideoTracks()[0].addEventListener('ended', errorMessage_);
-  attachMediaStream(document.getElementById('view' + counter), stream);
+  adapter.browserShim.attachMediaStream(document.getElementById('view' + counter), stream);
   counter++;
 }
 
