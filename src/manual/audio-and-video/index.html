@@ -16,7 +16,6 @@
   <script src="../../../node_modules/webrtc-adapter/out/adapter.js"></script>
   <script type="text/javascript">
   function requestVideoAndAudio() {
-    // Call into getUserMedia via the polyfill (adapter.js).
     navigator.getUserMedia({video: true, audio: true},
         getUserMediaOkCallback, getUserMediaFailedCallback);
   }
