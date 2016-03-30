@@ -26,9 +26,8 @@
   }
 
   function getUserMediaOkCallback(stream) {
-     // Call the polyfill wrapper to attach the media stream to this element.
     for (var i = 1; i <= 10; i++) {
-      adapter.browserShim.attachMediaStream(document.getElementById("audio" + i), stream);
+      document.getElementById("audio" + i).srcObject = stream;
     }
   }
   </script>

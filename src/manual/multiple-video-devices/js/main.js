@@ -61,8 +61,7 @@ function getUserMediaOkCallback_(stream) {
     div.appendChild(deviceLabel);
   }
   stream.getVideoTracks()[0].addEventListener('ended', errorMessage_);
-  adapter.browserShim.attachMediaStream(
-      document.getElementById('view' + counter), stream);
+  document.getElementById('view' + counter).srcObject = stream;
   counter++;
 }
 

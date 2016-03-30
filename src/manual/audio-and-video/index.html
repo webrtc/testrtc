@@ -26,8 +26,8 @@
   }
 
   function getUserMediaOkCallback(stream) {
-    adapter.browserShim.attachMediaStream(document.getElementById("view1"), stream);
-    adapter.browserShim.attachMediaStream(document.getElementById("audio1"), stream);
+    document.getElementById("view1").srcObject = stream;
+    document.getElementById("audio1").srcObject = stream;
   }
   </script>
 </head>

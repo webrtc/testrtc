@@ -140,9 +140,9 @@
         if (pending === false) {
           // Populate the device selection drop down menu after the gUM dialog closes.
           navigator.mediaDevices.enumerateDevices()
-          .then(this.gotSources.bind(this))
-          .catch(function(err) {
-            console.log('JS Device selection not supported', err);
+              .then(this.gotSources.bind(this))
+              .catch(function(err) {
+                console.log('JS Device selection not supported', err);
           });
 
           window.doGetUserMedia = this.doGetUserMedia.bind(this);
@@ -181,25 +181,27 @@
           traceGumEvent({'status': 'pending', 'constraints': constraints});
           // Call into getUserMedia via the polyfill (adapter.js).
           navigator.mediaDevices.getUserMedia(constraints)
-          .then(function(stream) {
-            var cam = self.getDeviceName_(stream.getVideoTracks());
-            var mic = self.getDeviceName_(stream.getAudioTracks());
-            traceGumEvent({'status': 'success', 'camera': cam, 'microphone': mic});
-            onSuccess.apply(this, arguments);
-          })
-          .catch(function(error) {
-            traceGumEvent({'status': 'fail', 'error': error});
-            if (onFail) {
-              onFail.apply(this, arguments);
-            } else {
-              reportFatal('Failed to get access to local media due to error: ' +
-                          error.name);
-            }
-            });
+              .then(function(stream) {
+                var cam = self.getDeviceName_(stream.getVideoTracks());
+                var mic = self.getDeviceName_(stream.getAudioTracks());
+                traceGumEvent({'status': 'success', 'camera': cam,
+                    'microphone': mic});
+                onSuccess.apply(this, arguments);
+              })
+              .catch(function(error) {
+                traceGumEvent({'status': 'fail', 'error': error});
+                if (onFail) {
+                  onFail.apply(this, arguments);
+                } else {
+                  reportFatal('Failed to get access to local media due to ' +
+                      'error: ' + error.name);
+                }
+              });
         } catch (e) {
           console.log(e);
           traceGumEvent({'status': 'exception', 'error': e.message});
-          return reportFatal('getUserMedia failed with exception: ' + e.message);
+          return reportFatal('getUserMedia failed with exception: ' +
+              e.message);
         }
       },
 

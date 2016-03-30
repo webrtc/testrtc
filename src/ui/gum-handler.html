@@ -60,7 +60,7 @@ visible on the page but is no more it will keep polling permissions once per sec
       // does not necessarily mean JS device selection is unsupported.
       this.enumerateDevices()
       .then(this.triggerGetUserMediaBasedOnSources_.bind(this))
-      .catch((function(err) {
+          .catch((function(err) {
         console.log('JS Device selection not supported', err);
         this.triggerGetUserMediaBasedOnSources_([]);
       }).bind(this));
@@ -81,7 +81,7 @@ visible on the page but is no more it will keep polling permissions once per sec
         }
       }
       this.getUserMedia(constraints)
-      .then(function(stream) {
+      .then((function(stream) {
         // Stop all tracks to ensure the camera and audio devices are shutdown
         // directly.
         for (var i = 0; i < stream.getVideoTracks().length; i++) {
@@ -92,11 +92,11 @@ visible on the page but is no more it will keep polling permissions once per sec
         }
         this.pending = false;
         this.error = false;
-      }.bind(this))
-      .catch(function(error) {
+      }).bind(this))
+      .catch((function(error) {
         this.error = error;
         setTimeout(this.triggerGetUserMedia_.bind(this), 1000);
-      }.bind(this));
+      }).bind(this));
     },
   });
 </script>
