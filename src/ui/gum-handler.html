@@ -32,7 +32,9 @@ visible on the page but is no more it will keep polling permissions once per sec
       },
       getUserMedia: {
         type: Function,
-        value: function() { return navigator.getUserMedia.bind(navigator); }
+        value: function() {
+          return navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
+        }
       },
       enumerateDevices: {
         type: Function,
@@ -58,7 +60,7 @@ visible on the page but is no more it will keep polling permissions once per sec
       // does not necessarily mean JS device selection is unsupported.
       this.enumerateDevices()
       .then(this.triggerGetUserMediaBasedOnSources_.bind(this))
-      .catch((function(err) {
+          .catch((function(err) {
         console.log('JS Device selection not supported', err);
         this.triggerGetUserMediaBasedOnSources_([]);
       }).bind(this));
@@ -78,25 +80,23 @@ visible on the page but is no more it will keep polling permissions once per sec
           }
         }
       }
-      this.getUserMedia(constraints, this.gotStream_.bind(this), this.gotError_.bind(this));
+      this.getUserMedia(constraints)
+      .then((function(stream) {
+        // Stop all tracks to ensure the camera and audio devices are shutdown
+        // directly.
+        for (var i = 0; i < stream.getVideoTracks().length; i++) {
+          stream.getVideoTracks()[i].stop();
+        }
+        for (var j = 0; j < stream.getAudioTracks().length; j++) {
+          stream.getAudioTracks()[j].stop();
+        }
+        this.pending = false;
+        this.error = false;
+      }).bind(this))
+      .catch((function(error) {
+        this.error = error;
+        setTimeout(this.triggerGetUserMedia_.bind(this), 1000);
+      }).bind(this));
     },
-
-    gotStream_: function(stream) {
-      // Stop all tracks to ensure the camera and audio devices are shutdown
-      // directly.
-      for (var i = 0; i < stream.getVideoTracks().length; i++) {
-        stream.getVideoTracks()[i].stop();
-      }
-      for (var j = 0; j < stream.getAudioTracks().length; j++) {
-        stream.getAudioTracks()[j].stop();
-      }
-      this.pending = false;
-      this.error = false;
-    },
-
-    gotError_: function(error) {
-      this.error = error.name;
-      setTimeout(this.triggerGetUserMedia_.bind(this), 1000);
-    }
   });
 </script>

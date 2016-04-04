@@ -47,13 +47,12 @@
           autoplay="autoplay"></video></td>
     </tr>
   </table>
-  <script src="../../../components/webrtc-adapter/adapter.js"></script>
+  <script src="../../../node_modules/webrtc-adapter/out/adapter.js"></script>
   <script type="text/javascript">
     function requestVideo() {
       // Call into getUserMedia via the polyfill (adapter.js).
-      getUserMedia( {video: true, audio: false},
-                    getUserMediaOkCallback,
-                    getUserMediaFailedCallback);
+      navigator.getUserMedia( {video: true, audio: false},
+          getUserMediaOkCallback, getUserMediaFailedCallback);
     }
 
     function getUserMediaFailedCallback(error) {
@@ -61,9 +60,8 @@
     }
 
     function getUserMediaOkCallback(stream) {
-      // Call the polyfill wrapper to attach the media stream to this element.
       for (var i = 1; i <= 10; i++) {
-        attachMediaStream(document.getElementById('view' + i), stream);
+        document.getElementById('view' + i).srcObject = stream;
       }
     }
   </script>

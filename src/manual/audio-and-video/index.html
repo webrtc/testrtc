@@ -13,13 +13,11 @@
   <title>Single Local Preview (Video and Audio)</title>
   <meta http-equiv="X-UA-Compatible" content="chrome=1"/>
   <!-- Load the polyfill to switch-hit between Chrome and Firefox -->
-  <script src="../../../components/webrtc-adapter/adapter.js"></script>
+  <script src="../../../node_modules/webrtc-adapter/out/adapter.js"></script>
   <script type="text/javascript">
   function requestVideoAndAudio() {
-    // Call into getUserMedia via the polyfill (adapter.js).
-    getUserMedia({video: true, audio: true},
-                         getUserMediaOkCallback,
-                         getUserMediaFailedCallback);
+    navigator.getUserMedia({video: true, audio: true},
+        getUserMediaOkCallback, getUserMediaFailedCallback);
   }
 
   function getUserMediaFailedCallback(error) {
@@ -27,8 +25,8 @@
   }
 
   function getUserMediaOkCallback(stream) {
-    attachMediaStream(document.getElementById("view1"), stream);
-    attachMediaStream(document.getElementById("audio1"), stream);
+    document.getElementById("view1").srcObject = stream;
+    document.getElementById("audio1").srcObject = stream;
   }
   </script>
 </head>

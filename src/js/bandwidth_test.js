@@ -45,7 +45,7 @@ DataChannelThroughputTest.prototype = {
   },
 
   start: function(config) {
-    this.call = new Call(config);
+    this.call = new Call(config, this.test);
     this.call.setIceCandidateFilter(Call.isRelay);
     this.senderChannel = this.call.pc1.createDataChannel(null);
     this.senderChannel.addEventListener('open', this.sendingStep.bind(this));
@@ -152,7 +152,7 @@ VideoBandwidthTest.prototype = {
   },
 
   start: function(config) {
-    this.call = new Call(config);
+    this.call = new Call(config, this.test);
     this.call.setIceCandidateFilter(Call.isRelay);
     // FEC makes it hard to study bandwidth estimation since there seems to be
     // a spike when it is enabled and disabled. Disable it for now. FEC issue
@@ -188,7 +188,7 @@ VideoBandwidthTest.prototype = {
   gotStats: function(response) {
     // TODO: Remove browser specific stats gathering hack once adapter.js or
     // browsers converge on a standard.
-    if (webrtcDetectedBrowser === 'chrome') {
+    if (adapter.browserDetails.browser === 'chrome') {
       for (var i in response.result()) {
         var report = response.result()[i];
         if (report.id === 'bweforvideo') {
@@ -203,7 +203,7 @@ VideoBandwidthTest.prototype = {
           this.packetsLost = report.stat('packetsLost');
         }
       }
-    } else if (webrtcDetectedBrowser === 'firefox') {
+    } else if (adapter.browserDetails.browser === 'firefox') {
       for (var j in response) {
         var stats = response[j];
         if (stats.id === 'outbound_rtcp_video_0') {
@@ -237,7 +237,7 @@ VideoBandwidthTest.prototype = {
 
     // TODO: Remove browser specific stats gathering hack once adapter.js or
     // browsers converge on a standard.
-    if (webrtcDetectedBrowser === 'chrome') {
+    if (adapter.browserDetails.browser  === 'chrome') {
       // Checking if greater than 2 because Chrome sometimes reports 2x2 when
       // a camera starts but fails to deliver frames.
       if (this.videoStats[0] < 2 && this.videoStats[1] < 2) {
@@ -254,7 +254,7 @@ VideoBandwidthTest.prototype = {
         this.test.reportInfo('Send bandwidth ramp-up time: ' +
             this.bweStats.getRampUpTime() + ' ms');
       }
-    } else if (webrtcDetectedBrowser === 'firefox') {
+    } else if (adapter.browserDetails.browser  === 'firefox') {
       if (parseInt(this.framerateMean) > 0) {
         this.test.reportSuccess('Frame rate mean: ' +
             parseInt(this.framerateMean));
@@ -311,7 +311,7 @@ WiFiPeriodicScanTest.prototype = {
 
   start: function(config) {
     this.running = true;
-    this.call = new Call(config);
+    this.call = new Call(config, this.test);
     this.chart = this.test.createLineChart();
     this.call.setIceCandidateFilter(this.candidateFilter);
 
