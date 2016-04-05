@@ -152,7 +152,7 @@ Call.parseCandidate = function(text) {
   };
 };
 
-// Get a TURN config, either from settings or from CEOD.
+// Get a TURN config, either from settings or from network traversal api.
 Call.asyncCreateTurnConfig = function(onSuccess, onError) {
   var settings = currentTest.settings;
   if (typeof(settings.turnURI) === 'string' && settings.turnURI !== '') {
@@ -173,7 +173,7 @@ Call.asyncCreateTurnConfig = function(onSuccess, onError) {
   }
 };
 
-// Get a STUN config, either from settings or from CEOD.
+// Get a STUN config, either from settings or from network traversal api.
 Call.asyncCreateStunConfig = function(onSuccess, onError) {
   var settings = currentTest.settings;
   if (typeof(settings.stunURI) === 'string' && settings.stunURI !== '') {
@@ -194,6 +194,17 @@ Call.asyncCreateStunConfig = function(onSuccess, onError) {
 
 // Ask network traversal API to give us TURN server credentials and URLs.
 Call.fetchTurnConfig_ = function(onSuccess, onError) {
+  // Check if credentials exist or have expired (and subtract testRuntTIme so
+  // that the test can finish if near the end of the lifetime duration).
+  // lifetimeDuration is in seconds.
+  var testRunTime = 240; // Time in seconds to allow a test run to complete.
+  if (Call.origResponse_ && (Date.now() - Call.fetchTurnTime_) / 1000 <
+        parseInt(Call.origResponse_.lifetimeDuration) - testRunTime) {
+    report.traceEventInstant('fetch-ice-config', 'Using cached credentials.');
+    onSuccess(Call.getCachedIceCredentials_());
+    return;
+  }
+
   var xhr = new XMLHttpRequest();
   function onResult() {
     if (xhr.readyState !== 4) {
@@ -206,7 +217,14 @@ Call.fetchTurnConfig_ = function(onSuccess, onError) {
     }
 
     var response = JSON.parse(xhr.responseText);
-    onSuccess(response);
+    Call.origResponse_ = response;
+    Call.getCachedIceCredentials_ = function() {
+      // Make a new object due to tests modifying the original response object.
+      return JSON.parse(JSON.stringify(Call.origResponse_));
+    };
+    Call.fetchTurnTime_ = Date.now();
+    report.traceEventInstant('fetch-ice-config', 'Fetching new credentials.');
+    onSuccess(Call.getCachedIceCredentials_());
   }
 
   xhr.onreadystatechange = onResult;
