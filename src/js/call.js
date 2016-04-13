@@ -152,7 +152,10 @@ Call.parseCandidate = function(text) {
   };
 };
 
-// Get a TURN config, either from settings or from network traversal api.
+// Store the ICE server response from the network traversal server.
+Call.cachedIceServers_ = null;
+
+// Get a TURN config, either from settings or from network traversal server.
 Call.asyncCreateTurnConfig = function(onSuccess, onError) {
   var settings = currentTest.settings;
   if (typeof(settings.turnURI) === 'string' && settings.turnURI !== '') {
@@ -173,7 +176,7 @@ Call.asyncCreateTurnConfig = function(onSuccess, onError) {
   }
 };
 
-// Get a STUN config, either from settings or from network traversal api.
+// Get a STUN config, either from settings or from network traversal server.
 Call.asyncCreateStunConfig = function(onSuccess, onError) {
   var settings = currentTest.settings;
   if (typeof(settings.stunURI) === 'string' && settings.stunURI !== '') {
@@ -198,8 +201,8 @@ Call.fetchTurnConfig_ = function(onSuccess, onError) {
   // that the test can finish if near the end of the lifetime duration).
   // lifetimeDuration is in seconds.
   var testRunTime = 240; // Time in seconds to allow a test run to complete.
-  if (Call.origResponse_ && (Date.now() - Call.fetchTurnTime_) / 1000 <
-        parseInt(Call.origResponse_.lifetimeDuration) - testRunTime) {
+  if (Call.cachedIceServers_ && (Date.now() - Call.fetchTurnTime_) / 1000 <
+        parseInt(Call.cachedIceServers_.lifetimeDuration) - testRunTime) {
     report.traceEventInstant('fetch-ice-config', 'Using cached credentials.');
     onSuccess(Call.getCachedIceCredentials_());
     return;
@@ -217,10 +220,10 @@ Call.fetchTurnConfig_ = function(onSuccess, onError) {
     }
 
     var response = JSON.parse(xhr.responseText);
-    Call.origResponse_ = response;
+    Call.cachedIceServers_ = response;
     Call.getCachedIceCredentials_ = function() {
       // Make a new object due to tests modifying the original response object.
-      return JSON.parse(JSON.stringify(Call.origResponse_));
+      return JSON.parse(JSON.stringify(Call.cachedIceServers_));
     };
     Call.fetchTurnTime_ = Date.now();
     report.traceEventInstant('fetch-ice-config', 'Fetching new credentials.');
