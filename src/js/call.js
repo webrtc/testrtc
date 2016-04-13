@@ -154,6 +154,8 @@ Call.parseCandidate = function(text) {
 
 // Store the ICE server response from the network traversal server.
 Call.cachedIceServers_ = null;
+// Keep track of when the request was made.
+Call.cachedIceConfigFetchTime_ = null;
 
 // Get a TURN config, either from settings or from network traversal server.
 Call.asyncCreateTurnConfig = function(onSuccess, onError) {
@@ -201,11 +203,15 @@ Call.fetchTurnConfig_ = function(onSuccess, onError) {
   // that the test can finish if near the end of the lifetime duration).
   // lifetimeDuration is in seconds.
   var testRunTime = 240; // Time in seconds to allow a test run to complete.
-  if (Call.cachedIceServers_ && (Date.now() - Call.fetchTurnTime_) / 1000 <
-        parseInt(Call.cachedIceServers_.lifetimeDuration) - testRunTime) {
-    report.traceEventInstant('fetch-ice-config', 'Using cached credentials.');
-    onSuccess(Call.getCachedIceCredentials_());
-    return;
+  if (Call.cachedIceServers_) {
+    var isCachedIceConfigExpired =
+      ((Date.now() - Call.cachedIceConfigFetchTime_) / 1000 >
+      parseInt(Call.cachedIceServers_.lifetimeDuration) - testRunTime);
+    if (!isCachedIceConfigExpired) {
+      report.traceEventInstant('fetch-ice-config', 'Using cached credentials.');
+      onSuccess(Call.getCachedIceCredentials_());
+      return;
+    }
   }
 
   var xhr = new XMLHttpRequest();
@@ -225,7 +231,7 @@ Call.fetchTurnConfig_ = function(onSuccess, onError) {
       // Make a new object due to tests modifying the original response object.
       return JSON.parse(JSON.stringify(Call.cachedIceServers_));
     };
-    Call.fetchTurnTime_ = Date.now();
+    Call.cachedIceConfigFetchTime_  = Date.now();
     report.traceEventInstant('fetch-ice-config', 'Fetching new credentials.');
     onSuccess(Call.getCachedIceCredentials_());
   }
