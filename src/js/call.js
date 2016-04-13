@@ -52,9 +52,19 @@ Call.prototype = {
 
   // When the peerConnection is closed the statsCb is called once with an array
   // of gathered stats.
-  gatherStats: function(peerConnection, statsCb, interval) {
+  gatherStats: function(peerConnection, localStream, statsCb) {
     var stats = [];
     var statsCollectTime = [];
+    var that = this;
+    var statStepMs = 100;
+    // Firefox does not handle the mediaStream object directly, either |null|
+    // for all stats or mediaStreamTrack, which is according to the standard: https://www.w3.org/TR/webrtc/#widl-RTCPeerConnection-getStats-void-MediaStreamTrack-selector-RTCStatsCallback-successCallback-RTCPeerConnectionErrorCallback-failureCallback
+    // Chrome accepts |null| as well but the getStats response reports do not
+    // contain mediaStreamTrack stats.
+    // TODO: Is it worth using MediaStreamTrack for both browsers? Then we
+    // would need to request stats per track etc.
+    var selector = (adapter.browserDetails.browser === 'chrome') ?
+        localStream : null;
     getStats_();
 
     function getStats_() {
@@ -62,22 +72,32 @@ Call.prototype = {
         statsCb(stats, statsCollectTime);
         return;
       }
-      // Work around for webrtc/testrtc#74
-      if (typeof(mozRTCPeerConnection) !== 'undefined' &&
-          peerConnection instanceof mozRTCPeerConnection) {
-        setTimeout(getStats_, interval);
-      } else {
-        setTimeout(peerConnection.getStats.bind(peerConnection, gotStats_),
-            interval);
-      }
+      peerConnection.getStats(selector)
+          .then(gotStats_)
+          .catch(function(error) {
+            that.test.reportFatal('Could not gather stats: ' + error);
+          }.bind(that));
     }
 
     function gotStats_(response) {
-      for (var index in response.result()) {
-        stats.push(response.result()[index]);
-        statsCollectTime.push(Date.now());
+      // TODO: Remove browser specific stats gathering hack once adapter.js or
+      // browsers converge on a standard.
+      if (adapter.browserDetails.browser === 'chrome') {
+        for (var index in response.result()) {
+          stats.push(response.result()[index]);
+          statsCollectTime.push(Date.now());
+        }
+      } else if (adapter.browserDetails.browser === 'firefox') {
+        for (var j in response) {
+          var stat = response[j];
+          stats.push(stat);
+          statsCollectTime.push(Date.now());
+        }
+      } else {
+        that.test.reportError('Only Firefox and Chrome getStats ' +
+            'implementations are supported.');
       }
-      getStats_();
+      setTimeout(getStats_, statStepMs);
     }
   },
 

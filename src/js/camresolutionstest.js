@@ -149,7 +149,7 @@ CamResolutionsTest.prototype = {
     var call = new Call(null, this.test);
     call.pc1.addStream(stream);
     call.establishConnection();
-    call.gatherStats(call.pc1,
+    call.gatherStats(call.pc1, stream,
                      this.onCallEnded_.bind(this, resolution, video,
                                             stream, frameChecker),
                      100);
