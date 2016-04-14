@@ -75,7 +75,8 @@ Call.prototype = {
       peerConnection.getStats(selector)
           .then(gotStats_)
           .catch(function(error) {
-            that.test.reportFatal('Could not gather stats: ' + error);
+            that.test.reportError('Could not gather stats: ' + error);
+            statsCb(stats, statsCollectTime);
           }.bind(that));
     }
 
