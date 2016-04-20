@@ -55,7 +55,7 @@ Call.prototype = {
   gatherStats: function(peerConnection, localStream, statsCb) {
     var stats = [];
     var statsCollectTime = [];
-    var that = this;
+    var self = this;
     var statStepMs = 100;
     // Firefox does not handle the mediaStream object directly, either |null|
     // for all stats or mediaStreamTrack, which is according to the standard: https://www.w3.org/TR/webrtc/#widl-RTCPeerConnection-getStats-void-MediaStreamTrack-selector-RTCStatsCallback-successCallback-RTCPeerConnectionErrorCallback-failureCallback
@@ -75,9 +75,9 @@ Call.prototype = {
       peerConnection.getStats(selector)
           .then(gotStats_)
           .catch(function(error) {
-            that.test.reportError('Could not gather stats: ' + error);
+            self.test.reportError('Could not gather stats: ' + error);
             statsCb(stats, statsCollectTime);
-          }.bind(that));
+          }.bind(self));
     }
 
     function gotStats_(response) {
@@ -95,7 +95,7 @@ Call.prototype = {
           statsCollectTime.push(Date.now());
         }
       } else {
-        that.test.reportError('Only Firefox and Chrome getStats ' +
+        self.test.reportError('Only Firefox and Chrome getStats ' +
             'implementations are supported.');
       }
       setTimeout(getStats_, statStepMs);
