@@ -11,6 +11,7 @@ function Call(config, test) {
   this.test = test;
   this.traceEvent = report.traceEventAsync('call');
   this.traceEvent({config: config});
+  this.statsGatheringRunning = false;
 
   this.pc1 = new RTCPeerConnection(config);
   this.pc2 = new RTCPeerConnection(config);
@@ -21,6 +22,7 @@ function Call(config, test) {
       this.pc1));
 
   this.iceCandidateFilter_ = Call.noFilter;
+
 }
 
 Call.prototype = {
@@ -65,10 +67,12 @@ Call.prototype = {
     // would need to request stats per track etc.
     var selector = (adapter.browserDetails.browser === 'chrome') ?
         localStream : null;
+    this.statsGatheringRunning = true;
     getStats_();
 
     function getStats_() {
       if (peerConnection.signalingState === 'closed') {
+        self.statsGatheringRunning = false;
         statsCb(stats, statsCollectTime);
         return;
       }
@@ -76,6 +80,7 @@ Call.prototype = {
           .then(gotStats_)
           .catch(function(error) {
             self.test.reportError('Could not gather stats: ' + error);
+            self.statsGatheringRunning = false;
             statsCb(stats, statsCollectTime);
           }.bind(self));
     }
@@ -84,8 +89,8 @@ Call.prototype = {
       // TODO: Remove browser specific stats gathering hack once adapter.js or
       // browsers converge on a standard.
       if (adapter.browserDetails.browser === 'chrome') {
-        for (var index in response.result()) {
-          stats.push(response.result()[index]);
+        for (var index in response) {
+          stats.push(response[index]);
           statsCollectTime.push(Date.now());
         }
       } else if (adapter.browserDetails.browser === 'firefox') {
