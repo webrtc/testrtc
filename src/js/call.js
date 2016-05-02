@@ -11,6 +11,7 @@ function Call(config, test) {
   this.test = test;
   this.traceEvent = report.traceEventAsync('call');
   this.traceEvent({config: config});
+  this.statsGatheringRunning = false;
 
   this.pc1 = new RTCPeerConnection(config);
   this.pc2 = new RTCPeerConnection(config);
@@ -21,6 +22,7 @@ function Call(config, test) {
       this.pc1));
 
   this.iceCandidateFilter_ = Call.noFilter;
+
 }
 
 Call.prototype = {
@@ -52,32 +54,56 @@ Call.prototype = {
 
   // When the peerConnection is closed the statsCb is called once with an array
   // of gathered stats.
-  gatherStats: function(peerConnection, statsCb, interval) {
+  gatherStats: function(peerConnection, localStream, statsCb) {
     var stats = [];
     var statsCollectTime = [];
+    var self = this;
+    var statStepMs = 100;
+    // Firefox does not handle the mediaStream object directly, either |null|
+    // for all stats or mediaStreamTrack, which is according to the standard: https://www.w3.org/TR/webrtc/#widl-RTCPeerConnection-getStats-void-MediaStreamTrack-selector-RTCStatsCallback-successCallback-RTCPeerConnectionErrorCallback-failureCallback
+    // Chrome accepts |null| as well but the getStats response reports do not
+    // contain mediaStreamTrack stats.
+    // TODO: Is it worth using MediaStreamTrack for both browsers? Then we
+    // would need to request stats per track etc.
+    var selector = (adapter.browserDetails.browser === 'chrome') ?
+        localStream : null;
+    this.statsGatheringRunning = true;
     getStats_();
 
     function getStats_() {
       if (peerConnection.signalingState === 'closed') {
+        self.statsGatheringRunning = false;
         statsCb(stats, statsCollectTime);
         return;
       }
-      // Work around for webrtc/testrtc#74
-      if (typeof(mozRTCPeerConnection) !== 'undefined' &&
-          peerConnection instanceof mozRTCPeerConnection) {
-        setTimeout(getStats_, interval);
-      } else {
-        setTimeout(peerConnection.getStats.bind(peerConnection, gotStats_),
-            interval);
-      }
+      peerConnection.getStats(selector)
+          .then(gotStats_)
+          .catch(function(error) {
+            self.test.reportError('Could not gather stats: ' + error);
+            self.statsGatheringRunning = false;
+            statsCb(stats, statsCollectTime);
+          }.bind(self));
     }
 
     function gotStats_(response) {
-      for (var index in response.result()) {
-        stats.push(response.result()[index]);
-        statsCollectTime.push(Date.now());
+      // TODO: Remove browser specific stats gathering hack once adapter.js or
+      // browsers converge on a standard.
+      if (adapter.browserDetails.browser === 'chrome') {
+        for (var index in response) {
+          stats.push(response[index]);
+          statsCollectTime.push(Date.now());
+        }
+      } else if (adapter.browserDetails.browser === 'firefox') {
+        for (var j in response) {
+          var stat = response[j];
+          stats.push(stat);
+          statsCollectTime.push(Date.now());
+        }
+      } else {
+        self.test.reportError('Only Firefox and Chrome getStats ' +
+            'implementations are supported.');
       }
-      getStats_();
+      setTimeout(getStats_, statStepMs);
     }
   },
 
@@ -152,7 +178,12 @@ Call.parseCandidate = function(text) {
   };
 };
 
-// Get a TURN config, either from settings or from CEOD.
+// Store the ICE server response from the network traversal server.
+Call.cachedIceServers_ = null;
+// Keep track of when the request was made.
+Call.cachedIceConfigFetchTime_ = null;
+
+// Get a TURN config, either from settings or from network traversal server.
 Call.asyncCreateTurnConfig = function(onSuccess, onError) {
   var settings = currentTest.settings;
   if (typeof(settings.turnURI) === 'string' && settings.turnURI !== '') {
@@ -173,7 +204,7 @@ Call.asyncCreateTurnConfig = function(onSuccess, onError) {
   }
 };
 
-// Get a STUN config, either from settings or from CEOD.
+// Get a STUN config, either from settings or from network traversal server.
 Call.asyncCreateStunConfig = function(onSuccess, onError) {
   var settings = currentTest.settings;
   if (typeof(settings.stunURI) === 'string' && settings.stunURI !== '') {
@@ -194,6 +225,21 @@ Call.asyncCreateStunConfig = function(onSuccess, onError) {
 
 // Ask network traversal API to give us TURN server credentials and URLs.
 Call.fetchTurnConfig_ = function(onSuccess, onError) {
+  // Check if credentials exist or have expired (and subtract testRuntTIme so
+  // that the test can finish if near the end of the lifetime duration).
+  // lifetimeDuration is in seconds.
+  var testRunTime = 240; // Time in seconds to allow a test run to complete.
+  if (Call.cachedIceServers_) {
+    var isCachedIceConfigExpired =
+      ((Date.now() - Call.cachedIceConfigFetchTime_) / 1000 >
+      parseInt(Call.cachedIceServers_.lifetimeDuration) - testRunTime);
+    if (!isCachedIceConfigExpired) {
+      report.traceEventInstant('fetch-ice-config', 'Using cached credentials.');
+      onSuccess(Call.getCachedIceCredentials_());
+      return;
+    }
+  }
+
   var xhr = new XMLHttpRequest();
   function onResult() {
     if (xhr.readyState !== 4) {
@@ -206,7 +252,14 @@ Call.fetchTurnConfig_ = function(onSuccess, onError) {
     }
 
     var response = JSON.parse(xhr.responseText);
-    onSuccess(response);
+    Call.cachedIceServers_ = response;
+    Call.getCachedIceCredentials_ = function() {
+      // Make a new object due to tests modifying the original response object.
+      return JSON.parse(JSON.stringify(Call.cachedIceServers_));
+    };
+    Call.cachedIceConfigFetchTime_  = Date.now();
+    report.traceEventInstant('fetch-ice-config', 'Fetching new credentials.');
+    onSuccess(Call.getCachedIceCredentials_());
   }
 
   xhr.onreadystatechange = onResult;

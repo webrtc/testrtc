@@ -174,67 +174,66 @@ VideoBandwidthTest.prototype = {
     var now = new Date();
     if (now - this.startTime > this.durationMs) {
       this.test.setProgress(100);
-      this.completed();
-    } else {
-      this.test.setProgress((now - this.startTime) * 100 / this.durationMs);
-      this.call.pc1.getStats(this.localStream)
-      .then(this.gotStats.bind(this))
-      .catch(function(error) {
-        this.test.reportError('Failed to getStats: ' + error);
-      }.bind(this));
+      this.hangup();
+      return;
+    } else if (!this.call.statsGatheringRunning) {
+      this.call.gatherStats(this.call.pc1, this.localStream,
+        this.gotStats.bind(this));
     }
+    this.test.setProgress((now - this.startTime) * 100 / this.durationMs);
+    setTimeout(this.gatherStats.bind(this), this.statStepMs);
   },
 
   gotStats: function(response) {
     // TODO: Remove browser specific stats gathering hack once adapter.js or
     // browsers converge on a standard.
     if (adapter.browserDetails.browser === 'chrome') {
-      for (var i in response.result()) {
-        var report = response.result()[i];
-        if (report.id === 'bweforvideo') {
-          this.bweStats.add(Date.parse(report.timestamp),
-            parseInt(report.stat('googAvailableSendBandwidth')));
-        } else if (report.type === 'ssrc') {
-          this.rttStats.add(Date.parse(report.timestamp),
-            parseInt(report.stat('googRtt')));
+      for (var i in response) {
+        if (response[i].id === 'bweforvideo') {
+          this.bweStats.add(Date.parse(response[i].timestamp),
+            parseInt(response[i].googAvailableSendBandwidth));
+        } else if (response[i].type === 'ssrc') {
+          this.rttStats.add(Date.parse(response[i].timestamp),
+            parseInt(response[i].googRtt));
           // Grab the last stats.
-          this.videoStats[0] = report.stat('googFrameWidthSent');
-          this.videoStats[1] = report.stat('googFrameHeightSent');
-          this.packetsLost = report.stat('packetsLost');
+          this.videoStats[0] = response[i].googFrameWidthSent;
+          this.videoStats[1] = response[i].googFrameHeightSent;
+          this.packetsLost = response[i].packetsLost;
         }
       }
     } else if (adapter.browserDetails.browser === 'firefox') {
       for (var j in response) {
-        var stats = response[j];
-        if (stats.id === 'outbound_rtcp_video_0') {
-          this.rttStats.add(Date.parse(stats.timestamp),
-            parseInt(stats.mozRtt));
+        if (response[j].id === 'outbound_rtcp_video_0') {
+          this.rttStats.add(Date.parse(response[j].timestamp),
+            parseInt(response[j].mozRtt));
           // Grab the last stats.
-          this.jitter = stats.jitter;
-          this.packetsLost = stats.packetsLost;
-        } else if (stats.id === 'outbound_rtp_video_0') {
+          this.jitter = response[j].jitter;
+          this.packetsLost = response[j].packetsLost;
+        } else if (response[j].id === 'outbound_rtp_video_0') {
           // TODO: Get dimensions from getStats when supported in FF.
           this.videoStats[0] = 'Not supported on Firefox';
           this.videoStats[1] = 'Not supported on Firefox';
-          this.bitrateMean = stats.bitrateMean;
-          this.bitrateStdDev = stats.bitrateStdDev;
-          this.framerateMean = stats.framerateMean;
+          this.bitrateMean = response[j].bitrateMean;
+          this.bitrateStdDev = response[j].bitrateStdDev;
+          this.framerateMean = response[j].framerateMean;
         }
       }
     } else {
       this.test.reportError('Only Firefox and Chrome getStats implementations' +
         ' are supported.');
     }
-    setTimeout(this.gatherStats.bind(this), this.statStepMs);
+    this.completed();
   },
 
-  completed: function() {
+  hangup: function() {
     this.call.pc1.getLocalStreams()[0].getTracks().forEach(function(track) {
       track.stop();
     });
     this.call.close();
     this.call = null;
+  },
 
+  completed: function() {
     // TODO: Remove browser specific stats gathering hack once adapter.js or
     // browsers converge on a standard.
     if (adapter.browserDetails.browser  === 'chrome') {
