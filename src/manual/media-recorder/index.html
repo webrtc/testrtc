@@ -35,20 +35,16 @@
     <option value="1920x1080">1920x1080</option>
   </select>
   <br></br>
-  <button onclick="getUserMedia();">GetUSerMedia</button>
-  <button onclick="stopStream(theLocalStream);">StopLocalStream</button>
-  <button onclick="stopStream(theLocalStream, 'video');">StopLocalVideoTrack
-  </button>
-  <button onclick="stopStream(theLocalStream, 'audio');">StopLocalAudioTracks
-  </button>
-  <button onclick="stopStream(theRemoteStream);">StopRemoteStream</button>
-  <button onclick="stopStream(theRemoteStream, 'video');">StopRemoteVideoTrack
-  </button>
-  <button onclick="stopStream(theRemoteStream, 'audio');">StopRemoteAudioTracks
-  </button>
+  <button name="GetUserMedia">GetUserMedia</button>
+  <button name="StopLocalStream">StopLocalStream</button>
+  <button name="StopLocalVideoTrack">StopLocalVideoTrack</button>
+  <button name="StopLocalAudioTracks">StopLocalAudioTracks</button>
+  <button name="StopRemoteStream">StopRemoteStream</button>
+  <button name="StopRemoteVideoTrack">StopRemoteVideoTrack</button>
+  <button name="StopRemoteAudioTracks">StopRemoteAudioTracks</button>
   <br></br>
   <br><strong>Local Peer Connection</strong></br>
-  <button onclick="createPeerConnection();">CreatePeerConnection</button>
+  <button name="CreatePeerConnection">CreatePeerConnection</button>
   <br></br>
   <br><strong>Recorder Options</strong></br>
   <label>Stream To Record</label>
@@ -115,9 +111,9 @@
   </select>
   <br></br>
   <br><strong>Recorder Controls</strong></br>
-  <button onclick="createRecorder();">CreateRecorder</button>
+  <button name="CreateRecorder">CreateRecorder</button>
   <label>Monitor Recorder's Event Counts</label>
-  <select id="monitorEvents" onchange="monitorRecorderEvents(this.value);">
+  <select id="monitorEvents">
     <option value=""></option>
     <option value="all">all events</option>
     <option value="onstart">onstart</option>
@@ -141,15 +137,15 @@
     <option value="7200000">2 hours</option>
     <option value="86400000">24 hours</option>
   </select>
-  <button onclick="startRecorder();">Start</button>
-  <button onclick="pauseRecorder();">Pause</button>
-  <button onclick="resumeRecorder();">Resume</button>
-  <button onclick="stopRecorder();">Stop</button>
-  <button onclick="requestDataRecorder();">RequestData</button>
+  <button name="Start">Start</button>
+  <button name="Pause">Pause</button>
+  <button name="Resume">Resume</button>
+  <button name="Stop">Stop</button>
+  <button name="RequestData">RequestData</button>
   <br></br>
   <br><strong>Playback Controls</strong></br>
-  <button onclick="playback();">Playback</button>
-  <button onclick="download();">Download</button>
+  <button name="Playback">Playback</button>
+  <button name="Download">Download</button>
   <br>
     <video id="playbackVideo" autoplay></video>
   </br>
@@ -173,6 +169,7 @@
   <label>bitrate: </label>
   <textarea id ="bitrateEstimate" readonly rows=1 cols=10>N/A</textarea>
 </body>
+<script src="../../../node_modules/webrtc-adapter/out/adapter.js"></script>
 <script src="js/main.js"> </script>
 </body>
 </html>
