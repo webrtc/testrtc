@@ -504,16 +504,20 @@ function handleMessage(peerConnection, message) {
   if (parsedMsg.type) {
     var sessionDescription = new RTCSessionDescription(parsedMsg);
     peerConnection.setRemoteDescription(
-        sessionDescription,
-        function() { success_('setRemoteDescription'); },
-        function(error) { error_('setRemoteDescription', error); });
+      sessionDescription
+    ).then(
+      function() { success_('setRemoteDescription'); },
+      function(error) { error_('setRemoteDescription', error); }
+    );
     if (sessionDescription.type === 'offer') {
       print_('createAnswer with constraints: ' +
             JSON.stringify(global.createAnswerConstraints, null, ' '));
       peerConnection.createAnswer(
-          setLocalAndSendMessage_,
-          function(error) { error_('createAnswer', error); },
-          global.createAnswerConstraints);
+        global.createAnswerConstraints
+      ).then(
+        setLocalAndSendMessage_,
+        function(error) { error_('createAnswer', error); }
+      );
     }
     return;
   } else if (parsedMsg.candidate) {
@@ -564,9 +568,11 @@ function setupCall(peerConnection) {
   print_('createOffer with constraints: ' +
         JSON.stringify(global.createOfferConstraints, null, ' '));
   peerConnection.createOffer(
-      setLocalAndSendMessage_,
-      function(error) { error_('createOffer', error); },
-      global.createOfferConstraints);
+    global.createOfferConstraints
+  ).then(
+    setLocalAndSendMessage_,
+    function(error) { error_('createOffer', error); }
+  );
 }
 
 function answerCall(peerConnection, message) {
@@ -943,9 +949,12 @@ function setLocalAndSendMessage_(sessionDescription) {
   var unmodifiedSdp = sessionDescription.sdp;
   sessionDescription.sdp =
     global.transformOutgoingSdp(sessionDescription.sdp);
-  global.peerConnection.setLocalDescription(sessionDescription,
-      function() { success_('setLocalDescription'); },
-      failedSetLocalDescription);
+  global.peerConnection.setLocalDescription(
+    sessionDescription
+  ).then(
+    function() { success_('setLocalDescription'); },
+    failedSetLocalDescription
+  );
   print_('Sending SDP message:\n' + sessionDescription.sdp);
   sendToPeer(global.remotePeerId, JSON.stringify(sessionDescription));
 

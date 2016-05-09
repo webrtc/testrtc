@@ -133,9 +133,17 @@ NetworkTest.prototype = {
   // This will trigger candidate gathering.
   createAudioOnlyReceiveOffer: function(pc) {
     var createOfferParams = {offerToReceiveAudio: 1};
-    pc.createOffer(function(offer) {
-      pc.setLocalDescription(offer, noop, noop);
-    }, noop, createOfferParams);
+    pc.createOffer(
+      createOfferParams
+    ).then(
+      function(offer) {
+        pc.setLocalDescription(offer).then(
+          noop,
+          noop
+        );
+      },
+      noop
+    );
 
     // Empty function for callbacks requiring a function.
     function noop() {}
