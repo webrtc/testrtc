@@ -31,13 +31,14 @@ function getSources_() {
 }
 
 function requestVideo_(id) {
-  navigator.getUserMedia({
+  navigator.mediaDevices.getUserMedia({
     video: {optional: [{sourceId: id}]},
-    audio: false},
+    audio: false}).then(
     function(stream) {
       getUserMediaOkCallback_(stream);
     },
-    getUserMediaFailedCallback_);
+    getUserMediaFailedCallback_
+  );
 }
 
 function getUserMediaFailedCallback_(error) {

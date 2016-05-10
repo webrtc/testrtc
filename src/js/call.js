@@ -28,8 +28,10 @@ function Call(config, test) {
 Call.prototype = {
   establishConnection: function() {
     this.traceEvent({state: 'start'});
-    this.pc1.createOffer(this.gotOffer_.bind(this),
-        this.test.reportFatal.bind(this.test));
+    this.pc1.createOffer().then(
+      this.gotOffer_.bind(this),
+      this.test.reportFatal.bind(this.test)
+    );
   },
 
   close: function() {
@@ -118,8 +120,10 @@ Call.prototype = {
     }
     this.pc1.setLocalDescription(offer);
     this.pc2.setRemoteDescription(offer);
-    this.pc2.createAnswer(this.gotAnswer_.bind(this),
-        this.test.reportFatal.bind(this.test));
+    this.pc2.createAnswer().then(
+      this.gotAnswer_.bind(this),
+      this.test.reportFatal.bind(this.test)
+    );
   },
 
   gotAnswer_: function(answer) {
