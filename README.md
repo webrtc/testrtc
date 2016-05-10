@@ -85,11 +85,6 @@ Cleans out/ folder if it exists else it's created, then it copies and vulcanizes
 grunt build
 ```
 
-#### Run non vulcanized version of TestRTC using [Google App Engine SDK for Python](https://cloud.google.com/appengine/downloads). This is useful while developing. ####
-```bash
-python dev_appserver.py app.yml
-```
-
 #### Run vulcanized version of TestRTC using [Google App Engine SDK for Python](https://cloud.google.com/appengine/downloads) (Requires the Build testrtc step to be performed first). ####
 ```bash
 python dev_appserver.py out/app.yml
