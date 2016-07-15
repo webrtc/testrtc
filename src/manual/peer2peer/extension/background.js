@@ -5,7 +5,7 @@
 
 'use strict';
 
-var dataSources = ['screen', 'window'];
+var dataSources = ['screen', 'window', 'tab'];
 if (getChromeVersion() >= 50) {
   dataSources.push('tab');
   dataSources.push('audio');
