@@ -1,0 +1,132 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+<head>
+  <title>WebRTC Test page</title>
+  <script type="text/javascript"
+src="../../../node_modules/webrtc-adapter/out/adapter.js"></script>
+  <script type="text/javascript">
+  function ignore1(err) {}
+  function VideoPair() {
+    this.localConnection = null;
+    this.remoteConnection = null;
+
+    var table = document.getElementById('test-table');
+    var row = table.insertRow(-1);
+
+    var localCell = row.insertCell(-1);
+    this.localView = document.createElement('video');
+    this.localView.autoplay = true;
+    localCell.appendChild(this.localView);
+
+    var remoteCell = row.insertCell(-1);
+    this.remoteView = document.createElement('video');
+    this.remoteView.autoplay = true;
+    remoteCell.appendChild(this.remoteView);
+
+    this.startTest = function() {
+      getUserMedia({audio: true, video: true},
+                   this.getUserMediaOkCallback.bind(this),
+                   this.getUserMediaFailureCallback.bind(this));
+    };
+
+    this.getUserMediaOkCallback = function(localStream) {
+      attachMediaStream(this.localView, localStream);
+      this.callUsingStream(localStream);
+    };
+
+    this.getUserMediaFailureCallback = function(error) {
+      console.error('getUserMedia request failed: name=' + error.name +
+                    ' constraintName=' + error.constraintName + ' message=' +
+                    error.message);
+    };
+
+    this.callUsingStream = function(localStream) {
+      this.localConnection = new RTCPeerConnection(null, null);
+      this.remoteConnection = new RTCPeerConnection(null, null);
+
+      this.localConnection.onicecandidate =
+        this.onIceCandidateToLocal.bind(this);
+      this.localConnection.addStream(localStream);
+
+      this.negotiate();
+    };
+
+    this.negotiate = function() {
+      this.localConnection.createOffer(
+          this.onOfferCreated.bind(this),
+          function(err) {});
+    };
+
+    this.onOfferCreated = function(offer) {
+      var self = this;
+      this.localConnection.setLocalDescription(offer, function() {
+        self.receiveCall(offer.sdp);
+      }, function(err) {});
+    };
+
+    this.receiveCall = function(offerSdp) {
+      var self = this;
+      this.remoteConnection.onicecandidate =
+        this.onIceCandidateToRemote.bind(this);
+      this.remoteConnection.onaddstream = function(e) {
+        attachMediaStream(self.remoteView, e.stream);
+      };
+
+      var parsedOffer = new RTCSessionDescription({ type: 'offer',
+                                                    sdp: offerSdp });
+      this.remoteConnection.setRemoteDescription(parsedOffer, function() {
+        self.remoteConnection.createAnswer(self.onAnswerCreated.bind(self),
+            ignore1);
+      }, ignore1);
+    };
+
+    this.onAnswerCreated = function(answer) {
+      var self = this;
+      this.remoteConnection.setLocalDescription(answer, function() {
+        self.handleAnswer(answer.sdp);
+      }, ignore1);
+    };
+
+    this.handleAnswer = function(answerSdp) {
+      var parsedAnswer = new RTCSessionDescription({ type: 'answer',
+                                                     sdp: answerSdp });
+      this.localConnection.setRemoteDescription(parsedAnswer, ignore1, ignore1);
+    };
+
+    this.onIceCandidateToLocal = function(event) {
+      if (event.candidate) {
+        var candidate = new RTCIceCandidate(event.candidate);
+        this.remoteConnection.addIceCandidate(candidate);
+      }
+    };
+
+    this.onIceCandidateToRemote = function(event) {
+      if (event.candidate) {
+        var candidate = new RTCIceCandidate(event.candidate);
+        this.localConnection.addIceCandidate(candidate);
+      }
+    };
+  }
+
+  function startTest() {
+    var nVideoPairs = 10;
+    for (var i = 0; i < nVideoPairs; ++i) {
+      var videoPair = new VideoPair();
+      videoPair.startTest();
+    }
+  }
+  </script>
+</head>
+<body>
+  <table border="0" id="test-table">
+    <tr>
+      <td>Local Preview</td>
+      <td>Remote Stream</td>
+    </tr>
+    <tr>
+      <td><video id="local-view" autoplay></video></td>
+      <td><video id="remote-view"autoplay></video></td>
+    </tr>
+  </table>
+</body>
+</html>
