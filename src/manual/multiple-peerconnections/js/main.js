@@ -6,6 +6,8 @@
  *  tree.
  */
 
+/*jshint esversion: 6 */
+
 'use strict';
 
 function logError(err) {
@@ -19,14 +21,13 @@ var startTestButton = document.getElementById('start-test-button');
 
 nPeerConnectionsInput.oninput = function() {
   nPeerConnectionsSlider.value = nPeerConnectionsInput.value;
-}
+};
 
 nPeerConnectionsSlider.oninput = function() {
   nPeerConnectionsInput.value = nPeerConnectionsSlider.value;
-}
+};
 
 startTestButton.onclick = startTest;
-
 
 function addNewVideoElement() {
   var newRow = testTable.insertRow(-1);
