@@ -1,6 +1,5 @@
-
 /*
- *  Copyright (c) 2015 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2016 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -13,15 +12,29 @@ function logError(err) {
   console.log(err);
 }
 
-var nPeerConnections = 10;
 var testTable = document.getElementById('test-table');
+var nPeerConnectionsInput = document.getElementById('peer-connections-input');
+var nPeerConnectionsSlider = document.getElementById('peer-connections-slider');
+var startTestButton = document.getElementById('start-test-button');
 
-function addVideoPairToTable(localView, remoteView) {
+nPeerConnectionsInput.oninput = function() {
+  nPeerConnectionsSlider.value = nPeerConnectionsInput.value;
+}
+
+nPeerConnectionsSlider.oninput = function() {
+  nPeerConnectionsInput.value = nPeerConnectionsSlider.value;
+}
+
+startTestButton.onclick = startTest;
+
+
+function addNewVideoElement() {
   var newRow = testTable.insertRow(-1);
-  var localCell = newRow.insertCell(-1);
-  localCell.appendChild(localView);
-  var remoteCell = newRow.insertCell(-1);
-  remoteCell.appendChild(remoteView);
+  var newCell = newRow.insertCell(-1);
+  var video = document.createElement('video');
+  video.autoplay = true;
+  newCell.appendChild(video);
+  return video;
 }
 
 function PeerConnection(id) {
@@ -30,11 +43,7 @@ function PeerConnection(id) {
   this.localConnection = null;
   this.remoteConnection = null;
 
-  this.localView = document.createElement('video');
-  this.localView.autoplay = true;
-  this.remoteView = document.createElement('video');
-  this.remoteView.autoplay = true;
-  addVideoPairToTable(this.localView, this.remoteView);
+  this.remoteView = addNewVideoElement();
 
   this.start = function() {
     var onGetUserMediaSuccess = this.onGetUserMediaSuccess.bind(this);
@@ -47,9 +56,6 @@ function PeerConnection(id) {
   }
 
   this.onGetUserMediaSuccess = function(stream) {
-    // Display stream in local video tag.
-    this.localView.srcObject = stream;
-
     // Create local peer connection.
     this.localConnection = new RTCPeerConnection(null);
     this.localConnection.onicecandidate = (event) => {
@@ -97,6 +103,7 @@ function PeerConnection(id) {
 }
 
 function startTest() {
+  var nPeerConnections = nPeerConnectionsInput.value;
   for (var i = 0; i < nPeerConnections; ++i) {
     new PeerConnection(i).start();
   }
