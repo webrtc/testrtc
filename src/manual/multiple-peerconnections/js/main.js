@@ -53,21 +53,21 @@ function PeerConnection(id) {
     })
     .then(onGetUserMediaSuccess)
     .catch(logError);
-  }
+  };
 
   this.onGetUserMediaSuccess = function(stream) {
     // Create local peer connection.
     this.localConnection = new RTCPeerConnection(null);
     this.localConnection.onicecandidate = (event) => {
       this.onIceCandidate(this.remoteConnection, event);
-    }
+    };
     this.localConnection.addStream(stream);
 
     // Create remote peer connection.
     this.remoteConnection = new RTCPeerConnection(null);
     this.remoteConnection.onicecandidate = (event) => {
       this.onIceCandidate(this.localConnection, event);
-    }
+    };
     this.remoteConnection.onaddstream = (e) => {
       this.remoteView.srcObject = e.stream;
     };
@@ -79,7 +79,7 @@ function PeerConnection(id) {
       offerToReceiveVideo: 1
     })
     .then(onCreateOfferSuccess, logError);
-  }
+  };
 
   this.onCreateOfferSuccess = function(desc) {
     this.localConnection.setLocalDescription(desc);
@@ -88,18 +88,18 @@ function PeerConnection(id) {
     var onCreateAnswerSuccess = this.onCreateAnswerSuccess.bind(this);
     this.remoteConnection.createAnswer()
     .then(onCreateAnswerSuccess, logError);
-  }
+  };
 
   this.onCreateAnswerSuccess = function(desc) {
     this.remoteConnection.setLocalDescription(desc);
     this.localConnection.setRemoteDescription(desc);
-  }
+  };
 
   this.onIceCandidate = function(connection, event) {
     if (event.candidate) {
       connection.addIceCandidate(new RTCIceCandidate(event.candidate));
     }
-  }
+  };
 }
 
 function startTest() {
