@@ -40,7 +40,7 @@ Ssim.prototype = {
       diff = a[i - 1] - meanA;
       accu += a[i] + (diff * diff);
     }
-    return {mean : meanA, variance : accu / a.length};
+    return {mean: meanA, variance: accu / a.length};
   },
 
   // Implementation of Eq.11., cov(Y, Z) = E((Y - uY), (Z - uZ)).
