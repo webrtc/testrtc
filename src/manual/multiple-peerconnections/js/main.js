@@ -10,24 +10,18 @@
 
 'use strict';
 
+var $ = document.getElementById.bind(document);
+
+var testTable = $('test-table');
+var nPeerConnectionsInput = $('num-peerconnections');
+var startTestButton = $('start-test');
+var cpuOveruseDetectionCheckbox = $('cpuoveruse-detection');
+
+startTestButton.onclick = startTest;
+
 function logError(err) {
   console.log(err);
 }
-
-var testTable = document.getElementById('test-table');
-var nPeerConnectionsInput = document.getElementById('peer-connections-input');
-var nPeerConnectionsSlider = document.getElementById('peer-connections-slider');
-var startTestButton = document.getElementById('start-test-button');
-
-nPeerConnectionsInput.oninput = function() {
-  nPeerConnectionsSlider.value = nPeerConnectionsInput.value;
-};
-
-nPeerConnectionsSlider.oninput = function() {
-  nPeerConnectionsInput.value = nPeerConnectionsSlider.value;
-};
-
-startTestButton.onclick = startTest;
 
 function addNewVideoElement() {
   var newRow = testTable.insertRow(-1);
@@ -38,8 +32,9 @@ function addNewVideoElement() {
   return video;
 }
 
-function PeerConnection(id) {
+function PeerConnection(id, cpuOveruseDetection) {
   this.id = id;
+  this.cpuOveruseDetection = cpuOveruseDetection;
 
   this.localConnection = null;
   this.remoteConnection = null;
@@ -58,14 +53,22 @@ function PeerConnection(id) {
 
   this.onGetUserMediaSuccess = function(stream) {
     // Create local peer connection.
-    this.localConnection = new RTCPeerConnection(null);
+    this.localConnection = new RTCPeerConnection(null, {
+      'optional': [{
+        'googCpuOveruseDetection': this.cpuOveruseDetection
+      }]
+    });
     this.localConnection.onicecandidate = (event) => {
       this.onIceCandidate(this.remoteConnection, event);
     };
     this.localConnection.addStream(stream);
 
     // Create remote peer connection.
-    this.remoteConnection = new RTCPeerConnection(null);
+    this.remoteConnection = new RTCPeerConnection(null, {
+      'optional': [{
+        'googCpuOveruseDetection': this.cpuOveruseDetection
+      }]
+    });
     this.remoteConnection.onicecandidate = (event) => {
       this.onIceCandidate(this.localConnection, event);
     };
@@ -104,6 +107,7 @@ function PeerConnection(id) {
 }
 
 function startTest() {
+  var cpuOveruseDetection = cpuOveruseDetectionCheckbox.checked;
   var nPeerConnections = nPeerConnectionsInput.value;
   for (var i = 0; i < nPeerConnections; ++i) {
     new PeerConnection(i).start();

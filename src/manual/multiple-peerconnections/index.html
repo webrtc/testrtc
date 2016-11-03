@@ -11,22 +11,37 @@
 
   <title>Multiple peerconnections</title>
 
+  <link rel="stylesheet" href="../css/main.css">
+
 </head>
 
 <body>
 
-  <input type="range" id="peer-connections-slider" value="10" min="1" max="50">
-  <input id="peer-connections-input" value="10">
-  <button id="start-test-button">Start Test</button>
-  <table border="0" id="test-table">
-    <tr>
-      <td>Remote Stream</td>
-    </tr>
-  </table>
-
+<div id="wrapper">
+  <div id="container">
+    <div class="bottom-border">
+      <h2>PeerConnection</h2>
+      <label>
+        Number of peer connections
+        <input id="num-peerconnections" value="10">
+      </label><br>
+      <label>
+        Enable googCpuOveruseDetection
+        <input type="checkbox" id="cpuoveruse-detection" checked>
+      </label><br>
+      <button class="green" id="start-test">
+        Start Test
+      </button><br>
+    </div>
+    <div class="video-area">
+      <br>
+      <h2>Remote Streams</h2>
+      <table border="0" id="test-table"></table>
+    </div>
+  </div>
+</div>
   <script src="../../../node_modules/webrtc-adapter/out/adapter.js"></script>
   <script src="js/main.js"></script>
-
 </body>
 </html>
 
