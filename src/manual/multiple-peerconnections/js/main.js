@@ -110,6 +110,6 @@ function startTest() {
   var cpuOveruseDetection = cpuOveruseDetectionCheckbox.checked;
   var nPeerConnections = nPeerConnectionsInput.value;
   for (var i = 0; i < nPeerConnections; ++i) {
-    new PeerConnection(i).start();
+    new PeerConnection(i, cpuOveruseDetection).start();
   }
 }
