@@ -49,7 +49,7 @@
 
       <div class="top-border">
         <h2>GetUserMedia</h2>
-        <div class="float-left">
+        <div id='general-gum' class="float-left">
           <textarea class="constraints" id="getusermedia-constraints">
             </textarea>
           <label>Audio<input type="checkbox" id="audio" checked
@@ -63,15 +63,24 @@
               onclick="getUserMediaFromHere();">Request GetUserMedia</button>
         </div>
         <div id="audio-source">
-          <label>Audio source <select class="drop-down" id="audiosrc"
-              onchange="updateGetUserMediaConstraints();"></select></label>
+          <div>
+            <label>Audio source</label>
+          </div>
+          <div>
+            <select class="drop-down" id="audiosrc"
+              onchange="updateGetUserMediaConstraints();"></select>
+          </div>
           <label>Auto<input type="checkbox" id="get-devices-onload"></label>
-          <button id="get-devices" onclick="getDevices();">
-              Get devices</button>
+          <button id="get-devices" onclick="getDevices();">Get devices</button>
         </div>
         <div id="video-source">
-          <label>Video source <select class="drop-down" id="videosrc"
-              onchange="updateGetUserMediaConstraints();"></select></label>
+          <div>
+            <label>Video source</label>
+          </div>
+          <div>
+            <select class="drop-down" id="videosrc"
+              onchange="updateGetUserMediaConstraints();"></select>
+          </div>
           <div id="res-buttons">
             <button id="video-hd">HD</button>
             <button id="video-vga">VGA</button>

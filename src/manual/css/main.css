@@ -120,6 +120,11 @@
   width: 6em;
 }
 
+#screencapture-info {
+  margin: 1% auto; /* 15% from the top and centered */
+  width: 100%; /* Could be more or less, depending on screen size */
+}
+
 a {
   color: lightBlue;
   font-weight: 300;
