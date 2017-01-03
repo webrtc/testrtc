@@ -253,7 +253,7 @@ function updateGetUserMediaConstraints() {
 
     if ($('video').checked) {
       if (devices.videoId !== null) {
-        global.constraints.video.deviceId = devices.videoId;
+        global.constraints.video = {deviceId: devices.videoId};
       }
     }
   }
@@ -284,7 +284,7 @@ function clearLog() {
 function stopLocalStream() {
   if (typeof global.localStream === 'undefined') {
     warning_('Tried to stop local stream, ' +
-           'but media access is not granted.');
+             'but media access is not granted.');
     return;
   }
   removeVideoTrackEvents(global.localStream);
@@ -1183,7 +1183,7 @@ function forceIsac_() {
     sdp = sdp.replace(/m=audio (\d+) UDP\/TLS\/RTP\/SAVPF.*\r\n/g,
                       'm=audio $1 UDP\/TLS\/RTP\/SAVPF 104\r\n');
     sdp = sdp.replace('a=rtcp-fb:111 transport-cc',
-                        'a=rtcp-fb:104 transport-cc');
+                      'a=rtcp-fb:104 transport-cc');
     sdp = sdp.replace('a=fmtp:111 minptime=10', 'a=fmtp:104 minptime=10');
     var t = /a=rtpmap:(?!104)\d{1,3} (?!VP8|H264|VP9|red|ulpfec|rtx).*\r\n/g;
     sdp = sdp.replace(t,'');
