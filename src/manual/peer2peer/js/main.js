@@ -432,7 +432,7 @@ function screenCaptureExtensionHandler_() {
 
     // user chose a stream
     if (event.data.type && (event.data.type === 'SS_DIALOG_SUCCESS')) {
-      var audioConstraint =
+      var audioConstraints =
         (adapter.browserDetails.browser === 'chrome' &&
             adapter.browserDetails.version >= 50 &&
             event.data.requestAudio) ? {
@@ -441,16 +441,17 @@ function screenCaptureExtensionHandler_() {
             chromeMediaSourceId: event.data.streamId
           }
         } : false;
-      var constraints = {
-        video: {
-          mandatory: {
-            chromeMediaSource: 'desktop',
-            chromeMediaSourceId: event.data.streamId,
-            maxWidth: window.screen.width,
-            maxHeight: window.screen.height
-          }
+
+      var videoConstraints = {
+        mandatory: {
+          chromeMediaSource: 'desktop',
+          chromeMediaSourceId: event.data.streamId,
+          maxWidth: window.screen.width,
+          maxHeight: window.screen.height
         }
       };
+
+      var constraints = {audio: audioConstraints, video: videoConstraints};
       doGetUserMedia_(JSON.stringify(constraints));
     }
 
