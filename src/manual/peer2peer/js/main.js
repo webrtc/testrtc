@@ -237,10 +237,8 @@ function updateGetUserMediaConstraints() {
   };
 
   if ($('video').checked) {
-    // Default optional constraints placed here.
-    global.constraints.video = {optional: [{minWidth: global.videoWidth},
-                                           {minHeight: global.videoHeight},
-                                           {googLeakyBucket: true}]};
+    global.constraints.video = {height: global.videoHeight,
+                                width: global.videoWidth};
   }
 
   if (!selectedAudioDevice.disabled && !selectedAudioDevice.disabled) {
@@ -249,13 +247,13 @@ function updateGetUserMediaConstraints() {
 
     if ($('audio').checked) {
       if (devices.audioId !== null) {
-        global.constraints.audio = {optional: [{deviceId: devices.audioId}]};
+        global.constraints.audio = {deviceId: devices.audioId};
       }
     }
 
     if ($('video').checked) {
       if (devices.videoId !== null) {
-        global.constraints.video.optional.push({deviceId: devices.videoId});
+        global.constraints.video = {deviceId: devices.videoId};
       }
     }
   }
@@ -285,11 +283,14 @@ function clearLog() {
 // Stops the local stream.
 function stopLocalStream() {
   if (typeof global.localStream === 'undefined') {
-    error_('Tried to stop local stream, ' +
-           'but media access is not granted.');
+    warning_('Tried to stop local stream, ' +
+             'but media access is not granted.');
+    return;
   }
-
-  global.localStream.stop();
+  removeVideoTrackEvents(global.localStream);
+  global.localStream.getTracks().forEach(function(track) {
+    track.stop();
+  });
 }
 
 // Adds the current local media stream to a peer connection.
@@ -366,8 +367,8 @@ function getDevices() {
         return;
       } else {
         error_('Device type ' + devices[i].kind + ' not recognized, ' +
-                'cannot enumerate device. Currently only device types' +
-                '\'audio\' and \'video\' are supported');
+               'cannot enumerate device. Currently only device types' +
+               '\'audio\' and \'video\' are supported');
         updateGetUserMediaConstraints();
       }
     }
@@ -378,24 +379,45 @@ function getDevices() {
   checkIfDeviceDropdownsArePopulated_();
 }
 
+function displayScreenCaptureInfo() {
+  if ($('screencapture-info')) {
+    $('screencapture-info').style.display = 'block';
+    return;
+  }
+  var message = 'Please install the screen capture extension:<br>' +
+                '1. Go to chrome://extensions<br>' +
+                '2. Check: "Enable Developer mode"<br>' +
+                '3. Click: "Load the unpacked extension..."<br>' +
+                '4. Choose "extension" folder from the ' +
+                '<a href="http://goo.gl/kLEycY">repository</a><br>' +
+                '5. Reload this page over https<br>' +
+                'Note: Make sure the URL permission in manifest.json matches ' +
+                'the URL for this page.';
+  var startScreenCaptureButton = document.getElementById('start-screencapture');
+  var messageDiv = document.createElement('div');
+  messageDiv.innerHTML = message;
+  messageDiv.id = 'screencapture-info';
+
+  window.onclick = function(event) {
+    if (event.target === messageDiv) {
+      messageDiv.style.display = 'none';
+    }
+  };
+
+  document.getElementById('general-gum').insertBefore(messageDiv,
+    startScreenCaptureButton);
+}
+
 function screenCaptureExtensionHandler_() {
-  // Copied and modifed from desktopcapture example.
+  // Copied and modified from desktop capture example.
   var extensionInstalled = false;
-  document.getElementById('start-screencapture').addEventListener('click',
-      function() {
-        // send screen-sharer request to content-script
-        if (!extensionInstalled) {
-          var message = 'Please install the extension:\n' +
-                        '1. Go to chrome://extensions\n' +
-                        '2. Check: "Enable Developer mode"\n' +
-                        '3. Click: "Load the unpacked extension..."\n' +
-                        '4. Choose "extension" folder from the repository:\n' +
-                        '(Download from here: http://goo.gl/kLEycY)\n' +
-                        '5. Reload this page over https';
-          alert(message);
-        }
-        window.postMessage({type: 'SS_UI_REQUEST', text: 'start'}, '*');
-      });
+  $('start-screencapture').addEventListener('click', function() {
+    // send screen-sharer request to content-script
+    window.postMessage({type: 'SS_UI_REQUEST', text: 'start'}, '*');
+    if (!extensionInstalled) {
+      displayScreenCaptureInfo();
+    }
+  });
 
   // listen for messages from the content-script
   window.addEventListener('message', function(event) {
@@ -410,26 +432,26 @@ function screenCaptureExtensionHandler_() {
 
     // user chose a stream
     if (event.data.type && (event.data.type === 'SS_DIALOG_SUCCESS')) {
-      var audioConstraint =
+      var audioConstraints =
         (adapter.browserDetails.browser === 'chrome' &&
-            adapter.browserDetails.version >= 50 && 
+            adapter.browserDetails.version >= 50 &&
             event.data.requestAudio) ? {
           mandatory: {
             chromeMediaSource: 'desktop',
             chromeMediaSourceId: event.data.streamId
           }
         } : false;
-      var constraints = {
-        audio: audioConstraint,
-        video: {
-          mandatory: {
-            chromeMediaSource: 'desktop',
-            chromeMediaSourceId: event.data.streamId,
-            maxWidth: window.screen.width,
-            maxHeight: window.screen.height
-          }
+
+      var videoConstraints = {
+        mandatory: {
+          chromeMediaSource: 'desktop',
+          chromeMediaSourceId: event.data.streamId,
+          maxWidth: window.screen.width,
+          maxHeight: window.screen.height
         }
       };
+
+      var constraints = {audio: audioConstraints, video: videoConstraints};
       doGetUserMedia_(JSON.stringify(constraints));
     }
 
@@ -861,25 +883,37 @@ function doGetUserMedia_(constraints) {
       // Show the video element if we did request video in the getUserMedia call.
       var videoElement = $('local-view');
       videoElement.srcObject = stream;
+      registerVideoTrackEvents(stream);
       window.addEventListener('loadedmetadata', function() {
-          displayVideoSize(videoElement);}, true);
-      // Throw an error when no video is sent from camera but gUM returns OK.
-      stream.getVideoTracks()[0].onended = function() {
-        error_(global.localStream + ' getUserMedia successful but ' +
-               'MediaStreamTrack.onended event fired, no frames from camera.');
-      };
-      // Print information on track going to mute or back from it.
-      stream.getVideoTracks()[0].onmute = function() {
-        error_(global.localStream + ' MediaStreamTrack.onmute event has ' +
-            'fired, no frames to the track.');
-      };
-      stream.getVideoTracks()[0].onunmute = function() {
-        warning_(global.localStream + ' MediaStreamTrack.onunmute event has ' +
-                 'fired.');
-      };
+        displayVideoSize(videoElement);}, true);
     }
   }).catch(function(error) {
     error_('GetUserMedia failed with error: ' + error.name);
+  });
+}
+
+function registerVideoTrackEvents(stream) {
+  // Throw an error when no video is sent from camera but gUM returns OK.
+  stream.getVideoTracks()[0].onended = function() {
+    error_(stream + ' getUserMedia successful but ' +
+           'MediaStreamTrack.onended event fired, no frames from camera.');
+  };
+  // Print information on track being muted.
+  stream.getVideoTracks()[0].onmute = function() {
+    error_(stream + ' MediaStreamTrack.onmute event has ' +
+           'fired, no frames to the track.');
+  };
+  // Print information on track being unmuted mute.
+  stream.getVideoTracks()[0].onunmute = function() {
+    warning_(stream + ' MediaStreamTrack.onunmute event has ' +
+             'fired.');
+  };
+}
+
+function removeVideoTrackEvents(stream) {
+  var videoTrackevents = ['onmute', 'onunmute', 'onended'];
+  videoTrackevents.forEach(function(trackEvent) {
+    stream.getVideoTracks()[0][trackEvent] = null;
   });
 }
 
@@ -1147,17 +1181,21 @@ function getEvaluatedJavaScript_(stringRepresentation) {
 function forceIsac_() {
   setOutgoingSdpTransform(function(sdp) {
     // Remove all other codecs (not the video codecs though).
-    sdp = sdp.replace(/m=audio (\d+) RTP\/SAVPF.*\r\n/g,
-                      'm=audio $1 RTP/SAVPF 104\r\n');
+    sdp = sdp.replace(/m=audio (\d+) UDP\/TLS\/RTP\/SAVPF.*\r\n/g,
+                      'm=audio $1 UDP\/TLS\/RTP\/SAVPF 104\r\n');
+    sdp = sdp.replace('a=rtcp-fb:111 transport-cc',
+                      'a=rtcp-fb:104 transport-cc');
     sdp = sdp.replace('a=fmtp:111 minptime=10', 'a=fmtp:104 minptime=10');
-    sdp = sdp.replace(/a=rtpmap:(?!104)\d{1,3} (?!VP8|red|ulpfec|rtx).*\r\n/g,
-        '');
+    var t = /a=rtpmap:(?!104)\d{1,3} (?!VP8|H264|VP9|red|ulpfec|rtx).*\r\n/g;
+    sdp = sdp.replace(t,'');
     return sdp;
   });
 }
 
 function dontTouchSdp_() {
-  setOutgoingSdpTransform(function(sdp) { return sdp; });
+  setOutgoingSdpTransform(function(sdp) {
+    return sdp;
+  });
 }
 
 function hookupDataChannelCallbacks_() {

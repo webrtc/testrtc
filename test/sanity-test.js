@@ -37,7 +37,7 @@ test('Run TestRTC', function(t) {
     // webdriver.until.elementIsDisabled() does not work for some reason.
     // http://seleniumhq.github.io/selenium/docs/api/javascript/class_webdriver_until_Condition.html
     var isElementDisabled = function(element) {
-      return new webdriver.until.Condition('wait until disabled', function() {
+      return new webdriver.Condition('wait until disabled', function() {
         return element.getAttribute('disabled').then(function(callback) {
           return !callback;
         });
