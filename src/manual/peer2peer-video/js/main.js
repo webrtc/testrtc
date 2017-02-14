@@ -1,10 +1,12 @@
 /*
- *  Copyright (c) 2015 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2017 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
  *  tree.
  */
+
+/*jshint esversion: 6 */
 
 'use strict';
 
@@ -19,10 +21,6 @@ var stream;
 
 function logError(err) {
   console.error(err);
-}
-
-function getOtherPc(pc) {
-  return (pc === pc1) ? pc2 : pc1;
 }
 
 function maybeCreateStream() {
@@ -68,7 +66,7 @@ function call() {
   };
   pc2.onaddstream = (event) => {
     remoteVideo.srcObject = event.stream;
-  }
+  };
 
   pc1.addStream(stream);
   pc1.createOffer({
