@@ -42,7 +42,7 @@ create a temporary link with the report result.
 
 ## Manual tests ##
 Due to their time duration they are not part of the normal test suite and need to be run explicitly.
-* [Network latency](https://test.webrtc.org/?test_filter=Network latency)
+* [Network latency](https://test.webrtc.org/?test_filter=Network%20latency)
   * Establishs a loopback call and sends very small packets (via data channels) during 5 minutes plotting them to the user. It can be used to identify issues on the network.
 
 ## Other manual test pages ##
