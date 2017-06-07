@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<!--
+  Copyright (c) 2014 The WebRTC project authors. All Rights Reserved.
+
+  Use of this source code is governed by a BSD-style license
+  that can be found in the LICENSE file in the root of the source
+  tree. An additional intellectual property rights grant can be found
+  in the file PATENTS.  All contributing project authors may
+  be found in the AUTHORS file in the root of the source tree.
+-->
+<html>
+<head>
+  <title>Multiple audio streams test</title>
+  <style>
+    #messages {
+      color: #DC143C;
+      clear: both;
+    }
+
+    #remote {
+      float: left;
+      width: 100%;
+    }
+
+  </style>
+</head>
+<body>
+  <p>This page will open a getUserMedia stream for each audio device avaliable upon load, selecting start call will then setup two peerconnections and add an audio element per stream along with a attach and remove stream button. This allows the user to attach each stream to an audio element.</p>
+
+  <p>The purpose of this page is to be able to demonstrate how Chrome and WebRTC does getUserMedia stream mixing when rendered in a single or multiple audio tag(s).</p>
+  <p>Information will be sent to javascript console, open it for details.</p>
+  <div id="local">
+    <h1>Local audio streams</h1>
+    <span id="localAudioArea"></span>
+  </div>
+
+  <h1>PeerConnection</h1>
+  <p>
+    <button id="start-call">Start call</button>
+    <button id="end-call" disabled>End call</button>
+  </p>
+
+  <div id="remote">
+    <h1>Remote audio streams</h1>
+    <span id="remoteAudioArea"></span>
+  </div>
+
+   <!-- Load the polyfill to switch-hit between Chrome and Firefox -->
+  <script src="../../../components/webrtc-adapter/adapter.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
