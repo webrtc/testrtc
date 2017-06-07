@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<!--
+ *  Copyright (c) 2016 The WebRTC project authors. All Rights Reserved.
+ *
+ *  Use of this source code is governed by a BSD-style license
+ *  that can be found in the LICENSE file in the root of the source
+ *  tree.
+-->
+<html>
+<head>
+<title>MediaStream Recoder Manual Test</title>
+</head>
+<body>
+  <div> Record Real-Time video test.</div>
+  <video id="local_video" autoplay></video>
+  <video id="remote_video" autoplay></video>
+  <br><strong>GetUserMedia Options</strong></br>
+  <label>Enable Audio</label>
+  <select id="enable_audio">
+    <option value="true">yes</option>
+    <option value="false">no</option>
+  </select>
+  <label>Enable Video</label>
+  <select id="enable_video">
+    <option value="true">yes</option>
+    <option value="false">no</option>
+  </select>
+  <label>Video Resolution</label>
+  <select id="resolution">
+    <option value=""></option>
+    <option value="160x120">160x120</option>
+    <option value="320x240">320x240</option>
+    <option value="640x480">640x480</option>
+    <option value="1280x720">1280x720</option>
+    <option value="1920x1080">1920x1080</option>
+  </select>
+  <br></br>
+  <button onclick="getUserMedia();">GetUSerMedia</button>
+  <button onclick="stopStream(theLocalStream);">StopLocalStream</button>
+  <button onclick="stopStream(theLocalStream, 'video');">StopLocalVideoTrack
+  </button>
+  <button onclick="stopStream(theLocalStream, 'audio');">StopLocalAudioTracks
+  </button>
+  <button onclick="stopStream(theRemoteStream);">StopRemoteStream</button>
+  <button onclick="stopStream(theRemoteStream, 'video');">StopRemoteVideoTrack
+  </button>
+  <button onclick="stopStream(theRemoteStream, 'audio');">StopRemoteAudioTracks
+  </button>
+  <br></br>
+  <br><strong>Local Peer Connection</strong></br>
+  <button onclick="createPeerConnection();">CreatePeerConnection</button>
+  <br></br>
+  <br><strong>Recorder Options</strong></br>
+  <label>Stream To Record</label>
+  <select id="recorded_stream">
+    <option value="remote">remote</option>
+    <option value="local">local</option>
+  </select>
+  <label>Audio BitRate</label>
+  <select id="audio_bitrate">
+    <option value=""></option>
+    <option value="96000">96kpbs</option>
+    <option value="128000">128kbps</option>
+    <option value="160000">160kbps</option>
+    <option value="192000">192kbps</option>
+    <option value="256000">256kbps</option>
+    <option value="400000">400kbps</option>
+  </select>
+  <label>Video Codec</label>
+  <select id="video_codec">
+    <option value=""></option>
+    <option value="VP8">VP8</option>
+    <option value="VP9">VP9</option>
+  </select>
+  <label>Video Bitrate</label>
+  <select id="video_bitrate">
+    <option value=""></option>
+    <option value="16000">16kpbs</option>
+    <option value="128000">128kbps</option>
+    <option value="160000">160kbps</option>
+    <option value="192000">192kbps</option>
+    <option value="256000">256kbps</option>
+    <option value="384000">384kbps</option>
+    <option value="400000">400kbps</option>
+    <option value="750000">750kbps</option>
+    <option value="1000000">1Mbps</option>
+    <option value="2500000">2.5Mbps</option>
+    <option value="3500000">3.5Mbps</option>
+    <option value="6800000">6.8Mbps</option>
+    <option value="9800000">9.8Mbps</option>
+    <option value="15000000">15Mbps</option>
+  </select>
+  <label>Overall Bitrate</label>
+  <select id="overall_av_bitrate">
+    <option value=""></option>
+    <option value="128000">128kbps</option>
+    <option value="160000">160kbps</option>
+    <option value="192000">192kbps</option>
+    <option value="256000">256kbps</option>
+    <option value="384000">384kbps</option>
+    <option value="400000">400kbps</option>
+    <option value="750000">750kbps</option>
+    <option value="1000000">1Mbps</option>
+    <option value="2500000">2.5Mbps</option>
+    <option value="3500000">3.5Mbps</option>
+    <option value="6800000">6.8Mbps</option>
+    <option value="9800000">9.8Mbps</option>
+    <option value="15000000">15Mbps</option>
+  </select>
+  <br></br>
+  <label>Ignore Muted Media</label>
+  <select id="ignore_muted">
+    <option value="true">yes</option>
+    <option value="false">no</option>
+  </select>
+  <br></br>
+  <br><strong>Recorder Controls</strong></br>
+  <button onclick="createRecorder();">CreateRecorder</button>
+  <label>Monitor Recorder's Event Counts</label>
+  <select id="monitor_events" onchange="monitorRecorderEvents(this.value);">
+    <option value=""></option>
+    <option value="all">all events</option>
+    <option value="onstart">onstart</option>
+    <option value="onstop">onstop</option>
+    <option value="onpause">onpause</option>
+    <option value="onresume">onresume</option>
+    <option value="onerror">onerror</option>
+  </select>
+  <br></br>
+  <label>Time slice</label>
+  <select id="time_slice">
+    <option value=""></option>
+    <option value="100">100ms</option>
+    <option value="200">200ms</option>
+    <option value="1000">1s</option>
+    <option value="10000">10s</option>
+    <option value="100000">100s</option>
+    <option value="1000000">1,000s</option>
+    <option value="1800000">30 min</option>
+    <option value="3600000">1 hour</option>
+    <option value="7200000">2 hours</option>
+    <option value="86400000">24 hours</option>
+  </select>
+  <button onclick="startRecorder();">Start</button>
+  <button onclick="pauseRecorder();">Pause</button>
+  <button onclick="resumeRecorder();">Resume</button>
+  <button onclick="stopRecorder();">Stop</button>
+  <button onclick="requestDataRecorder();">RequestData</button>
+  <br></br>
+  <br><strong>Playback Controls</strong></br>
+  <button onclick="playback();">Playback</button>
+  <button onclick="download();">Download</button>
+  <br>
+    <video id="playback_video" autoplay></video>
+  </br>
+  <br><strong>Recorder State</strong></br>
+  <label>RecorderState: </label>
+  <textarea id="recorder_state" readonly rows=1 cols=10>N/A</textarea>
+  <br></br>
+  <br><strong>Recorder's Event Counters and metrics</strong></br>
+  <label>onstart: </label>
+  <textarea id="onstart_count" readonly rows=1 cols=10>0</textarea>
+  <label>onstop: </label>
+  <textarea id="onstop_count" readonly rows=1 cols=10>0</textarea>
+  <label>onpause: </label>
+  <textarea id="onpause_count" readonly rows=1 cols=10>0</textarea>
+  <label>onresume: </label>
+  <textarea id="onresume_count" readonly rows=1 cols=10>0</textarea>
+  <label>ondataavailable: </label>
+  <textarea id="ondataavailable_count" readonly rows=1 cols=10>0</textarea>
+  <label>onerror: </label>
+  <textarea id="onerror_count" readonly rows=1 cols=10>0</textarea>
+  <label>bitrate: </label>
+  <textarea id ="bitrate_estimate" readonly rows=1 cols=10>N/A</textarea>
+</body>
+<script src="js/main.js"> </script>
+</body>
+</html>
