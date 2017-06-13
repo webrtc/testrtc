@@ -5,19 +5,6 @@ threadsafe: true
 api_version: 1
 
 handlers:
-- url: /manual/
-  static_files: src/manual/index.html
-  upload: src/manual/index.html
-  secure: always
-
-- url: /manual/(.+)/
-  static_files: src/manual/\1/index.html
-  upload: src/manual/(.+)/index.html
-
-- url: /manual
-  static_dir: src/manual
-  secure: always
-
 - url: /node_modules
   static_dir: node_modules
   secure: always
