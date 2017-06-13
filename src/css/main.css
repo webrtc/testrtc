@@ -10,13 +10,13 @@ body {
   font-weight: 300;
 }
 
-div#content {
+div.main {
   margin: 0 auto 0 auto;
   max-width: 40em;
   padding: 1em 1.5em 1.3em 1.5em;
 }
 
-div#content {
+div.main {
   /**
    * Content has a calculated min-height so it can push the footer considerable
    * down to the bottom of the page.
@@ -25,12 +25,12 @@ div#content {
 }
 
 footer {
-  text-align: center;
   margin: 1em;
+  text-align: center;
 }
 
 footer a {
   color: #666;
-  text-decoration: none;
   padding-left: 2em;
+  text-decoration: none;
 }

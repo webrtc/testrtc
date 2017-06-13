@@ -47,9 +47,6 @@ module.exports = function(grunt) {
     },
 
     csslint: {
-      options: {
-        csslintrc: 'build/csslintrc'
-      },
       strict: {
         options: {
           import: 2
@@ -65,6 +62,10 @@ module.exports = function(grunt) {
       }
     },
 
+    eslint: {
+      target: ['src/js/*.js']
+    },
+
     htmlhint: {
       html1: {
         src: [
@@ -76,37 +77,6 @@ module.exports = function(grunt) {
           '!out/**'
         ]
       }
-    },
-
-    jscs: {
-      src: '**/*.js',
-      options: {
-        preset: 'google', // as per Google style guide – could use '.jscsrc' instead
-        excludeFiles: [
-          'browsers/**',
-          'components/**',
-          'node_modules/**',
-          'out/**',
-          'Gruntfile.js'
-        ]
-      }
-    },
-
-    jshint: {
-      options: {
-        ignores: [
-          'browsers/**',
-          'components/**',
-          'node_modules/**',
-          'out/**',
-          'Gruntfile.js'
-        ],
-        jshintrc: 'build/jshintrc'
-      },
-      // Files to validate
-      // can choose more than one name + array of paths
-      // usage with this name: grunt jshint:files
-      files: ['**/*.js']
     },
 
     uglify: {
@@ -134,15 +104,14 @@ module.exports = function(grunt) {
   // enable plugins
   grunt.loadNpmTasks('grunt-contrib-csslint');
   grunt.loadNpmTasks('grunt-htmlhint');
-  grunt.loadNpmTasks('grunt-jscs');
-  grunt.loadNpmTasks('grunt-contrib-jshint');
+  grunt.loadNpmTasks('grunt-eslint');
   grunt.loadNpmTasks('grunt-vulcanize');
   grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-contrib-uglify');
 
   // Set default tasks to run when grunt is called without parameters
-  grunt.registerTask('default', ['csslint', 'htmlhint', 'jscs', 'jshint']);
+  grunt.registerTask('default', ['csslint', 'htmlhint', 'eslint']);
 
   // Cleans out/ folder, copies files in place and vulcanizes index.html to out/.
   grunt.registerTask('build', ['clean', 'copy', 'vulcanize', 'uglify']);

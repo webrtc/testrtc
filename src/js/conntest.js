@@ -11,28 +11,28 @@
 // and verify data can be transmitted and received
 // (packets travel through the public internet)
 addTest(
-  testSuiteName.CONNECTIVITY, testCaseName.RELAYCONNECTIVITY, function(test) {
-  var runConnectivityTest =  new RunConnectivityTest(test, Call.isRelay);
-  runConnectivityTest.run();
-});
+    testSuiteName.CONNECTIVITY, testCaseName.RELAYCONNECTIVITY, function(test) {
+      var runConnectivityTest = new RunConnectivityTest(test, Call.isRelay);
+      runConnectivityTest.run();
+    });
 
 // Set up a datachannel between two peers through a public IP address
 // and verify data can be transmitted and received
 // (packets should stay on the link if behind a router doing NAT)
 addTest(testSuiteName.CONNECTIVITY, testCaseName.REFLEXIVECONNECTIVITY,
-  function(test) {
-  var runConnectivityTest =  new RunConnectivityTest(test, Call.isReflexive);
-  runConnectivityTest.run();
-});
+    function(test) {
+      var runConnectivityTest = new RunConnectivityTest(test, Call.isReflexive);
+      runConnectivityTest.run();
+    });
 
 // Set up a datachannel between two peers through a local IP address
 // and verify data can be transmitted and received
 // (packets should not leave the machine running the test)
 addTest(
-  testSuiteName.CONNECTIVITY, testCaseName.HOSTCONNECTIVITY, function(test) {
-  var runConnectivityTest =  new RunConnectivityTest(test, Call.isHost);
-  runConnectivityTest.start();
-});
+    testSuiteName.CONNECTIVITY, testCaseName.HOSTCONNECTIVITY, function(test) {
+      var runConnectivityTest = new RunConnectivityTest(test, Call.isHost);
+      runConnectivityTest.start();
+    });
 
 function RunConnectivityTest(test, iceCandidateFilter) {
   this.test = test;
@@ -61,7 +61,7 @@ RunConnectivityTest.prototype = {
         // Report candidate info based on iceCandidateFilter.
         if (this.iceCandidateFilter(parsedCandidate)) {
           this.test.reportInfo(
-            'Gathered candidate of Type: ' + parsedCandidate.type +
+              'Gathered candidate of Type: ' + parsedCandidate.type +
             ' Protocol: ' + parsedCandidate.protocol +
             ' Address: ' + parsedCandidate.address);
         }

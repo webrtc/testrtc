@@ -43,7 +43,7 @@ NetworkTest.prototype = {
       this.gatherCandidates(null, this.params, this.iceCandidateFilter);
     } else {
       Call.asyncCreateTurnConfig(this.start.bind(this),
-        this.test.reportFatal.bind(this.test));
+          this.test.reportFatal.bind(this.test));
     }
   },
 
@@ -134,15 +134,15 @@ NetworkTest.prototype = {
   createAudioOnlyReceiveOffer: function(pc) {
     var createOfferParams = {offerToReceiveAudio: 1};
     pc.createOffer(
-      createOfferParams
+        createOfferParams
     ).then(
-      function(offer) {
-        pc.setLocalDescription(offer).then(
-          noop,
-          noop
-        );
-      },
-      noop
+        function(offer) {
+          pc.setLocalDescription(offer).then(
+              noop,
+              noop
+          );
+        },
+        noop
     );
 
     // Empty function for callbacks requiring a function.
