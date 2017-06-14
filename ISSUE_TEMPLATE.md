@@ -1,9 +1,6 @@
 **Browsers and versions affected**
 
 
-**Description**
-
-
 **Steps to reproduce**
 
 
