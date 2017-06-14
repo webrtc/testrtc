@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/webrtc/testrtc.svg?branch=master)](https://travis-ci.org/webrtc/testrtc)
+[![Build Status](https://travis-ci.org/webrtc/testrtc.svg)](https://travis-ci.org/webrtc/testrtc)
 
 # TestRTC #
 [WebRTC troubleshooter](https://test.webrtc.org/) provides a set of tests that can be easily run by a user to help diagnose
