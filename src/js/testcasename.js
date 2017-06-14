@@ -5,7 +5,7 @@
  *  that can be found in the LICENSE file in the root of the source
  *  tree.
  */
- /* exported testCaseName */
+/* exported testCaseName */
 'use strict';
 
 /*  In order to make strings easier to translate all test case names should be

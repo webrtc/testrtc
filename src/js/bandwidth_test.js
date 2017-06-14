@@ -138,8 +138,8 @@ function VideoBandwidthTest(test) {
     audio: false,
     video: {
       optional: [
-       {minWidth:  1280},
-       {minHeight: 720}
+        {minWidth: 1280},
+        {minHeight: 720}
       ]
     }
   };
@@ -148,7 +148,7 @@ function VideoBandwidthTest(test) {
 VideoBandwidthTest.prototype = {
   run: function() {
     Call.asyncCreateTurnConfig(this.start.bind(this),
-      this.test.reportFatal.bind(this.test));
+        this.test.reportFatal.bind(this.test));
   },
 
   start: function(config) {
@@ -178,7 +178,7 @@ VideoBandwidthTest.prototype = {
       return;
     } else if (!this.call.statsGatheringRunning) {
       this.call.gatherStats(this.call.pc1, this.localStream,
-        this.gotStats.bind(this));
+          this.gotStats.bind(this));
     }
     this.test.setProgress((now - this.startTime) * 100 / this.durationMs);
     setTimeout(this.gatherStats.bind(this), this.statStepMs);
@@ -191,10 +191,10 @@ VideoBandwidthTest.prototype = {
       for (var i in response) {
         if (response[i].id === 'bweforvideo') {
           this.bweStats.add(Date.parse(response[i].timestamp),
-            parseInt(response[i].googAvailableSendBandwidth));
+              parseInt(response[i].googAvailableSendBandwidth));
         } else if (response[i].type === 'ssrc') {
           this.rttStats.add(Date.parse(response[i].timestamp),
-            parseInt(response[i].googRtt));
+              parseInt(response[i].googRtt));
           // Grab the last stats.
           this.videoStats[0] = response[i].googFrameWidthSent;
           this.videoStats[1] = response[i].googFrameHeightSent;
@@ -205,7 +205,7 @@ VideoBandwidthTest.prototype = {
       for (var j in response) {
         if (response[j].id === 'outbound_rtcp_video_0') {
           this.rttStats.add(Date.parse(response[j].timestamp),
-            parseInt(response[j].mozRtt));
+              parseInt(response[j].mozRtt));
           // Grab the last stats.
           this.jitter = response[j].jitter;
           this.packetsLost = response[j].packetsLost;
@@ -236,7 +236,7 @@ VideoBandwidthTest.prototype = {
   completed: function() {
     // TODO: Remove browser specific stats gathering hack once adapter.js or
     // browsers converge on a standard.
-    if (adapter.browserDetails.browser  === 'chrome') {
+    if (adapter.browserDetails.browser === 'chrome') {
       // Checking if greater than 2 because Chrome sometimes reports 2x2 when
       // a camera starts but fails to deliver frames.
       if (this.videoStats[0] < 2 && this.videoStats[1] < 2) {
@@ -253,7 +253,7 @@ VideoBandwidthTest.prototype = {
         this.test.reportInfo('Send bandwidth ramp-up time: ' +
             this.bweStats.getRampUpTime() + ' ms');
       }
-    } else if (adapter.browserDetails.browser  === 'firefox') {
+    } else if (adapter.browserDetails.browser === 'firefox') {
       if (parseInt(this.framerateMean) > 0) {
         this.test.reportSuccess('Frame rate mean: ' +
             parseInt(this.framerateMean));
@@ -265,7 +265,6 @@ VideoBandwidthTest.prototype = {
           ' bps');
       this.test.reportInfo('Send bitrate standard deviation: ' +
           parseInt(this.bitrateStdDev) + ' bps');
-
     }
     this.test.reportInfo('RTT average: ' + this.rttStats.getAverage() +
             ' ms');
@@ -277,17 +276,17 @@ VideoBandwidthTest.prototype = {
 };
 
 addExplicitTest(testSuiteName.THROUGHPUT, testCaseName.NETWORKLATENCY,
-  function(test) {
-    var wiFiPeriodicScanTest = new WiFiPeriodicScanTest(test,
-        Call.isNotHostCandidate);
-    wiFiPeriodicScanTest.run();
-  });
+    function(test) {
+      var wiFiPeriodicScanTest = new WiFiPeriodicScanTest(test,
+          Call.isNotHostCandidate);
+      wiFiPeriodicScanTest.run();
+    });
 
 addExplicitTest(testSuiteName.THROUGHPUT, testCaseName.NETWORKLATENCYRELAY,
-  function(test) {
-    var wiFiPeriodicScanTest = new WiFiPeriodicScanTest(test, Call.isRelay);
-    wiFiPeriodicScanTest.run();
-  });
+    function(test) {
+      var wiFiPeriodicScanTest = new WiFiPeriodicScanTest(test, Call.isRelay);
+      wiFiPeriodicScanTest.run();
+    });
 
 function WiFiPeriodicScanTest(test, candidateFilter) {
   this.test = test;
@@ -315,7 +314,7 @@ WiFiPeriodicScanTest.prototype = {
     this.call.setIceCandidateFilter(this.candidateFilter);
 
     this.senderChannel = this.call.pc1.createDataChannel({ordered: false,
-        maxRetransmits: 0});
+      maxRetransmits: 0});
     this.senderChannel.addEventListener('open', this.send.bind(this));
     this.call.pc2.addEventListener('datachannel',
         this.onReceiverChannel.bind(this));
@@ -331,13 +330,17 @@ WiFiPeriodicScanTest.prototype = {
   },
 
   send: function() {
-    if (!this.running) { return; }
+    if (!this.running) {
+      return;
+    }
     this.senderChannel.send('' + Date.now());
     setTimeout(this.send.bind(this), this.sendIntervalMs);
   },
 
   receive: function(event) {
-    if (!this.running) { return; }
+    if (!this.running) {
+      return;
+    }
     var sendTime = parseInt(event.data);
     var delay = Date.now() - sendTime;
     this.recvTimeStamps.push(sendTime);
@@ -347,7 +350,7 @@ WiFiPeriodicScanTest.prototype = {
 
   finishTest: function() {
     report.traceEventInstant('periodic-delay', {delays: this.delays,
-        recvTimeStamps: this.recvTimeStamps});
+      recvTimeStamps: this.recvTimeStamps});
     this.running = false;
     this.call.close();
     this.call = null;

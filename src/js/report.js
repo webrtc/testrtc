@@ -25,15 +25,15 @@ function Report() {
 Report.prototype = {
   traceEventInstant: function(name, args) {
     this.output_.push({'ts': Date.now(),
-                       'name': name,
-                       'args': args});
+      'name': name,
+      'args': args});
   },
 
   traceEventWithId: function(name, id, args) {
     this.output_.push({'ts': Date.now(),
-                       'name': name,
-                       'id': id,
-                       'args': args});
+      'name': name,
+      'id': id,
+      'args': args});
   },
 
   traceEventAsync: function(name) {
@@ -54,7 +54,7 @@ Report.prototype = {
 
   generate: function(bugDescription) {
     var header = {'title': 'WebRTC Troubleshooter bug report',
-                  'description': bugDescription || null};
+      'description': bugDescription || null};
     return this.getContent_(header);
   },
 
@@ -78,7 +78,7 @@ Report.prototype = {
 
   onWindowError_: function(error) {
     this.traceEventInstant('error', {'message': error.message,
-                                     'filename': error.filename + ':' +
+      'filename': error.filename + ':' +
                                      error.lineno});
   },
 
@@ -134,8 +134,8 @@ Report.getSystemInfo = function() {
     version = version.substring(0, ix);
   }
   return {'browserName': browserName,
-          'browserVersion': version,
-          'platform': navigator.platform};
+    'browserVersion': version,
+    'platform': navigator.platform};
 };
 
 var report = new Report();

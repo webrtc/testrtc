@@ -36,16 +36,16 @@ addTest(testSuiteName.CAMERA, testCaseName.CHECKRESOLUTION720, function(test) {
   camResolutionsTest.run();
 });
 
-addTest(
-  testSuiteName.CAMERA, testCaseName.CHECKSUPPORTEDRESOLUTIONS, function(test) {
-  var resolutionArray = [
-    [160, 120], [320, 180], [320, 240], [640, 360], [640, 480], [768, 576],
-    [1024, 576], [1280, 720], [1280, 768], [1280, 800], [1920, 1080],
-    [1920, 1200], [3840, 2160], [4096, 2160]
-  ];
-  var camResolutionsTest = new CamResolutionsTest(test, resolutionArray);
-  camResolutionsTest.run();
-});
+addTest(testSuiteName.CAMERA,
+    testCaseName.CHECKSUPPORTEDRESOLUTIONS, function(test) {
+      var resolutionArray = [
+        [160, 120], [320, 180], [320, 240], [640, 360], [640, 480], [768, 576],
+        [1024, 576], [1280, 720], [1280, 768], [1280, 800], [1920, 1080],
+        [1920, 1200], [3840, 2160], [4096, 2160]
+      ];
+      var camResolutionsTest = new CamResolutionsTest(test, resolutionArray);
+      camResolutionsTest.run();
+    });
 
 function CamResolutionsTest(test, resolutions) {
   this.test = test;
@@ -64,30 +64,33 @@ CamResolutionsTest.prototype = {
     var constraints = {
       audio: false,
       video: {width: {exact: resolution[0]},
-          height: {exact: resolution[1]}}
+        height: {exact: resolution[1]}}
     };
     navigator.mediaDevices.getUserMedia(constraints)
-    .then(function(stream) {
-      // Do not check actual video frames when more than one resolution is
-      // provided.
-      if (this.resolutions.length > 1) {
-        this.test.reportSuccess('Supported: ' + resolution[0] + 'x' +
+        .then(function(stream) {
+          // Do not check actual video frames when more than one resolution is
+          // provided.
+          if (this.resolutions.length > 1) {
+            this.test.reportSuccess('Supported: ' + resolution[0] + 'x' +
             resolution[1]);
-        stream.getTracks().forEach(function(track) {track.stop();});
-        this.maybeContinueGetUserMedia();
-      } else {
-        this.collectAndAnalyzeStats_(stream, resolution);
-      }
-    }.bind(this))
-    .catch(function(error) {
-      if (this.resolutions.length > 1) {
-        this.test.reportInfo(resolution[0] + 'x' + resolution[1] +
+            stream.getTracks().forEach(function(track) {
+              track.stop();
+            });
+            this.maybeContinueGetUserMedia();
+          } else {
+            this.collectAndAnalyzeStats_(stream, resolution);
+          }
+        }.bind(this))
+        .catch(function(error) {
+          if (this.resolutions.length > 1) {
+            this.test.reportInfo(resolution[0] + 'x' + resolution[1] +
             ' not supported');
-      } else {
-        this.test.reportError('getUserMedia failed with error: ' + error.name);
-      }
-      this.maybeContinueGetUserMedia();
-    }.bind(this));
+          } else {
+            this.test.reportError('getUserMedia failed with error: ' +
+                error.name);
+          }
+          this.maybeContinueGetUserMedia();
+        }.bind(this));
   },
 
   maybeContinueGetUserMedia: function() {
@@ -150,17 +153,17 @@ CamResolutionsTest.prototype = {
     call.pc1.addStream(stream);
     call.establishConnection();
     call.gatherStats(call.pc1, stream,
-                     this.onCallEnded_.bind(this, resolution, video,
-                                            stream, frameChecker),
-                     100);
+        this.onCallEnded_.bind(this, resolution, video,
+            stream, frameChecker),
+        100);
 
     setTimeoutWithProgressBar(this.endCall_.bind(this, call, stream), 8000);
   },
 
   onCallEnded_: function(resolution, videoElement, stream, frameChecker,
-                         stats, statsTime) {
+    stats, statsTime) {
     this.analyzeStats_(resolution, videoElement, stream, frameChecker,
-                       stats, statsTime);
+        stats, statsTime);
 
     frameChecker.stop();
 
@@ -168,7 +171,7 @@ CamResolutionsTest.prototype = {
   },
 
   analyzeStats_: function(resolution, videoElement, stream,
-                          frameChecker, stats, statsTime) {
+    frameChecker, stats, statsTime) {
     var googAvgEncodeTime = [];
     var googAvgFrameRateInput = [];
     var googAvgFrameRateSent = [];
@@ -237,7 +240,7 @@ CamResolutionsTest.prototype = {
   },
 
   resolutionMatchesIndependentOfRotationOrCrop_: function(aWidth, aHeight,
-                                                       bWidth, bHeight) {
+    bWidth, bHeight) {
     var minRes = Math.min(bWidth, bHeight);
     return (aWidth === bWidth && aHeight === bHeight) ||
            (aWidth === bHeight && aHeight === bWidth) ||
@@ -286,7 +289,7 @@ CamResolutionsTest.prototype = {
   }
 };
 
-//TODO: Move this to a separate file.
+// TODO: Move this to a separate file.
 function VideoFrameChecker(videoElement) {
   this.frameStats = {
     numFrozenFrames: 0,
@@ -319,7 +322,7 @@ VideoFrameChecker.prototype = {
 
     var context = this.canvas_.getContext('2d');
     context.drawImage(this.videoElement_, 0, 0, this.canvas_.width,
-                      this.canvas_.height);
+        this.canvas_.height);
     return context.getImageData(0, 0, this.canvas_.width, this.canvas_.height);
   },
 
@@ -353,7 +356,7 @@ VideoFrameChecker.prototype = {
     var accuLuma = 0;
     for (var i = 4; i < length; i += 4) {
       // Use Luma as in Rec. 709: Y′709 = 0.21R + 0.72G + 0.07B;
-      accuLuma += 0.21 * data[i] +  0.72 * data[i + 1] + 0.07 * data[i + 2];
+      accuLuma += 0.21 * data[i] + 0.72 * data[i + 1] + 0.07 * data[i + 2];
       // Early termination if the average Luma so far is bright enough.
       if (accuLuma > (thresh * i / 4)) {
         return false;

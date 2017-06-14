@@ -22,15 +22,14 @@ function Call(config, test) {
       this.pc1));
 
   this.iceCandidateFilter_ = Call.noFilter;
-
 }
 
 Call.prototype = {
   establishConnection: function() {
     this.traceEvent({state: 'start'});
     this.pc1.createOffer().then(
-      this.gotOffer_.bind(this),
-      this.test.reportFatal.bind(this.test)
+        this.gotOffer_.bind(this),
+        this.test.reportFatal.bind(this.test)
     );
   },
 
@@ -68,7 +67,7 @@ Call.prototype = {
     // TODO: Is it worth using MediaStreamTrack for both browsers? Then we
     // would need to request stats per track etc.
     var selector = (adapter.browserDetails.browser === 'chrome') ?
-        localStream : null;
+      localStream : null;
     this.statsGatheringRunning = true;
     getStats_();
 
@@ -112,7 +111,7 @@ Call.prototype = {
   gotOffer_: function(offer) {
     if (this.constrainOfferToRemoveVideoFec_) {
       offer.sdp = offer.sdp.replace(/(m=video 1 [^\r]+)(116 117)(\r\n)/g,
-                                    '$1\r\n');
+          '$1\r\n');
       offer.sdp = offer.sdp.replace(/a=rtpmap:116 red\/90000\r\n/g, '');
       offer.sdp = offer.sdp.replace(/a=rtpmap:117 ulpfec\/90000\r\n/g, '');
       offer.sdp = offer.sdp.replace(/a=rtpmap:98 rtx\/90000\r\n/g, '');
@@ -121,8 +120,8 @@ Call.prototype = {
     this.pc1.setLocalDescription(offer);
     this.pc2.setRemoteDescription(offer);
     this.pc2.createAnswer().then(
-      this.gotAnswer_.bind(this),
-      this.test.reportFatal.bind(this.test)
+        this.gotAnswer_.bind(this),
+        this.test.reportFatal.bind(this.test)
     );
   },
 
@@ -261,7 +260,7 @@ Call.fetchTurnConfig_ = function(onSuccess, onError) {
       // Make a new object due to tests modifying the original response object.
       return JSON.parse(JSON.stringify(Call.cachedIceServers_));
     };
-    Call.cachedIceConfigFetchTime_  = Date.now();
+    Call.cachedIceConfigFetchTime_ = Date.now();
     report.traceEventInstant('fetch-ice-config', 'Fetching new credentials.');
     onSuccess(Call.getCachedIceCredentials_());
   }

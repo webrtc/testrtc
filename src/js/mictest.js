@@ -192,9 +192,8 @@ MicTest.prototype = {
             'is high. Decrease input volume or move away from the microphone.');
       }
       return true;
-    } else {
-      return false;
     }
+    return false;
   },
 
   detectMono: function(buffersL, buffersR) {
