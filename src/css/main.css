@@ -34,3 +34,22 @@ footer a {
   padding-left: 2em;
   text-decoration: none;
 }
+
+html paper-dialog {
+  top: 2em;
+}
+
+html paper-button {
+  font-weight: 400;
+}
+
+html .popup-dialog {
+  max-width: 50%;
+}
+
+@media only all and (max-device-width: 700px) {
+  html .popup-dialog {
+    font-size: 0.6em;
+    max-width: 90%;
+  }
+}
