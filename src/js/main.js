@@ -1,72 +1,56 @@
-/*
- *  Copyright (c) 2015 The WebRTC project authors. All Rights Reserved.
- *
- *  Use of this source code is governed by a BSD-style license
- *  that can be found in the LICENSE file in the root of the source
- *  tree.
- */
+var call_tests = [];
 
-/* More information about these options at jshint.com/docs/options */
-/* exported addExplicitTest, addTest, audioContext */
-'use strict';
-
-// Global WebAudio context that can be shared by all tests.
-// There is a very finite number of WebAudio contexts.
-try {
-  window.AudioContext = window.AudioContext || window.webkitAudioContext;
-  var audioContext = new AudioContext();
-} catch (e) {
-  console.log('Failed to instantiate an audio context, error: ' + e);
+function main() {
+	setupHTML();
+	call_tests = [new MicTest(nextCallTest), new CamResolutionsTest(nextCallTest), new NetworkTest('udp', null, Call.isRelay, nextCallTest, false), new NetworkTest('tcp', null, Call.isRelay, nextCallTest, false), new NetworkTest('tcp', null, Call.isRelay, nextCallTest, true), new RunConnectivityTest(Call.isRelay, nextCallTest), new DataChannelThroughputTest(nextCallTest), new VideoBandwidthTest(nextCallTest)]; // eslint-disable-line no-undef
 }
 
-var enumeratedTestSuites = [];
-var enumeratedTestFilters = [];
+function setupHTML() {
+	var mic = $('<li id="mic-test"><span>Microphone	 </span> <span id="mic-test-result" class = "check">waiting</span></li>');
+	var camera = $('<li id="cam-test"><span>Camera </span> <span id="cam-test-result" class = "check">waiting</span></li>');
+	var network = $('<li id="net-test"><span>Network UDP </span> <span id="net-test-result" class = "check">waiting</span></li>');
+	var network2 = $('<li id="net-test2"><span>Network TCP </span> <span id="net-test-result2" class = "check">waiting</span></li>');
+	var network3 = $('<li id="net-test3"><span>Network TCP/TLS </span> <span id="net-test-result3" class = "check">waiting</span></li>');
+	var connectivity = $('<li id="conn-test"><span>Relay Connectivity </span> <span id="conn-test-result" class = "check">waiting</span></li>');
+	var throughput = $('<li id="datathroughput-test"><span>Data Throughput</span> <span id="datathroughput-test-result" class = "check">waiting</span></li>');
+	var throughput2 = $('<li id="videobandwidth-test"><span>Video Throughput</span> <span id="videobandwidth-test-result" class = "check">waiting</span></li>');
 
-function addTest(suiteName, testName, func) {
-  if (isTestDisabled(testName)) {
-    return;
-  }
+	var mic_tags = [mic];
+	var camera_tags = [camera];
+	var network_tags = [network, network2, network3];
+	var connectivity_tags = [connectivity];
+	var throughput_tags = [throughput, throughput2];
 
-  for (var i = 0; i !== enumeratedTestSuites.length; ++i) {
-    if (enumeratedTestSuites[i].name === suiteName) {
-      enumeratedTestSuites[i].addTest(testName, func);
-      return;
-    }
-  }
-  // Non-existent suite create and attach to #content.
-  var suite = document.createElement('testrtc-suite');
-  suite.name = suiteName;
-  suite.addTest(testName, func);
-  enumeratedTestSuites.push(suite);
-  document.getElementById('content').appendChild(suite);
+	//append tags to appropriate lists in page_help_test_calls.txt
+	mic_tags.forEach(function(tag) {
+		$('#mic-tests').append(tag);
+	});
+	camera_tags.forEach(function(tag) {
+		$('#camera-tests').append(tag);
+	});
+	network_tags.forEach(function(tag) {
+		$('#network-tests').append(tag);
+	});
+	connectivity_tags.forEach(function(tag) {
+		$('#connectivity-tests').append(tag);
+	});
+	throughput_tags.forEach(function(tag) {
+		$('#throughput-tests').append(tag);
+	});
 }
 
-// Add a test that only runs if it is explicitly enabled with
-// ?test_filter=<TEST NAME>
-function addExplicitTest(suiteName, testName, func) {
-  if (isTestExplicitlyEnabled(testName)) {
-    addTest(suiteName, testName, func);
-  }
+function startTests() { // eslint-disable-line no-unused-vars
+	nextCallTest();
 }
 
-function isTestDisabled(testName) {
-  if (enumeratedTestFilters.length === 0) {
-    return false;
-  }
-  return !isTestExplicitlyEnabled(testName);
+function nextCallTest() {
+	if (call_tests.length) {
+		var callT = call_tests.shift();
+		callT.run();
+	} else {
+		allTestsDone('calls'); // eslint-disable-line no-undef
+	}
 }
 
-function isTestExplicitlyEnabled(testName) {
-  for (var i = 0; i !== enumeratedTestFilters.length; ++i) {
-    if (enumeratedTestFilters[i] === testName) {
-      return true;
-    }
-  }
-  return false;
-}
 
-var parameters = parseUrlParameters();
-var filterParameterName = 'test_filter';
-if (filterParameterName in parameters) {
-  enumeratedTestFilters = parameters[filterParameterName].split(',');
-}
+main();
