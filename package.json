@@ -1,10 +1,10 @@
 {
-  "name": "TestRTC",
+  "name": "@slack/testrtc",
+  "version": "0.1.0",
   "description": "Collection of tests and tools to help diagnose WebRTC systems.",
-  "private": true,
   "repository": {
     "type": "git",
-    "url": "git://github.com/webrtc/testrtc"
+    "url": "git://github.com/tinyspeck/testrtc"
   },
   "license": "BSD-3-Clause",
   "authors": [
