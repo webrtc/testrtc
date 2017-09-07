@@ -87,3 +87,7 @@ Ssim.prototype = {
     return luminance * contrast * structure;
   }
 };
+
+if (typeof exports === 'object') {
+  module.exports = Ssim;
+}

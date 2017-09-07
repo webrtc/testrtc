@@ -66,11 +66,13 @@
     "arrayMin": true,
     "TURN_URL": true,
     "Ssim": true,
+    "VideoFrameChecker": true,
     "StatisticsAggregate": true,
     "API_KEY": true,
     "doGetUserMedia": true,
     "Call": true,
     "setTimeoutWithProgressBar": true,
     "ga": true,
+    "module": true,
   }
 }
