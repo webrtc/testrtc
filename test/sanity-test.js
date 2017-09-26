@@ -5,11 +5,10 @@
  *  that can be found in the LICENSE file in the root of the source
  *  tree.
  */
-
 'use strict';
+
 // This is a basic test file for use with testling.
 // The test script language comes from tape.
-/* jshint node: true */
 var test = require('tape');
 
 var webdriver = require('selenium-webdriver');

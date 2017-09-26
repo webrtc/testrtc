@@ -5,9 +5,8 @@
  *  that can be found in the LICENSE file in the root of the source
  *  tree.
  */
-
-/* More information about these options at jshint.com/docs/options */
 'use strict';
+
 function VideoFrameChecker(videoElement) {
   this.frameStats = {
     numFrozenFrames: 0,
