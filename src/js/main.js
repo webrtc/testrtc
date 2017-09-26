@@ -5,10 +5,8 @@
  *  that can be found in the LICENSE file in the root of the source
  *  tree.
  */
-
-/* More information about these options at jshint.com/docs/options */
-/* exported addExplicitTest, addTest, audioContext */
 'use strict';
+/* exported addExplicitTest, addTest, audioContext */
 
 // Global WebAudio context that can be shared by all tests.
 // There is a very finite number of WebAudio contexts.

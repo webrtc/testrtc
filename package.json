@@ -25,10 +25,7 @@
     "grunt-eslint": "^20.1.0",
     "grunt-htmlhint": ">=0.4.1",
     "grunt-vulcanize": ">=1.0.0",
-    "webrtc-adapter": "^5.0.4",
-    "webrtc-utilities": ">=0.0.1"
-  },
-  "dependencies": {
-    "eslint": "^4.7.2"
+    "webrtc-adapter": ">=5.0.2",
+    "webrtc-utilities": ">=1.0.3"
   }
 }

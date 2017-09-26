@@ -314,10 +314,6 @@ Call.fetchTurnConfig_ = function(onSuccess, onError) {
   xhr.onreadystatechange = onResult;
   // API_KEY and TURN_URL is replaced with API_KEY environment variable via
   // Gruntfile.js during build time by uglifyJS.
-  // jscs:disable
-  /* jshint ignore:start */
   xhr.open('POST', TURN_URL + API_KEY, true);
-  // jscs:enable
-  /* jshint ignore:end */
   xhr.send();
 };
