@@ -63,8 +63,10 @@ CamResolutionsTest.prototype = {
   startGetUserMedia: function(resolution) {
     var constraints = {
       audio: false,
-      video: {width: {exact: resolution[0]},
-        height: {exact: resolution[1]}}
+      video: {
+        width: {exact: resolution[0]},
+        height: {exact: resolution[1]}
+      }
     };
     navigator.mediaDevices.getUserMedia(constraints)
         .then(function(stream) {
@@ -152,7 +154,7 @@ CamResolutionsTest.prototype = {
     var call = new Call(null, this.test);
     call.pc1.addStream(stream);
     call.establishConnection();
-    call.gatherStats(call.pc1, stream,
+    call.gatherStats(call.pc1, null, stream,
         this.onCallEnded_.bind(this, resolution, video,
             stream, frameChecker),
         100);

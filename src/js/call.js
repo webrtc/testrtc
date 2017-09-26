@@ -6,6 +6,7 @@
  *  tree.
  */
 'use strict';
+/* global enumerateStats */
 
 function Call(config, test) {
   this.test = test;
@@ -55,26 +56,48 @@ Call.prototype = {
 
   // When the peerConnection is closed the statsCb is called once with an array
   // of gathered stats.
-  gatherStats: function(peerConnection, localStream, statsCb) {
+  gatherStats: function(peerConnection,peerConnection2, localStream, statsCb) {
     var stats = [];
+    var stats2 = [];
     var statsCollectTime = [];
+    var statsCollectTime2 = [];
     var self = this;
     var statStepMs = 100;
-    // Firefox does not handle the mediaStream object directly, either |null|
-    // for all stats or mediaStreamTrack, which is according to the standard: https://www.w3.org/TR/webrtc/#widl-RTCPeerConnection-getStats-void-MediaStreamTrack-selector-RTCStatsCallback-successCallback-RTCPeerConnectionErrorCallback-failureCallback
-    // Chrome accepts |null| as well but the getStats response reports do not
-    // contain mediaStreamTrack stats.
-    // TODO: Is it worth using MediaStreamTrack for both browsers? Then we
-    // would need to request stats per track etc.
-    var selector = (adapter.browserDetails.browser === 'chrome') ?
-      localStream : null;
+    self.localTrackIds = {
+      audio: '',
+      video: ''
+    };
+    self.remoteTrackIds = {
+      audio: '',
+      video: ''
+    };
+
+    peerConnection.getSenders().forEach(function(sender) {
+      if (sender.track.kind === 'audio') {
+        self.localTrackIds.audio = sender.track.id;
+      } else if (sender.track.kind === 'video') {
+        self.localTrackIds.video = sender.track.id;
+      }
+    }.bind(self));
+
+    if (peerConnection2) {
+      peerConnection2.getReceivers().forEach(function(receiver) {
+        if (receiver.track.kind === 'audio') {
+          self.remoteTrackIds.audio = receiver.track.id;
+        } else if (receiver.track.kind === 'video') {
+          self.remoteTrackIds.video = receiver.track.id;
+        }
+      }.bind(self));
+    }
+
+    var selector = localStream;
     this.statsGatheringRunning = true;
     getStats_();
 
     function getStats_() {
       if (peerConnection.signalingState === 'closed') {
         self.statsGatheringRunning = false;
-        statsCb(stats, statsCollectTime);
+        statsCb(stats, statsCollectTime, stats2, statsCollectTime2);
         return;
       }
       peerConnection.getStats(selector)
@@ -84,16 +107,39 @@ Call.prototype = {
             self.statsGatheringRunning = false;
             statsCb(stats, statsCollectTime);
           }.bind(self));
+      if (peerConnection2) {
+        peerConnection2.getStats(selector)
+            .then(gotStats2_);
+      }
+    }
+    // Stats for pc2, some stats are only available on the receiving end of a
+    // peerconnection.
+    function gotStats2_(response) {
+      if (adapter.browserDetails.browser === 'chrome') {
+        var enumeratedStats = enumerateStats(response, self.localTrackIds,
+            self.remoteTrackIds);
+        stats2.push(enumeratedStats);
+        statsCollectTime2.push(Date.now());
+      } else if (adapter.browserDetails.browser === 'firefox') {
+        for (var h in response) {
+          var stat = response[h];
+          stats2.push(stat);
+          statsCollectTime2.push(Date.now());
+        }
+      } else {
+        self.test.reportError('Only Firefox and Chrome getStats ' +
+            'implementations are supported.');
+      }
     }
 
     function gotStats_(response) {
       // TODO: Remove browser specific stats gathering hack once adapter.js or
       // browsers converge on a standard.
       if (adapter.browserDetails.browser === 'chrome') {
-        for (var index in response) {
-          stats.push(response[index]);
-          statsCollectTime.push(Date.now());
-        }
+        var enumeratedStats = enumerateStats(response, self.localTrackIds,
+            self.remoteTrackIds);
+        stats.push(enumeratedStats);
+        statsCollectTime.push(Date.now());
       } else if (adapter.browserDetails.browser === 'firefox') {
         for (var j in response) {
           var stat = response[j];
