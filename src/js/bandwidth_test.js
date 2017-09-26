@@ -129,7 +129,16 @@ function VideoBandwidthTest(test) {
   this.bweStats = new StatisticsAggregate(0.75 * this.maxVideoBitrateKbps *
       1000);
   this.rttStats = new StatisticsAggregate();
-  this.packetsLost = null;
+  this.packetsLost = -1;
+  this.nackCount = -1;
+  this.pliCount = -1;
+  this.qpSum = -1;
+  this.packetsSent = -1;
+  this.packetsReceived = -1;
+  this.framesEncoded = -1;
+  this.framesDecoded = -1;
+  this.framesSent = -1;
+  this.bytesSent = -1;
   this.videoStats = [];
   this.startTime = null;
   this.call = null;
@@ -177,28 +186,34 @@ VideoBandwidthTest.prototype = {
       this.hangup();
       return;
     } else if (!this.call.statsGatheringRunning) {
-      this.call.gatherStats(this.call.pc1, this.localStream,
+      this.call.gatherStats(this.call.pc1, this.call.pc2, this.localStream,
           this.gotStats.bind(this));
     }
     this.test.setProgress((now - this.startTime) * 100 / this.durationMs);
     setTimeout(this.gatherStats.bind(this), this.statStepMs);
   },
 
-  gotStats: function(response) {
+  gotStats: function(response, time, response2, time2) {
     // TODO: Remove browser specific stats gathering hack once adapter.js or
     // browsers converge on a standard.
     if (adapter.browserDetails.browser === 'chrome') {
       for (var i in response) {
-        if (response[i].id === 'bweforvideo') {
-          this.bweStats.add(Date.parse(response[i].timestamp),
-              parseInt(response[i].googAvailableSendBandwidth));
-        } else if (response[i].type === 'ssrc') {
-          this.rttStats.add(Date.parse(response[i].timestamp),
-              parseInt(response[i].googRtt));
+        if (typeof response[i].connection !== 'undefined') {
+          this.bweStats.add(response[i].connection.timestamp,
+              parseInt(response[i].connection.availableOutgoingBitrate));
+          this.rttStats.add(response[i].connection.timestamp,
+              parseInt(response[i].connection.currentRoundTripTime * 1000));
           // Grab the last stats.
-          this.videoStats[0] = response[i].googFrameWidthSent;
-          this.videoStats[1] = response[i].googFrameHeightSent;
-          this.packetsLost = response[i].packetsLost;
+          this.videoStats[0] = response[i].video.local.frameWidth;
+          this.videoStats[1] = response[i].video.local.frameHeight;
+          this.nackCount = response[i].video.local.nackCount;
+          this.packetsLost = response2[i].video.remote.packetsLost;
+          this.qpSum = response2[i].video.remote.qpSum;
+          this.pliCount = response[i].video.local.pliCount;
+          this.packetsSent = response[i].video.local.packetsSent;
+          this.packetsReceived = response2[i].video.remote.packetsReceived;
+          this.framesEncoded = response[i].video.local.framesEncoded;
+          this.framesDecoded = response2[i].video.remote.framesDecoded;
         }
       }
     } else if (adapter.browserDetails.browser === 'firefox') {
@@ -247,11 +262,18 @@ VideoBandwidthTest.prototype = {
         this.test.reportSuccess('Video resolution: ' + this.videoStats[0] +
             'x' + this.videoStats[1]);
         this.test.reportInfo('Send bandwidth estimate average: ' +
-            this.bweStats.getAverage() + ' bps');
+            Math.round(this.bweStats.getAverage() / 1000) + ' kbps');
         this.test.reportInfo('Send bandwidth estimate max: ' +
-            this.bweStats.getMax() + ' bps');
+            this.bweStats.getMax() / 1000 + ' kbps');
         this.test.reportInfo('Send bandwidth ramp-up time: ' +
             this.bweStats.getRampUpTime() + ' ms');
+        this.test.reportInfo('Packets sent: ' + this.packetsSent);
+        this.test.reportInfo('Packets received: ' + this.packetsReceived);
+        this.test.reportInfo('NACK count: ' + this.nackCount);
+        this.test.reportInfo('Quality predictor sum: ' + this.qpSum);
+        this.test.reportInfo('Packet loss indicator: ' + this.pliCount);
+        this.test.reportInfo('Frames encoded: ' + this.framesEncoded);
+        this.test.reportInfo('Frames decoded: ' + this.framesDecoded);
       }
     } else if (adapter.browserDetails.browser === 'firefox') {
       if (parseInt(this.framerateMean) > 0) {
@@ -261,16 +283,15 @@ VideoBandwidthTest.prototype = {
         this.test.reportError('Frame rate mean is 0, cannot test bandwidth ' +
             'without a working camera.');
       }
-      this.test.reportInfo('Send bitrate mean: ' + parseInt(this.bitrateMean) +
-          ' bps');
+      this.test.reportInfo('Send bitrate mean: ' +
+          parseInt(this.bitrateMean) / 1000 + ' kbps');
       this.test.reportInfo('Send bitrate standard deviation: ' +
-          parseInt(this.bitrateStdDev) + ' bps');
+          parseInt(this.bitrateStdDev) / 1000 + ' kbps');
     }
     this.test.reportInfo('RTT average: ' + this.rttStats.getAverage() +
             ' ms');
     this.test.reportInfo('RTT max: ' + this.rttStats.getMax() + ' ms');
-    this.test.reportInfo('Lost packets: ' + this.packetsLost);
-
+    this.test.reportInfo('Packets lost: ' + this.packetsLost);
     this.test.done();
   }
 };

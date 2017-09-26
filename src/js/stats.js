@@ -42,6 +42,6 @@ StatisticsAggregate.prototype = {
   },
 
   getRampUpTime: function() {
-    return this.rampUpTime_ - this.startTime_;
+    return Math.round(this.rampUpTime_ - this.startTime_);
   },
 };

@@ -14,18 +14,21 @@
     "test": "grunt && grunt build && start-tests"
   },
   "devDependencies": {
-    "bower": ">=1.8.0",
+    "bower": "^1.8.2",
     "eslint-config-webrtc": ">=1.0.0",
     "grunt": ">=0.4.5",
     "grunt-cli": ">=0.1.13",
     "grunt-contrib-clean": ">=0.6.0",
     "grunt-contrib-copy": ">=0.8.0",
     "grunt-contrib-csslint": ">=0.4.0",
-    "grunt-contrib-uglify": ">=0.11.1",
+    "grunt-contrib-uglify": "^3.1.0",
+    "grunt-eslint": "^20.1.0",
     "grunt-htmlhint": ">=0.4.1",
-    "grunt-eslint": ">=19.0.0",
     "grunt-vulcanize": ">=1.0.0",
-    "webrtc-adapter": ">=2.0.5",
+    "webrtc-adapter": "^5.0.4",
     "webrtc-utilities": ">=0.0.1"
+  },
+  "dependencies": {
+    "eslint": "^4.7.2"
   }
 }
