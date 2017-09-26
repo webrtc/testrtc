@@ -26,9 +26,6 @@ matrix:
     - env: BROWSER=firefox BVER=stable
     - env: BROWSER=firefox BVER=beta
 
-before_install:
-  - npm install -g npm@'>=3.0.0'
-
 before_script:
   - npm install
   - bower update
