@@ -270,8 +270,8 @@ VideoBandwidthTest.prototype = {
         this.test.reportInfo('Packets sent: ' + this.packetsSent);
         this.test.reportInfo('Packets received: ' + this.packetsReceived);
         this.test.reportInfo('NACK count: ' + this.nackCount);
+        this.test.reportInfo('Picture loss indications: ' + this.pliCount);
         this.test.reportInfo('Quality predictor sum: ' + this.qpSum);
-        this.test.reportInfo('Packet loss indicator: ' + this.pliCount);
         this.test.reportInfo('Frames encoded: ' + this.framesEncoded);
         this.test.reportInfo('Frames decoded: ' + this.framesDecoded);
       }
