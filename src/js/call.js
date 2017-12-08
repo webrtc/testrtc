@@ -90,7 +90,6 @@ Call.prototype = {
       }.bind(self));
     }
 
-    var selector = localStream;
     this.statsGatheringRunning = true;
     getStats_();
 
@@ -100,7 +99,7 @@ Call.prototype = {
         statsCb(stats, statsCollectTime, stats2, statsCollectTime2);
         return;
       }
-      peerConnection.getStats(selector)
+      peerConnection.getStats()
           .then(gotStats_)
           .catch(function(error) {
             self.test.reportError('Could not gather stats: ' + error);
@@ -108,7 +107,7 @@ Call.prototype = {
             statsCb(stats, statsCollectTime);
           }.bind(self));
       if (peerConnection2) {
-        peerConnection2.getStats(selector)
+        peerConnection2.getStats()
             .then(gotStats2_);
       }
     }
