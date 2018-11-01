@@ -61,12 +61,13 @@ CamResolutionsTest.prototype = {
   },
 
   startGetUserMedia: function(resolution) {
-    var constraints = {
-      audio: false,
-      video: {
+    var videoConstraints = resolution ? {
         width: {exact: resolution[0]},
         height: {exact: resolution[1]}
-      }
+      } : true;
+    var constraints = {
+      audio: false,
+      video: videoConstraints
     };
     navigator.mediaDevices.getUserMedia(constraints)
         .then(function(stream) {
