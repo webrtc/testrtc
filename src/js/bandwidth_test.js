@@ -121,11 +121,11 @@ addTest(testSuiteName.THROUGHPUT, testCaseName.VIDEOBANDWIDTH, function(test) {
   videoBandwidthTest.run();
 });
 
-function VideoBandwidthTest(test) {
+function VideoBandwidthTest(test, config = {}) {
   this.test = test;
-  this.maxVideoBitrateKbps = 2000;
-  this.durationMs = 40000;
-  this.statStepMs = 100;
+  this.maxVideoBitrateKbps = config.maxVideoBitrateKbps || 2000;
+  this.durationMs = config.durationMs || 40000;
+  this.statStepMs = config.statStepMs || 100;
   this.bweStats = new StatisticsAggregate(0.75 * this.maxVideoBitrateKbps *
       1000);
   this.rttStats = new StatisticsAggregate();
