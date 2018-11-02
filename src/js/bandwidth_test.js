@@ -15,7 +15,7 @@ addTest(testSuiteName.THROUGHPUT, testCaseName.DATATHROUGHPUT, function(test) {
   dataChannelThroughputTest.run();
 });
 
-function DataChannelThroughputTest(test) {
+function DataChannelThroughputTest(test, minSpeed, timeout) {
   this.test = test;
   this.testDurationSeconds = 5.0;
   this.startTime = null;
@@ -23,6 +23,8 @@ function DataChannelThroughputTest(test) {
   this.receivedPayloadBytes = 0;
   this.stopSending = false;
   this.samplePacket = '';
+  this.minSpeed = minSpeed || 0;
+  this.timeout = timeout || 0;
 
   for (var i = 0; i !== 1024; ++i) {
     this.samplePacket += 'h';
@@ -54,6 +56,13 @@ DataChannelThroughputTest.prototype = {
         this.onReceiverChannel.bind(this));
 
     this.call.establishConnection();
+    if (this.timeout > 0) {
+        let that = this;
+        this.timeoutId = setTimeout(() => {
+            that.test.reportError('timeout reached');
+            that.test.done();
+        }, this.timeout)
+    }
   },
 
   onReceiverChannel: function(event) {
@@ -94,19 +103,29 @@ DataChannelThroughputTest.prototype = {
       var bitrate = (this.receivedPayloadBytes -
           this.lastReceivedPayloadBytes) / (now - this.lastBitrateMeasureTime);
       bitrate = Math.round(bitrate * 1000 * 8) / 1000;
-      this.test.reportSuccess('Transmitting at ' + bitrate + ' kbps.');
+      this.test.reportInfo('Transmitting at ' + bitrate + ' kbps.');
       this.lastReceivedPayloadBytes = this.receivedPayloadBytes;
       this.lastBitrateMeasureTime = now;
     }
     if (this.stopSending &&
         this.sentPayloadBytes === this.receivedPayloadBytes) {
+      if (this.timeoutId) {
+        console.log('timeoutId', this.timeoutId, 'cleared');
+          clearTimeout(this.timeoutId);
+      }
       this.call.close();
       this.call = null;
 
       var elapsedTime = Math.round((now - this.startTime) * 10) / 10000.0;
       var receivedKBits = this.receivedPayloadBytes * 8 / 1000;
-      this.test.reportSuccess('Total transmitted: ' + receivedKBits +
-          ' kilo-bits in ' + elapsedTime + ' seconds.');
+      var speed = receivedKBits / elapsedTime;
+      this.test.reportInfo('Total transmitted: ' + receivedKBits +
+            ' kilo-bits in ' + elapsedTime + ' seconds.');
+      if (speed < this.minSpeed) {
+          this.test.reportError(speed);
+      } else {
+          this.test.reportSuccess(speed);
+      }
       this.test.done();
     }
   }
