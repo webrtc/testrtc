@@ -52,7 +52,10 @@ MicTest.prototype = {
       this.test.reportError('WebAudio is not supported, test cannot run.');
       this.test.done();
     } else {
-      doGetUserMedia(this.constraints, this.gotStream.bind(this));
+      doGetUserMedia(this.constraints, this.gotStream.bind(this), function(error) {
+        this.test.reportError('getUserMedia was rejected with a ' + error.type + ' named \'' + error.name +'\' and message \'' + error.message + '\'');
+        this.test.done();
+      });
     }
   },
 
