@@ -15,12 +15,12 @@ function Call(config, test) {
   this.statsGatheringRunning = false;
 
   this.pc1 = new RTCPeerConnection(config);
-  this.pc2 = new RTCPeerConnection(config);
+  // this.pc2 = new RTCPeerConnection(config);
 
   this.pc1.addEventListener('icecandidate', this.onIceCandidate_.bind(this,
-      this.pc2));
-  this.pc2.addEventListener('icecandidate', this.onIceCandidate_.bind(this,
       this.pc1));
+  // this.pc2.addEventListener('icecandidate', this.onIceCandidate_.bind(this,
+  //     this.pc1));
 
   this.iceCandidateFilter_ = Call.noFilter;
 }
@@ -37,7 +37,7 @@ Call.prototype = {
   close: function() {
     this.traceEvent({state: 'end'});
     this.pc1.close();
-    this.pc2.close();
+    // this.pc2.close();
   },
 
   setIceCandidateFilter: function(filter) {
@@ -51,7 +51,7 @@ Call.prototype = {
 
   // Remove video FEC if available on the offer.
   disableVideoFec: function() {
-    this.constrainOfferToRemoveVideoFec_ = true;
+    this.constrainOfferToRemoveVideoFec_ = false;
   },
 
   // When the peerConnection is closed the statsCb is called once with an array
@@ -153,6 +153,7 @@ Call.prototype = {
     }
   },
 
+  // setup local and remote answer
   gotOffer_: function(offer) {
     if (this.constrainOfferToRemoveVideoFec_) {
       offer.sdp = offer.sdp.replace(/(m=video 1 [^\r]+)(116 117)(\r\n)/g,
@@ -162,12 +163,16 @@ Call.prototype = {
       offer.sdp = offer.sdp.replace(/a=rtpmap:98 rtx\/90000\r\n/g, '');
       offer.sdp = offer.sdp.replace(/a=fmtp:98 apt=116\r\n/g, '');
     }
-    this.pc1.setLocalDescription(offer);
-    this.pc2.setRemoteDescription(offer);
-    this.pc2.createAnswer().then(
+    this.pc1.setLocalDescription(offer).then(
         this.gotAnswer_.bind(this),
         this.test.reportFatal.bind(this.test)
     );
+
+    // this.pc2.setRemoteDescription(offer);
+    // this.pc2.createAnswer().then(
+    //     this.gotAnswer_.bind(this),
+    //     this.test.reportFatal.bind(this.test)
+    // );
   },
 
   gotAnswer_: function(answer) {
@@ -176,7 +181,15 @@ Call.prototype = {
           /a=mid:video\r\n/g,
           'a=mid:video\r\nb=AS:' + this.constrainVideoBitrateKbps_ + '\r\n');
     }
-    this.pc2.setLocalDescription(answer);
+    // this.pc2.setLocalDescription(answer);
+
+    // pc.onicecandidate = event => {
+    //   if (event.candidate === null) {
+    //     document.getElementById('localSessionDescription').value = btoa(JSON.stringify(pc.localDescription))
+    //   }
+    // }
+    answer = await Legion.POST("http://localhost:1323/v1/call", {sdp: bsd});
+    console.log(`legion call, answer`, answer);
     this.pc1.setRemoteDescription(answer);
   },
 

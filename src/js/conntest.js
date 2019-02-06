@@ -80,16 +80,16 @@ RunConnectivityTest.prototype = {
       }
       this.hangup();
     }.bind(this));
-    this.call.pc2.addEventListener('datachannel', function(event) {
-      var ch2 = event.channel;
-      ch2.addEventListener('message', function(event) {
-        if (event.data !== 'hello') {
-          this.hangup('Invalid data transmitted.');
-        } else {
-          ch2.send('world');
-        }
-      }.bind(this));
-    }.bind(this));
+    // this.call.pc2.addEventListener('datachannel', function(event) {
+    //   var ch2 = event.channel;
+    //   ch2.addEventListener('message', function(event) {
+    //     if (event.data !== 'hello') {
+    //       this.hangup('Invalid data transmitted.');
+    //     } else {
+    //       ch2.send('world');
+    //     }
+    //   }.bind(this));
+    // }.bind(this));
     this.call.establishConnection();
     this.timeout = setTimeout(this.hangup.bind(this, 'Timed out'), 5000);
   },

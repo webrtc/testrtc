@@ -50,8 +50,8 @@ DataChannelThroughputTest.prototype = {
     this.senderChannel = this.call.pc1.createDataChannel(null);
     this.senderChannel.addEventListener('open', this.sendingStep.bind(this));
 
-    this.call.pc2.addEventListener('datachannel',
-        this.onReceiverChannel.bind(this));
+    // this.call.pc2.addEventListener('datachannel',
+    //     this.onReceiverChannel.bind(this));
 
     this.call.establishConnection();
   },
@@ -186,7 +186,7 @@ VideoBandwidthTest.prototype = {
       this.hangup();
       return;
     } else if (!this.call.statsGatheringRunning) {
-      this.call.gatherStats(this.call.pc1, this.call.pc2, this.localStream,
+      this.call.gatherStats(this.call.pc1, null, this.localStream,
           this.gotStats.bind(this));
     }
     this.test.setProgress((now - this.startTime) * 100 / this.durationMs);
@@ -337,8 +337,8 @@ WiFiPeriodicScanTest.prototype = {
     this.senderChannel = this.call.pc1.createDataChannel({ordered: false,
       maxRetransmits: 0});
     this.senderChannel.addEventListener('open', this.send.bind(this));
-    this.call.pc2.addEventListener('datachannel',
-        this.onReceiverChannel.bind(this));
+    // this.call.pc2.addEventListener('datachannel',
+    //     this.onReceiverChannel.bind(this));
     this.call.establishConnection();
 
     setTimeoutWithProgressBar(this.finishTest.bind(this),
