@@ -97,7 +97,6 @@ CamResolutionsTest.prototype = {
         this.maybeContinueGetUserMedia();
       }.bind(this));
     } catch (e) {
-      // eslint-disable-next-line
       console.log(e);
       traceGumEvent({ status: 'exception', error: e.message });
       return this.test.reportFatal('getUserMedia failed with exception: ' + e.message);
