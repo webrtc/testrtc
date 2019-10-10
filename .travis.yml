@@ -6,6 +6,7 @@ node_js:
 addons:
   apt:
     packages:
+      - libpulse0=1:4.0-0ubuntu11
       - pulseaudio
 
 env:
