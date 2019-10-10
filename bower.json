@@ -1,5 +1,5 @@
 {
-  "name": "TestRTC",
+  "name": "testrtc",
   "description": "Collection of tests and tools to help diagnose WebRTC systems.",
   "private": true,
   "repository": {
