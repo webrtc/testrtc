@@ -64,6 +64,7 @@ module.exports = function(grunt) {
     eslint: {
       target: ['src/js/*.js']
     },
+
     htmllint: {
       all: [
         // TODO: fix rule and enable html linting.
