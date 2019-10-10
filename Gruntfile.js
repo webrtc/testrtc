@@ -64,18 +64,15 @@ module.exports = function(grunt) {
     eslint: {
       target: ['src/js/*.js']
     },
-
-    htmlhint: {
-      html1: {
-        src: [
-          // TODO: fix rule and enable html linting.
-          '!**/*.html',
-          '!browsers/**',
-          '!components/**',
-          '!node_modules/**',
-          '!out/**'
-        ]
-      }
+    htmllint: {
+      all: [
+        // TODO: fix rule and enable html linting.
+        '!**/*.html',
+        '!browsers/**',
+        '!components/**',
+        '!node_modules/**',
+        '!out/**'
+      ]
     },
 
     uglify: {
@@ -102,7 +99,7 @@ module.exports = function(grunt) {
 
   // enable plugins
   grunt.loadNpmTasks('grunt-contrib-csslint');
-  grunt.loadNpmTasks('grunt-htmlhint');
+  grunt.loadNpmTasks('grunt-html');
   grunt.loadNpmTasks('grunt-eslint');
   grunt.loadNpmTasks('grunt-vulcanize');
   grunt.loadNpmTasks('grunt-contrib-copy');
@@ -110,7 +107,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-uglify');
 
   // Set default tasks to run when grunt is called without parameters
-  grunt.registerTask('default', ['csslint', 'htmlhint', 'eslint']);
+  grunt.registerTask('default', ['csslint', 'htmllint', 'eslint']);
 
   // Cleans out/ folder, copies files in place and vulcanizes index.html to out/.
   grunt.registerTask('build', ['clean', 'copy', 'vulcanize', 'uglify']);
