@@ -1,4 +1,4 @@
-dist: trusty
+dist: xenial
 language: node_js
 node_js:
   - 10
@@ -6,8 +6,6 @@ node_js:
 addons:
   apt:
     packages:
-      - libpulse0=1:4.0-0ubuntu11
-      - libpulse0=1:4.0-0ubuntu11.1
       - pulseaudio
 
 env:
