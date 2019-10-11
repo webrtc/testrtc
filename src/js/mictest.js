@@ -50,6 +50,7 @@ function MicTest(test) {
 
 MicTest.prototype = {
   run: function() {
+    // Resuming as per new spec after user interaction.
     this.audioContext.resume().then(function() {
       doGetUserMedia(this.constraints, this.gotStream.bind(this))
     }.bind(this))
