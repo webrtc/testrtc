@@ -23,6 +23,9 @@ test('Run TestRTC', function(t) {
     t.pass('Page loaded');
   })
   .then(function() {
+    // Have to wait for the getUserMedia polymer element has been shown before clicking on the start button.
+    driver.wait(webdriver.until.elementIsVisible(driver.findElement(
+      webdriver.By.className('x-scope iron-overlay-backdrop-0 opened'))))
     return driver.wait(webdriver.until.elementLocated(
         webdriver.By.css('#startButton')), 10000,
         'Failed to locate startButton');
