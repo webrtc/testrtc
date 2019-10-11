@@ -6,16 +6,7 @@
  *  tree.
  */
 'use strict';
-/* exported addExplicitTest, addTest, audioContext */
-
-// Global WebAudio context that can be shared by all tests.
-// There is a very finite number of WebAudio contexts.
-try {
-  window.AudioContext = window.AudioContext || window.webkitAudioContext;
-  var audioContext = new AudioContext();
-} catch (e) {
-  console.log('Failed to instantiate an audio context, error: ' + e);
-}
+/* exported addExplicitTest, addTest */
 
 var enumeratedTestSuites = [];
 var enumeratedTestFilters = [];

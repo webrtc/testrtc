@@ -44,16 +44,20 @@ function MicTest(test) {
   for (var i = 0; i < this.inputChannelCount; ++i) {
     this.collectedAudio[i] = [];
   }
+  var AudioContext = window.AudioContext || window.webkitAudioContext;
+  this.audioContext = new AudioContext();
 }
 
 MicTest.prototype = {
   run: function() {
-    if (typeof audioContext === 'undefined') {
-      this.test.reportError('WebAudio is not supported, test cannot run.');
+    // Resuming as per new spec after user interaction.
+    this.audioContext.resume().then(function() {
+      doGetUserMedia(this.constraints, this.gotStream.bind(this))
+    }.bind(this))
+    .catch(function(error) {
+      this.test.reportError('WebAudio run failure: ' + error);
       this.test.done();
-    } else {
-      doGetUserMedia(this.constraints, this.gotStream.bind(this));
-    }
+    }.bind(this));
   },
 
   gotStream: function(stream) {
@@ -77,11 +81,11 @@ MicTest.prototype = {
   },
 
   createAudioBuffer: function() {
-    this.audioSource = audioContext.createMediaStreamSource(this.stream);
-    this.scriptNode = audioContext.createScriptProcessor(this.bufferSize,
+    this.audioSource = this.audioContext.createMediaStreamSource(this.stream);
+    this.scriptNode = this.audioContext.createScriptProcessor(this.bufferSize,
         this.inputChannelCount, this.outputChannelCount);
     this.audioSource.connect(this.scriptNode);
-    this.scriptNode.connect(audioContext.destination);
+    this.scriptNode.connect(this.audioContext.destination);
     this.scriptNode.onaudioprocess = this.collectAudio.bind(this);
     this.stopCollectingAudio = setTimeoutWithProgressBar(
         this.onStopCollectingAudio.bind(this), 5000);
@@ -124,7 +128,7 @@ MicTest.prototype = {
   onStopCollectingAudio: function() {
     this.stream.getAudioTracks()[0].stop();
     this.audioSource.disconnect(this.scriptNode);
-    this.scriptNode.disconnect(audioContext.destination);
+    this.scriptNode.disconnect(this.audioContext.destination);
     this.analyzeAudio(this.collectedAudio);
     this.test.done();
   },
