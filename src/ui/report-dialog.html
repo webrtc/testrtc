@@ -22,35 +22,16 @@
         <paper-textarea id="textArea" label="Describe your issue here" value="{{description}}"></paper-textarea>
       </div>
       <h3>Note</h3>
-      <p>The report will contain information about your device including network information that is useful to troubleshoot the issue.
-      Uploading the report creates a URL that is available for a period of 90 days.</p>
+      <p>The report will contain information about your device including network information 
+        that is useful to troubleshoot the issue.</p>
+      <p>You may want to share it with someone investigating your issue, or create a new
+        issue in the <a href="//github.com/webrtc/testrtc/issues/new">testrtc</a> project.</p>
       <div class="buttons">
         <paper-button on-tap="download" disabled$="{{submitting}}">Download report</paper-button>
-        <paper-button on-tap="upload" disabled$="{{submitting}}">Upload report</paper-button>
         <paper-button dialog-dismiss disabled$="{{submitting}}">Cancel</paper-button>
       </div>
     </paper-dialog>
 
-    <!-- Report upload success -->
-    <paper-dialog id="success">
-      <h2>Success</h2>
-      <p>The <a href="{{reportUrl}}">link</a> to the report is now available.</p>
-      <p>You may want to share it with someone investigating your issue, or create a new
-      issue in the <a href="//github.com/webrtc/testrtc/issues/new">testrtc</a> project.</p>
-      <div class="buttons">
-        <paper-button dialog-confirm on-tap="closeSuccess">Close</paper-button>
-      </div>
-    </paper-dialog>
-
-    <!-- Report failure success -->
-    <paper-dialog id="failure">
-      <h2>Failure</h2>
-      <p>Upload failed with error: <span>{{reportError}}</span></p>
-      <p>Check your network connection</p>
-      <div class="buttons">
-        <paper-button dialog-dismiss on-tap="closeFail">Close</paper-button>
-      </div>
-    </paper-dialog>
   </template>
   <script>
     Polymer({
@@ -68,62 +49,6 @@
         link.setAttribute('download', 'testrtc-' + (new Date().toJSON()) + '.log');
         link.click();
       },
-
-      upload: function() {
-        this.submitting = true;
-
-        // Get unique upload url from server.
-        var xhr = new XMLHttpRequest();
-        xhr.open('HEAD', '/report/new', true);
-        xhr.addEventListener('load', this.onGetUploadUrl_.bind(this), false);
-        xhr.send(null);
-      },
-
-      onGetUploadUrl_: function(response) {
-        if (response.currentTarget.status === 200) {
-          // Create report file.
-          var fileName = 'testrtc-' + new Date().toJSON() + '.log';
-          var fileContent = report.generate(this.description);
-          var blob = new Blob([fileContent], {type: 'text/plain'});
-          var formData = new FormData();
-          formData.append(fileName, blob, fileName);
-
-          // Upload the report file using the URL in the response-text header.
-          var url = response.currentTarget.getResponseHeader('response-text');
-          var xhr = new XMLHttpRequest();
-          xhr.open('POST', url, true);
-          xhr.setRequestHeader('X-File-Name', fileName);
-          xhr.addEventListener('load', this.onUploadFile_.bind(this), false);
-          xhr.send(formData);
-        } else {
-          this.reportError = response.currentTarget.status;
-          report.traceEventInstant('log-error', {error: this.reportError});
-          this.$.failure.open();
-        }
-      },
-
-      onUploadFile_: function(response) {
-        if (response.currentTarget.status === 200) {
-          this.reportUrl =
-              response.currentTarget.getResponseHeader('response-text');
-          report.traceEventInstant('log-uploaded', {url: this.reportUrl});
-          this.$.success.open();
-        } else {
-          this.reportError = response.currentTarget.status;
-          report.traceEventInstant('log-error', {error: this.reportError});
-          this.$.failure.open();
-        }
-      },
-
-      closeFail: function() {
-        this.submitting = false;
-      },
-
-      closeSuccess: function() {
-        this.submitting = false;
-        this.description = "";
-        this.$.mainDialog.close();
-      }
     });
   </script>
 </dom-module>
