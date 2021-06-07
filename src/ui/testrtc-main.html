@@ -206,13 +206,8 @@
       },
 
       appendSourceId: function(id, type, constraints) {
-        if (constraints[type] === true) {
-          constraints[type] = {optional: [{sourceId: id}]};
-        } else if (typeof constraints[type] === 'object') {
-          if (typeof constraints[type].optional === 'undefined') {
-            constraints[type].optional = [];
-          }
-          constraints[type].optional.push({sourceId: id});
+        if (constraints[type] !== false && typeof(constraints[type]) !== 'undefined') {
+          constraints[type]['deviceId'] =  id;
         }
       },
 
