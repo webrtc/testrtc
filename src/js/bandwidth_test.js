@@ -146,10 +146,8 @@ function VideoBandwidthTest(test) {
   this.constraints = {
     audio: false,
     video: {
-      optional: [
-        {minWidth: 1280},
-        {minHeight: 720}
-      ]
+      minWidth: 1280,
+      minHeight: 720
     }
   };
 }
