@@ -64,35 +64,43 @@ CamResolutionsTest.prototype = {
     var constraints = {
       audio: false,
       video: {
-        width: {exact: resolution[0]},
-        height: {exact: resolution[1]}
+        deviceId: this.$.videoSource.value,
+        width: { exact: resolution[0] },
+        height: { exact: resolution[1] }
       }
     };
-    navigator.mediaDevices.getUserMedia(constraints)
-        .then(function(stream) {
-          // Do not check actual video frames when more than one resolution is
-          // provided.
-          if (this.resolutions.length > 1) {
-            this.test.reportSuccess('Supported: ' + resolution[0] + 'x' +
-            resolution[1]);
-            stream.getTracks().forEach(function(track) {
-              track.stop();
-            });
-            this.maybeContinueGetUserMedia();
-          } else {
-            this.collectAndAnalyzeStats_(stream, resolution);
-          }
-        }.bind(this))
-        .catch(function(error) {
-          if (this.resolutions.length > 1) {
-            this.test.reportInfo(resolution[0] + 'x' + resolution[1] +
-            ' not supported');
-          } else {
-            this.test.reportError('getUserMedia failed with error: ' +
-                error.name);
-          }
+    var cam;
+    var traceGumEvent = report.traceEventAsync('getusermedia');
+    try {
+      traceGumEvent({ status: 'pending', constraints: constraints });
+      navigator.mediaDevices.getUserMedia(constraints).then(function(stream) {
+        // Do not check actual video frames when more than one resolution is
+        // provided.
+        cam = this.test.getDeviceName_(stream.getVideoTracks());
+        traceGumEvent({ status: 'success', camera: cam });
+        if(this.resolutions.length > 1) {
+          this.test.reportSuccess('Supported: ' + resolution[0] + 'x' + resolution[1]);
+          stream.getTracks().forEach(function(track) {
+            track.stop();
+          });
           this.maybeContinueGetUserMedia();
-        }.bind(this));
+        } else {
+          this.collectAndAnalyzeStats_(stream, resolution);
+        }
+      }.bind(this)).catch(function(error) {
+        traceGumEvent({ status: 'fail', error: error });
+        if(this.resolutions.length > 1) {
+          this.test.reportInfo(resolution[0] + 'x' + resolution[1] + ' not supported');
+        } else {
+          this.test.reportError('getUserMedia failed with error: ' + error.name);
+        }
+        this.maybeContinueGetUserMedia();
+      }.bind(this));
+    } catch (e) {
+      console.log(e);
+      traceGumEvent({ status: 'exception', error: e.message });
+      return this.test.reportFatal('getUserMedia failed with exception: ' + e.message);
+    }
   },
 
   maybeContinueGetUserMedia: function() {
