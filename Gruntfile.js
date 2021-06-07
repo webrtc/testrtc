@@ -11,9 +11,7 @@ module.exports = function(grunt) {
         cwd: '.',
         files: [
           {src: [
-            'cron.yaml',
             'app.yaml',
-            'testrtc.py',
             'node_modules/webrtc-adapter/out/adapter.js',
             'src/images/**'
             ],
