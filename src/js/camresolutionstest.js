@@ -68,32 +68,31 @@ CamResolutionsTest.prototype = {
         height: {exact: resolution[1]}
       }
     };
-   
-    doGetUserMedia(constraints, onSuccess.bind(this), onFail.bind(this));
-    
-    function onSuccess(stream) {
-      if (this.resolutions.length > 1) {
-	    this.test.reportSuccess('Supported: ' + resolution[0] + 'x' +
-		  resolution[1]);
-	      stream.getTracks().forEach(function(track) {
-		track.stop();
-	      });
-	      this.maybeContinueGetUserMedia();
-	    } else {
-	      this.collectAndAnalyzeStats_(stream, resolution);
-	    }
-    };
-	  
-    function onFail(error) {
-      if (this.resolutions.length > 1) {
-        this.test.reportInfo(resolution[0] + 'x' + resolution[1] +
+    navigator.mediaDevices.getUserMedia(constraints)
+        .then(function(stream) {
+          // Do not check actual video frames when more than one resolution is
+          // provided.
+          if (this.resolutions.length > 1) {
+            this.test.reportSuccess('Supported: ' + resolution[0] + 'x' +
+            resolution[1]);
+            stream.getTracks().forEach(function(track) {
+              track.stop();
+            });
+            this.maybeContinueGetUserMedia();
+          } else {
+            this.collectAndAnalyzeStats_(stream, resolution);
+          }
+        }.bind(this))
+        .catch(function(error) {
+          if (this.resolutions.length > 1) {
+            this.test.reportInfo(resolution[0] + 'x' + resolution[1] +
             ' not supported');
-      } else {
-        this.test.reportError('getUserMedia failed with error: ' + 
-            error);
-      }
-      this.maybeContinueGetUserMedia();
-    };
+          } else {
+            this.test.reportError('getUserMedia failed with error: ' +
+                error.name);
+          }
+          this.maybeContinueGetUserMedia();
+        }.bind(this));
   },
 
   maybeContinueGetUserMedia: function() {
@@ -103,31 +102,6 @@ CamResolutionsTest.prototype = {
     }
     this.startGetUserMedia(this.resolutions[this.currentResolution++]);
   },
-   
-  onSuccess: function(stream) {
-    if (this.resolutions.length > 1) {
-      this.test.reportSuccess('Supported: ' + resolution[0] + 'x' +
-          resolution[1]);
-      stream.getTracks().forEach(function(track) {
-        track.stop();
-      });
-      this.maybeContinueGetUserMedia();
-    } else {
-      this.collectAndAnalyzeStats_(stream, resolution);
-    }
-  },
-  
-  onFail: function(error) {
-    if (this.resolutions.length > 1) {
-      this.test.reportInfo(resolution[0] + 'x' + resolution[1] +
-          ' not supported');
-    } else {
-      this.test.reportError('getUserMedia failed with error: ' + 
-          error.name);
-    }
-    this.maybeContinueGetUserMedia();
-  },
-        
 
   collectAndAnalyzeStats_: function(stream, resolution) {
     var tracks = stream.getVideoTracks();

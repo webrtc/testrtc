@@ -21,7 +21,9 @@ function MicTest(test) {
   // Turning off echoCancellation constraint enables stereo input.
   this.constraints = {
     audio: {
-     echoCancellation: false 
+      optional: [
+        {echoCancellation: false}
+      ]
     }
   };
 
