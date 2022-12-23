@@ -244,11 +244,30 @@ Call.asyncCreateTurnConfig = function(onSuccess, onError) {
     report.traceEventInstant('turn-config', config);
     setTimeout(onSuccess.bind(null, config), 0);
   } else {
-    Call.fetchTurnConfig_(function(response) {
-      var config = {'iceServers': response.iceServers};
+    var xhr = new XMLHttpRequest();
+    function onResult() {
+      if (xhr.readyState !== 4) {
+        return;
+      }
+
+      if (xhr.status !== 200) {
+        onError('TURN request failed');
+        return;
+      }
+
+      var data = JSON.parse(xhr.response).turnCredentials;
+      iceServer = {
+        'username': data.username || '',
+        'credential': data.credential || '',
+        'urls': data.urls || '',
+      };
+      config = {'iceServers': [iceServer]};
       report.traceEventInstant('turn-config', config);
-      onSuccess(config);
-    }, onError);
+      setTimeout(onSuccess.bind(null, config), 0);
+    }
+    xhr.onreadystatechange = onResult;
+    xhr.open('GET', 'http://localhost:9001/api/external/testrtc/turn-credentials/', true);
+    xhr.send();
   }
 };
 
