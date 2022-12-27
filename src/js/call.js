@@ -244,30 +244,11 @@ Call.asyncCreateTurnConfig = function(onSuccess, onError) {
     report.traceEventInstant('turn-config', config);
     setTimeout(onSuccess.bind(null, config), 0);
   } else {
-    var xhr = new XMLHttpRequest();
-    function onResult() {
-      if (xhr.readyState !== 4) {
-        return;
-      }
-
-      if (xhr.status !== 200) {
-        onError('TURN request failed');
-        return;
-      }
-
-      var data = JSON.parse(xhr.response).turnCredentials;
-      iceServer = {
-        'username': data.username || '',
-        'credential': data.credential || '',
-        'urls': data.urls || '',
-      };
-      config = {'iceServers': [iceServer]};
+    Call.fetchTurnConfig_(function(response) {
+      var config = {'iceServers': response.iceServers};
       report.traceEventInstant('turn-config', config);
-      setTimeout(onSuccess.bind(null, config), 0);
-    }
-    xhr.onreadystatechange = onResult;
-    xhr.open('GET', 'http://localhost:9001/api/external/testrtc/turn-credentials/', true);
-    xhr.send();
+      onSuccess(config);
+    }, onError);
   }
 };
 
@@ -318,7 +299,13 @@ Call.fetchTurnConfig_ = function(onSuccess, onError) {
       return;
     }
 
-    var response = JSON.parse(xhr.responseText);
+    var data = JSON.parse(xhr.response).turnCredentials;
+    var iceServer = {
+      'username': data.username || '',
+      'credential': data.credential || '',
+      'urls': [data.urls] || '',
+    };
+    var response = {iceServers: [iceServer]};
     Call.cachedIceServers_ = response;
     Call.getCachedIceCredentials_ = function() {
       // Make a new object due to tests modifying the original response object.
@@ -332,6 +319,6 @@ Call.fetchTurnConfig_ = function(onSuccess, onError) {
   xhr.onreadystatechange = onResult;
   // API_KEY and TURN_URL is replaced with API_KEY environment variable via
   // Gruntfile.js during build time by uglifyJS.
-  xhr.open('POST', TURN_URL + API_KEY, true);
+  xhr.open('GET', 'https://api.dev.test.pod.ai/api/external/testrtc/turn-credentials/', true);
   xhr.send();
 };
