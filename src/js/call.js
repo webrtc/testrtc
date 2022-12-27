@@ -319,6 +319,6 @@ Call.fetchTurnConfig_ = function(onSuccess, onError) {
   xhr.onreadystatechange = onResult;
   // API_KEY and TURN_URL is replaced with API_KEY environment variable via
   // Gruntfile.js during build time by uglifyJS.
-  xhr.open('GET', 'https://api.dev.test.pod.ai/api/external/testrtc/turn-credentials/', true);
+  xhr.open('GET', TURN_URL, true);
   xhr.send();
 };
