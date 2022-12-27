@@ -299,7 +299,13 @@ Call.fetchTurnConfig_ = function(onSuccess, onError) {
       return;
     }
 
-    var response = JSON.parse(xhr.responseText);
+    var data = JSON.parse(xhr.response).turnCredentials;
+    var iceServer = {
+      'username': data.username || '',
+      'credential': data.credential || '',
+      'urls': [data.urls] || '',
+    };
+    var response = {iceServers: [iceServer]};
     Call.cachedIceServers_ = response;
     Call.getCachedIceCredentials_ = function() {
       // Make a new object due to tests modifying the original response object.
@@ -313,6 +319,6 @@ Call.fetchTurnConfig_ = function(onSuccess, onError) {
   xhr.onreadystatechange = onResult;
   // API_KEY and TURN_URL is replaced with API_KEY environment variable via
   // Gruntfile.js during build time by uglifyJS.
-  xhr.open('POST', TURN_URL + API_KEY, true);
+  xhr.open('GET', TURN_URL, true);
   xhr.send();
 };
