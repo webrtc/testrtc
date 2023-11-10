@@ -29,6 +29,6 @@
     "webrtc-utilities": "^1.0.10"
   },
   "dependencies": {
-    "chromedriver": "^91.0.0"
+    "chromedriver": "^119.0.1"
   }
 }
