@@ -34,6 +34,15 @@ addTest(
       runConnectivityTest.start();
     });
 
+// Set up a websocket connection between two peers and verify data can be
+// transmitted and received
+addTest(
+    testSuiteName.CONNECTIVITY, testCaseName.WEBSOCKETCONNECTIVITY,
+    function(test) {
+      var runConnectivityTest = new RunConnectivityTest(test, Call.isWebSocket);
+      runConnectivityTest.checkWSConnection();
+    });
+
 function RunConnectivityTest(test, iceCandidateFilter) {
   this.test = test;
   this.iceCandidateFilter = iceCandidateFilter;
@@ -92,6 +101,39 @@ RunConnectivityTest.prototype = {
     }.bind(this));
     this.call.establishConnection();
     this.timeout = setTimeout(this.hangup.bind(this, 'Timed out'), 5000);
+  },
+
+  // It creates a websocket connection with backnd server and check that data
+  // can be sent and received successfully
+  checkWSConnection: function(config) {
+    this.call = new Call(config, this.test);
+    this.call.setIceCandidateFilter(this.iceCandidateFilter);
+
+    this.timeout = setTimeout(
+        this.hangup.bind(this,'Websocket connection timed out'),
+        5000
+    );
+    var socket = new WebSocket(WEBSOCKET_URL);
+
+    socket.addEventListener('open', function() {
+      socket.send('ping');
+    });
+
+    socket.addEventListener('error', function() {
+      socket.close();
+      this.hangup('Web socket connection error');
+    }.bind(this));
+
+    socket.addEventListener('message', function(event) {
+      var receivedMessage = event.data;
+      if (receivedMessage === 'pong') {
+        this.test.reportSuccess('Data transmitted successfully');
+      } else {
+        this.test.reportError('Invalid data received.');
+      }
+      socket.close();
+      this.hangup();
+    }.bind(this));
   },
 
   findParsedCandidateOfSpecifiedType: function(candidateTypeMethod) {

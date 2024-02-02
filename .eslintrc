@@ -65,6 +65,7 @@
     "arrayMax": true,
     "arrayMin": true,
     "TURN_URL": true,
+    "WEBSOCKET_URL": true,
     "Ssim": true,
     "VideoFrameChecker": true,
     "StatisticsAggregate": true,

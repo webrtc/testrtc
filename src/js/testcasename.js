@@ -31,7 +31,8 @@ function TestCaseNames() {
     VIDEOBANDWIDTH: 'Video bandwidth',
     RELAYCONNECTIVITY: 'Relay connectivity',
     REFLEXIVECONNECTIVITY: 'Reflexive connectivity',
-    HOSTCONNECTIVITY: 'Host connectivity'
+    HOSTCONNECTIVITY: 'Host connectivity',
+    WEBSOCKETCONNECTIVITY: 'Web socket connectivity'
   };
   return this.testCases;
 }

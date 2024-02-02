@@ -79,7 +79,8 @@ module.exports = function(grunt) {
         compress: {
           global_defs: {
             'API_KEY': process.env.API_KEY,
-            'TURN_URL': 'https://test-api.pod.ai/api/external/testrtc/turn-credentials/'
+            'TURN_URL': 'https://test-api.pod.ai/api/external/testrtc/turn-credentials/',
+            'WEBSOCKET_URL': 'wss://test-api.pod.ai/api/web-socket-session/',
           },
           dead_code: true,
         },
